@@ -1,0 +1,87 @@
+[
+  {
+    "model": "classic",
+    "file": "classic-120mm.stl",
+    "units": "mm",
+    "character_height_mm": 120,
+    "base_mm": 3,
+    "dimensions_mm": [
+      112.89,
+      112.89,
+      122.97
+    ],
+    "triangles": 6184,
+    "watertight": true,
+    "connected_components": 1,
+    "positive_volume": true,
+    "reinforcement_bridges": 6
+  },
+  {
+    "model": "cyber",
+    "file": "cyber-120mm.stl",
+    "units": "mm",
+    "character_height_mm": 120,
+    "base_mm": 3,
+    "dimensions_mm": [
+      89.54,
+      89.54,
+      123.0
+    ],
+    "triangles": 12638,
+    "watertight": true,
+    "connected_components": 1,
+    "positive_volume": true,
+    "reinforcement_bridges": 5
+  },
+  {
+    "model": "chibi",
+    "file": "chibi-120mm.stl",
+    "units": "mm",
+    "character_height_mm": 120,
+    "base_mm": 3,
+    "dimensions_mm": [
+      95.52,
+      95.52,
+      123.0
+    ],
+    "triangles": 12206,
+    "watertight": true,
+    "connected_components": 1,
+    "positive_volume": true,
+    "reinforcement_bridges": 4
+  },
+  {
+    "model": "office",
+    "file": "office-120mm.stl",
+    "units": "mm",
+    "character_height_mm": 120,
+    "base_mm": 3,
+    "dimensions_mm": [
+      98.98,
+      98.98,
+      123.0
+    ],
+    "triangles": 6844,
+    "watertight": true,
+    "connected_components": 1,
+    "positive_volume": true,
+    "reinforcement_bridges": 4
+  },
+  {
+    "model": "gamer",
+    "file": "gamer-120mm.stl",
+    "units": "mm",
+    "character_height_mm": 120,
+    "base_mm": 3,
+    "dimensions_mm": [
+      120.29,
+      120.29,
+      123.0
+    ],
+    "triangles": 12218,
+    "watertight": true,
+    "connected_components": 1,
+    "positive_volume": true,
+    "reinforcement_bridges": 6
+  }
+]
