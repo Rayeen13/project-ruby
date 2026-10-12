@@ -1,0 +1,15 @@
+GEM COMPANIONS — STATIC FIGURINE EXPORTS
+
+Each STL is a single connected, watertight solid in MILLIMETRES. The character is approximately 120 mm tall plus a 3 mm base. See validation.json for exact dimensions and mesh checks. STL itself does not encode units: select mm in your slicer.
+
+These are static display figurines, not movable joints, electronics housings, or functional robot kits. Animation rigs remain in the app source. Screen eyes become raised physical shapes. Screen animations and gem colours do not exist in STL: paint after printing or use your slicer's colour workflow.
+
+Short reinforcement bridges connect floating decorative parts. Open headphone tube ends are capped. Boolean-joined meshes are simplified within 0.1 mm to avoid tiny STL rounding defects. Final exported files were reloaded and verified watertight, consistently oriented, positive-volume and one connected component.
+
+Place the flat circular base on the build plate. The wide shoulders, hands, head overhangs and Models requiring precision repair accessories will need supports. Choose supports, layer height and material for your printer. The Models requiring precision repair base is about 120 mm wide; check your build area. Scaling down makes details more fragile. Small fingers and antennae need careful support removal.
+
+No physical test print, slicer simulation, strength certification or comprehensive minimum-wall-thickness analysis has been performed. Mesh validation does not guarantee success on every printer. Review the sliced layers before starting a print.
+
+Future model additions must include a matching static export and pass the same mesh checks. Colours use the same geometry, so there is one STL per body design.
+
+Compact-arm Models requiring precision repair export: where tangent decorative surfaces prevent stable STL welding, the solid is remeshed at 0.5 mm voxel resolution. Fine details may be softened. Inspect this STL in your slicer before printing.
