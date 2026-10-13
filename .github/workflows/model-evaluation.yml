@@ -1,0 +1,29 @@
+name: Offline model evaluation
+on:
+  pull_request:
+    paths: ['models/evaluation.json', 'scripts/evaluate-model.py', '.github/workflows/model-evaluation.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: model-evaluation-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  benchmark:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Benchmark licensed candidate on CPU
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/evaluate-model.py
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: ruby-offline-model-evaluation
+          path: model-evaluation-results/
+          if-no-files-found: error
+          retention-days: 30

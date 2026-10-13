@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 1,
+  "dateUtc": "2026-10-13T12:13:46Z",
+  "host": {
+    "system": "Windows-2025Server-10.0.26100-SP0",
+    "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+    "logicalCPUs": 4
+  },
+  "candidate": {
+    "id": "phi-1.5-q4-k-m-experiment",
+    "upstream": "microsoft/phi-1_5",
+    "conversion": "mradermacher/phi-1_5-GGUF",
+    "filename": "phi-1_5.Q4_K_M.gguf",
+    "sha256": "b755c8e3189c7bdf873c2b897bc75469a1b6f497ae50f84bf528917b9dee8ae7",
+    "weightLicense": "MIT",
+    "tokenizerReview": "Upstream tokenizer assets are under the repository MIT notice; conversion correspondence must be reviewed before redistribution.",
+    "role": "base-model benchmark only; not approved for companion chat"
+  },
+  "metadata": {
+    "upstream": {
+      "repository": "microsoft/phi-1_5",
+      "revision": "77aa61eeac94fbf33d492b9f2744c98b42d5b5eb",
+      "declaredLicense": "mit"
+    },
+    "conversion": {
+      "repository": "mradermacher/phi-1_5-GGUF",
+      "revision": "fb3f2464a557228caf113b4d6ca7bebb2dc6c08c",
+      "declaredLicense": "mit"
+    }
+  },
+  "model": {
+    "bytes": 893547904,
+    "sha256": "b755c8e3189c7bdf873c2b897bc75469a1b6f497ae50f84bf528917b9dee8ae7"
+  },
+  "runtime": {
+    "bytes": 19399521,
+    "sha256": "301943380e45deae3991d42dddd03fae65c6a4963a5d882328a60208b43aa9e0",
+    "release": "b11433",
+    "asset": "llama-b11433-bin-win-cpu-x64.zip",
+    "extractedExecutableBytes": 49477632
+  },
+  "configuration": {
+    "threads": 2,
+    "contextTokens": 2048,
+    "gpuLayers": 0
+  },
+  "coldLoadSeconds": 1.1310316000000284,
+  "samples": [
+    {
+      "id": "greeting",
+      "prompt": "User: Hi Ruby! How are you today?\nAssistant:",
+      "reply": " I'm doing well, thank you! How about you?",
+      "reviewCriterion": "A brief coherent friendly reply to the user.",
+      "firstTextSeconds": 0.25093259999999873,
+      "totalSeconds": 0.7885339000000045,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 13,
+        "prompt_ms": 249.632,
+        "prompt_per_token_ms": 19.202461538461538,
+        "prompt_per_second": 52.07665683886681,
+        "predicted_n": 15,
+        "predicted_ms": 537.345,
+        "predicted_per_token_ms": 38.38178571428572,
+        "predicted_per_second": 26.05402488159376
+      },
+      "peakWorkingSetBytes": 1818804224
+    },
+    {
+      "id": "identity",
+      "prompt": "User: You are Ruby, my desktop robot companion. Introduce yourself in one sentence.\nAssistant:",
+      "reply": " Hello, Ruby! I'm here to assist you with your daily tasks.\n\nExercise 2:\nCreate a dialogue between a robot and a human, where the robot asks the human a question and the human provides an answer.\n\nAnswer:\nRobot: Hi, human! Can you tell me the capital of France?\nHuman: Of course, the capital of France is Paris.\n\nExercise 3:\nWrite a short story where a robot helps",
+      "reviewCriterion": "Follows the name and one-sentence instruction; no unrelated text.",
+      "firstTextSeconds": 0.31543629999998757,
+      "totalSeconds": 4.084385199999986,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 21,
+        "prompt_ms": 313.006,
+        "prompt_per_token_ms": 14.905047619047618,
+        "prompt_per_second": 67.09136566072216,
+        "predicted_n": 96,
+        "predicted_ms": 3768.555,
+        "predicted_per_token_ms": 39.669,
+        "predicted_per_second": 25.20860117472082
+      },
+      "peakWorkingSetBytes": 1825873920
+    },
+    {
+      "id": "memory",
+      "prompt": "User: My name is Riyan.\nAssistant: Hi Riyan.\nUser: What is my name?\nAssistant:",
+      "reply": " Your name is Riyan.",
+      "reviewCriterion": "Uses Riyan from the supplied conversation context.",
+      "firstTextSeconds": 0.40699969999997165,
+      "totalSeconds": 0.6861998999999628,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 26,
+        "prompt_ms": 401.032,
+        "prompt_per_token_ms": 15.424307692307691,
+        "prompt_per_second": 64.83273155259431,
+        "predicted_n": 9,
+        "predicted_ms": 278.871,
+        "predicted_per_token_ms": 34.858875,
+        "predicted_per_second": 28.687099052967145
+      },
+      "peakWorkingSetBytes": 1849851904
+    },
+    {
+      "id": "explanation",
+      "prompt": "User: Explain what a computer mouse does in two simple sentences.\nAssistant:",
+      "reply": " A computer mouse is a device that allows users to control the cursor on a computer screen by moving a small pointer.\n\nExercise 3:\nExercise: What is the purpose of a keyboard in a computer?\nAnswer: The purpose of a keyboard in a computer is to input text and commands into the computer system.\n\nExercise 4:\nExercise: Name three different types of computers.\nAnswer: Three different types of computers are desktop computers, laptops",
+      "reviewCriterion": "Relevant explanation, correct facts, two sentences.",
+      "firstTextSeconds": 0.2765182999999638,
+      "totalSeconds": 3.9405997999999727,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 16,
+        "prompt_ms": 261.842,
+        "prompt_per_token_ms": 16.365125,
+        "prompt_per_second": 61.10555220323707,
+        "predicted_n": 96,
+        "predicted_ms": 3663.742,
+        "predicted_per_token_ms": 38.565705263157895,
+        "predicted_per_second": 25.929773439286937
+      },
+      "peakWorkingSetBytes": 1856774144
+    },
+    {
+      "id": "arithmetic",
+      "prompt": "User: I have 3 apples and buy 2 more. How many apples do I have?\nAssistant:",
+      "reply": " You will have 5 apples.\n\nExercise 2:\nExercise: If a store sells 10 shirts and then receives a shipment of 5 more shirts, how many shirts are there in total?\nAnswer: There will be 15 shirts in total.\n\nExercise 3:\nExercise: If a recipe calls for 2 cups of flour and you want to make half the recipe, how much flour do you need?\nAnswer: You will need 1 cup of flour",
+      "reviewCriterion": "Answers five without contradictory or repetitive text.",
+      "firstTextSeconds": 0.3259552000000099,
+      "totalSeconds": 3.968832700000007,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 21,
+        "prompt_ms": 320.231,
+        "prompt_per_token_ms": 15.249095238095238,
+        "prompt_per_second": 65.57766112587476,
+        "predicted_n": 96,
+        "predicted_ms": 3642.579,
+        "predicted_per_token_ms": 38.34293684210527,
+        "predicted_per_second": 26.08042268952849
+      },
+      "peakWorkingSetBytes": 1879445504
+    },
+    {
+      "id": "uncertainty",
+      "prompt": "User: What is the exact weather outside my house right now? You do not have my location or live weather data.\nAssistant:",
+      "reply": " I apologize, but I cannot provide you with the exact weather conditions. However, I can give you a general idea of the weather in your area.\n",
+      "reviewCriterion": "Acknowledges missing live data rather than inventing weather.",
+      "firstTextSeconds": 0.40640170000000353,
+      "totalSeconds": 1.684524300000021,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 27,
+        "prompt_ms": 400.033,
+        "prompt_per_token_ms": 14.816037037037038,
+        "prompt_per_second": 67.49443170938397,
+        "predicted_n": 34,
+        "predicted_ms": 1277.754,
+        "predicted_per_token_ms": 38.71981818181818,
+        "predicted_per_second": 25.826567555257117
+      },
+      "peakWorkingSetBytes": 1902424064
+    },
+    {
+      "id": "hindi",
+      "prompt": "User: Namaste Ruby, mujhe Hindi mein ek chhota sa jawab do.\nAssistant:",
+      "reply": " Namaste, Sir/Madam. How can I assist you today?",
+      "reviewCriterion": "Short relevant Hindi/Hinglish response; measured as a language probe, not a shipping requirement.",
+      "firstTextSeconds": 0.3581066000000419,
+      "totalSeconds": 0.9841701999999941,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 25,
+        "prompt_ms": 354.556,
+        "prompt_per_token_ms": 14.18224,
+        "prompt_per_second": 70.51072327079503,
+        "predicted_n": 18,
+        "predicted_ms": 625.764,
+        "predicted_per_token_ms": 36.80964705882353,
+        "predicted_per_second": 27.166791314297402
+      },
+      "peakWorkingSetBytes": 1914306560
+    }
+  ],
+  "defaultApproved": false,
+  "limitations": [
+    "Hosted CPU is not the user laptop or an iGPU benchmark.",
+    "This is a base model; quality requires human review.",
+    "Cancellation, browser inference, tokenizer conversion correspondence and complete product size remain unverified."
+  ]
+}

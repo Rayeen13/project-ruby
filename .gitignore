@@ -9,3 +9,5 @@ __pycache__/
 
 src-tauri/target/
 src-tauri/gen/
+model-eval-cache/
+model-evaluation-results/

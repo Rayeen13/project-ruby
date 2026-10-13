@@ -53,3 +53,7 @@ See [docs/WINDOWS.md](docs/WINDOWS.md) for the Tauri host, local build instructi
 ## Touch and model menu
 
 Tap a robot's head/body for a pat or boop, or its hand for a greeting. Right-click the mesh or long-press on touch screens to open the interaction bubble. Menu actions include wave, dance, sleep, wake and stop. Dragging turns the model in the direction of the drag; taps and long-presses are distinct from orbit/pinch gestures. Native Windows CI exercises these actions in the packaged WebView and captures screenshots.
+
+## Offline model gate
+
+See [docs/OFFLINE_MODELS.md](docs/OFFLINE_MODELS.md) for the MIT weight/tokenizer audit, Windows CPU benchmark and raw quality probes. The first Phi-1.5 quantized baseline ran successfully but is rejected as the default because it fails basic conversational instruction checks. No model is bundled or presented as a working Ruby chat provider yet. Use the Offline model evaluation workflow for repeatable measured candidates; November voice remains a required milestone.
