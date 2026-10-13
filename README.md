@@ -39,3 +39,9 @@ See [HAND_RIG.md](HAND_RIG.md) for jointed hands and gestures. Four finger chain
 `npm run build` creates versioned browser assets after source changes. `npm test` checks host-injected character contracts, capability-aware gesture routing and 1,920 sampled waving poses, head clearance, gesture joints/handedness, eye dimensions and controller attachment. `npm run check:assets` verifies the built browser module graph. GitHub Actions runs these checks on Windows/Linux with Node 22/24. Visual review is still required on real WebGL devices. The software SVG renderer is a compatibility fallback.
 
 `npm run export:print` regenerates static STL figurines. Python dependencies: trimesh, manifold3d, numpy, scipy and scikit-image. Exported files are reloaded and checked for a connected watertight solid with positive volume. They contain no mechanical joints; inspect thin fingers and supports in your slicer.
+
+## Lab preferences and gesture previews
+
+Select either hand and preview relaxed/open/point/grip/fist poses. Classic disables hand controls; Gamer reserves its right hand for the controller. Wave temporarily overrides the right pose, then the chosen pose resumes.
+
+The lab saves model, gem, expression, hand poses, camera, tracking and animation preferences on the current browser/device. Reset preferences restores defaults; Reset view affects only the camera. Export preferences downloads a versioned JSON snapshot. Storage errors do not prevent using the lab, and corrupt/unsupported saved values fall back to valid defaults. Preferences are not shared chat memory or an account sync service.
