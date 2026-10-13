@@ -33,7 +33,7 @@ Reported metrics: cold process/model readiness, client-observed first non-empty 
 
 - Model weights MIT; upstream licence/copyright retained; tokenizer and conversion correspondence reviewed.
 - Coherent short conversation, usable instruction following and context recall; no invented claim of using internet or controlling the PC.
-- Measured default application + runtime + model pack within 1,000,000,000 bytes. Peak RAM is a separate measurement.
+- Ruby application package within 1,000,000,000 bytes. Prefer a compact default model tier. Optional, explicitly selected external model packs may be larger and must display their separate download/disk/RAM requirements; see the updated packaging decision below. Peak RAM is a separate measurement.
 - Acceptable load/first-token/throughput on a modest CPU laptop and the user's Ryzen 7 machine. A hosted runner is not a laptop/iGPU benchmark.
 - Cancellation, unload, offline restart and corrupted-download recovery verified before app integration is called ready.
 
@@ -114,3 +114,25 @@ Source: successful [Windows run 38432260383](https://github.com/Rayeen13/project
 The smaller model used substantially less RAM in this experiment, but the Phi and Shunya runs were allocated different CPU families. The throughput difference is not a controlled same-hardware comparison or an estimate of laptop/iGPU performance. The licence notice remains missing (`licenseNoticePresent: false`), and redistribution remains explicitly unapproved. No weights were added to the repository or app.
 
 Conversion revision: `ba7b28eea72b5d1e3eed2484289fe5ae495bb9d7`. The benchmark artifact contains the publisher declaration, tokenizer files, server properties and runtime notice, but no model weights or runtime binaries. Complete product packaging, real laptop performance, cancellation and offline restart remain future gates after a viable candidate is found.
+
+## Updated packaging decision and external tools
+
+On 13 October, Riyan approved **optional larger model packs outside Ruby's application package**. The app still targets less than 1 GB; under-1 GB models remain preferred where useful. The existing 1 GB download cap applies to this small-candidate experiment, not to every future optional backend. No external download is automatic, no default model is approved, and the MIT-only model-weight requirement remains unchanged.
+
+Assuming the suggested names refer to JustVugg/colibri and bradAGI/soup:
+
+| Tool/model | Role and source findings | Ruby decision |
+| --- | --- | --- |
+| Colibri | A runtime for large models that streams routed experts from disk; a small engine does not mean small weights. Its current catalogue lists chat downloads of 19 GB and larger, and its code is Apache-2.0. The local gateway exposes an OpenAI-compatible endpoint. | Candidate for an optional, separately installed local backend. Review the actual selected model's weight licence and hardware requirements; no model installed or benchmarked here. |
+| Soup | A fine-tuning tool with serving/export support and an OpenAI-compatible server; code is Apache-2.0. Layer streaming reduces GPU residency during training rather than converting a large base into a tiny standalone model. | Candidate for the later assistant studio/training workflow or a separately running local server. It does not itself provide an approved MIT chat model. |
+| OpenAI gpt-oss-20b | Official model card reports a 12.8 GiB checkpoint; Apache-2.0 weights. | Excluded under the unchanged MIT-only weight requirement, independently of optional-pack size allowance. |
+| GPT-2 small | A smaller GPT-family text-generation model; the Hugging Face model card declares MIT. It is a pretrained base model rather than a ready companion chat model. | No default approval. A specific chat fine-tune and its weight/tokenizer provenance would need evaluation; do not assume the GPT name guarantees useful conversation. |
+
+Keep inference providers pluggable behind one conversation interface. A future localhost adapter can support separately installed servers without placing training frameworks or large weights inside Ruby's application. Browser access needs a configured reachable service and explicit connection handling; web/mobile offline inference is a separate runtime requirement. This is an architecture decision, not a claim that chat or either backend is integrated today.
+
+Sources:
+- https://github.com/JustVugg/colibri
+- https://github.com/JustVugg/colibri/blob/main/LICENSE
+- https://github.com/bradAGI/soup
+- https://deploymentsafety.openai.com/gpt-oss/a2
+- https://huggingface.co/openai-community/gpt2
