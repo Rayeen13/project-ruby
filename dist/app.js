@@ -46,7 +46,7 @@ function interactionAction(action){
  if(action==='dizzy'){grab.dizzyUntil=performance.now()+3800;document.querySelector('#animate').checked=true;say('Woah… give me a moment!');return;}
  if(action==='stop'){grab.clear();grabVisual.reset(ruby);stage.classList.remove('grabbing');document.querySelector('#companion-bubble').hidden=true;greeting.clear();reaction.clear();modelMenu.close();danceUntil=0;turning=false;document.querySelector('#animate').checked=false;document.querySelector('#follow').checked=false;saveSettings();}
 }
-const modelMenu=mountModelMenu({stage,menu:document.querySelector('#model-menu'),pick,act:interactionAction,capabilities:()=>selection.capabilities});
+const modelMenu=mountModelMenu({stage,menu:document.querySelector('#model-menu'),pick,act:interactionAction,capabilities:()=>selection.capabilities,onOpen:()=>{clearTimeout(holdTimer);grab.end();stage.classList.remove('grabbing');if(tap)tap.menu=true;drag=false;}});
 let pinchDistance=0;const pinchLength=()=>{const [a,b]=[...touches.values()];return Math.hypot(a.x-b.x,a.y-b.y);};
 stage.addEventListener('pointerdown',e=>{
  if(e.button!==0)return;

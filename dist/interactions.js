@@ -33,11 +33,12 @@ export class TouchReaction {
  }
 }
 
-export function mountModelMenu({stage,menu,pick,act,capabilities}){
+export function mountModelMenu({stage,menu,pick,act,capabilities,onOpen=()=>{}}){
  let restoreFocus;
  const close=()=>{menu.hidden=true;restoreFocus?.focus({preventScroll:true});restoreFocus=null;};
  const open=(x,y)=>{
   if(!pick(x,y))return false;
+  onOpen();
   restoreFocus=document.activeElement;menu.hidden=false;
   menu.querySelector('[data-interaction="wave"]').disabled=!capabilities().wave;
   const host=stage.parentElement.getBoundingClientRect(),bounds=menu.getBoundingClientRect();

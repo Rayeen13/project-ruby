@@ -166,7 +166,10 @@ pub fn desktop_move(window: WebviewWindow, dx: f64, dy: f64) -> Result<(), Strin
     let position = window.outer_position().map_err(|error| error.to_string())?;
     let mut x = position.x.saturating_add((dx * scale).round() as i32);
     let mut y = position.y.saturating_add((dy * scale).round() as i32);
-    if let Some(monitor) = window.current_monitor().map_err(|error| error.to_string())? {
+    if let Some(monitor) = window
+        .current_monitor()
+        .map_err(|error| error.to_string())?
+    {
         let size = window.outer_size().map_err(|error| error.to_string())?;
         let origin = monitor.position();
         x = x.clamp(
