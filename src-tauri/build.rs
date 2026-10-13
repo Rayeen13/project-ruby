@@ -3,6 +3,7 @@ fn main() {
         tauri_build::AppManifest::new().commands(&[
             "desktop_action",
             "desktop_status",
+            "desktop_move",
             "desktop_smoke_report",
             "desktop_smoke_checkpoint",
         ]),

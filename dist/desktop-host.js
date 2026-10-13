@@ -4,6 +4,10 @@ export function createDesktopHost(tauri) {
  const allowed=new Set(['float','lab','drag','click_through','hide','stop']);
  return Object.freeze({
   status:()=>tauri.core.invoke('desktop_status'),
+  move:(dx,dy)=>{
+   if(!Number.isFinite(dx)||!Number.isFinite(dy)||Math.abs(dx)>240||Math.abs(dy)>240)return Promise.reject(new Error('Invalid companion movement'));
+   return tauri.core.invoke('desktop_move',{dx,dy});
+  },
   action:action=>{
    if(!allowed.has(action))return Promise.reject(new Error('Unsupported desktop action'));
    return tauri.core.invoke('desktop_action',{action});
@@ -20,8 +24,10 @@ export async function mountDesktopControls({host,document,onMode,onStop}) {
  const apply=status=>{
   const floating=status.floating===true;
   document.documentElement.classList.toggle('floating',floating);
-  toolbar.hidden=!floating;
+  toolbar.hidden=true;
+  for(const menu of document.querySelectorAll('.native-menu'))menu.hidden=!floating;
   document.querySelector('#click-through').disabled=!status.shortcutReady||!floating;
+  document.querySelector('#menu-click-through').disabled=!status.shortcutReady||!floating;
   const text=status.clickThrough?'Click-through · Ctrl+Alt+Shift+R restores interaction':status.stopped?'Stopped · interaction restored':status.shortcutReady?'Ctrl+Alt+Shift+R stops animation and restores interaction':'Recovery shortcut unavailable · click-through disabled';
   statusText.textContent=text;floatStatus.textContent=text;
   onMode(floating);

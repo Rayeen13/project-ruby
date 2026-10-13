@@ -33,11 +33,12 @@ export class TouchReaction {
  }
 }
 
-export function mountModelMenu({stage,menu,pick,act,capabilities}){
+export function mountModelMenu({stage,menu,pick,act,capabilities,onOpen=()=>{}}){
  let restoreFocus;
  const close=()=>{menu.hidden=true;restoreFocus?.focus({preventScroll:true});restoreFocus=null;};
  const open=(x,y)=>{
   if(!pick(x,y))return false;
+  onOpen();
   restoreFocus=document.activeElement;menu.hidden=false;
   menu.querySelector('[data-interaction="wave"]').disabled=!capabilities().wave;
   const host=stage.parentElement.getBoundingClientRect(),bounds=menu.getBoundingClientRect();
@@ -53,6 +54,7 @@ export function mountModelMenu({stage,menu,pick,act,capabilities}){
   }
  });
  for(const button of menu.querySelectorAll('[data-interaction]'))button.addEventListener('click',()=>{act(button.dataset.interaction);close();});
+ for(const button of menu.querySelectorAll('[data-desktop-action]'))button.addEventListener('click',close);
  document.addEventListener('pointerdown',event=>{if(!menu.hidden&&!menu.contains(event.target))close();});
  menu.addEventListener('keydown',event=>{
   if(event.key==='Escape'){event.preventDefault();close();return;}

@@ -57,3 +57,7 @@ Tap a robot's head/body for a pat or boop, or its hand for a greeting. Right-cli
 ## Offline model gate
 
 See [docs/OFFLINE_MODELS.md](docs/OFFLINE_MODELS.md) for the commercial-use weight/tokenizer audit, Windows CPU benchmark and raw quality probes. Phi-1.5 and Shunya baselines were rejected for basic conversation failures. Official Qwen2.5-0.5B Q4_K_M (491 MB, Apache-2.0) with an explicit Ruby persona is now an English chat integration candidate; Hindi and strict introduction formatting remain limited. No model is bundled or presented as a working Ruby chat provider yet. Use the Offline model evaluation workflow for repeatable measured candidates; November voice remains a required milestone.
+
+### Companion collection and carry reactions
+
+Browse the five bodies by category, choose gem colour and a saved personality for each body, then hold/drag the mesh to carry it. A deliberate shake produces spiral eyes and orbiting stars, with automatic recovery. Floating Windows mode is frameless and toolbar-free; right-click the companion or use its tray for desktop controls. Background or Alt-drag still orbits the lab view. See [the interaction guide](docs/COMPANION_INTERACTIONS.md). Chat and voice are not connected by this visual interaction update.

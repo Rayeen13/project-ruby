@@ -32,7 +32,7 @@ fn desktop_smoke_report(
 #[tauri::command]
 fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
     if !std::env::args().any(|arg| arg == "--native-smoke-test")
-        || !["menu", "float", "recovery"].contains(&phase.as_str())
+        || !["menu", "float", "carry", "dizzy", "recovery"].contains(&phase.as_str())
     {
         return Err("Smoke checkpoints are disabled outside the test launch".into());
     }
@@ -46,6 +46,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             desktop::desktop_action,
             desktop::desktop_status,
+            desktop::desktop_move,
             desktop_smoke_report,
             desktop_smoke_checkpoint
         ])
