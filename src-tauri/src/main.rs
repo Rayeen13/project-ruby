@@ -12,12 +12,19 @@ use tauri::{
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
 #[tauri::command]
-fn desktop_smoke_report(app: tauri::AppHandle, passed: bool, details: String) -> Result<(), String> {
+fn desktop_smoke_report(
+    app: tauri::AppHandle,
+    passed: bool,
+    details: String,
+) -> Result<(), String> {
     if !std::env::args().any(|arg| arg == "--native-smoke-test") {
         return Err("Smoke reporting is disabled outside the test launch".into());
     }
-    std::fs::write("ruby-native-smoke.txt", format!("passed={passed}\n{details}\n"))
-        .map_err(|error| error.to_string())?;
+    std::fs::write(
+        "ruby-native-smoke.txt",
+        format!("passed={passed}\n{details}\n"),
+    )
+    .map_err(|error| error.to_string())?;
     app.exit(if passed { 0 } else { 1 });
     Ok(())
 }
