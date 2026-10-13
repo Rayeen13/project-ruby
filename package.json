@@ -5,7 +5,7 @@
   "license": "GPL-2.0-only",
   "scripts": {
     "start": "python3 -m http.server 8080 --directory dist",
-    "test": "node tests/character-contract.mjs && node tests/wave-clearance.mjs",
+    "test": "node tests/preferences.mjs && node tests/character-contract.mjs && node tests/wave-clearance.mjs",
     "export:print": "node scripts/export-print-input.mjs && python3 scripts/build-prints.py",
     "build": "node scripts/build-site-assets.mjs",
     "check:assets": "node scripts/check-site-assets.mjs"
