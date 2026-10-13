@@ -105,6 +105,8 @@ def main():
     if len(assets) != 1 or not assets[0].get('digest', '').startswith('sha256:'):
         raise RuntimeError('A unique official CPU runtime and published SHA256 are required')
     asset = assets[0]
+    if asset['digest'] != 'sha256:' + runtime['sha256']:
+        raise RuntimeError('Official runtime digest differs from the audited configuration')
     archive = CACHE / 'runtime.zip'
     runtime_info = download(asset['browser_download_url'], archive, asset['digest'].split(':')[1], 200_000_000)
     runtime_dir = CACHE / 'runtime'
@@ -117,6 +119,8 @@ def main():
     executables = list(runtime_dir.rglob('llama-server.exe'))
     if len(executables) != 1:
         raise RuntimeError('Runtime archive must contain one llama-server.exe')
+    with urllib.request.urlopen(f"https://raw.githubusercontent.com/{runtime['repository']}/{runtime['release']}/LICENSE", timeout=60) as response:
+        (OUT / 'runtime-LICENSE').write_bytes(response.read(100_000))
     native_bytes = sum(file.stat().st_size for file in runtime_dir.rglob('*') if file.is_file() and file.suffix in ['.exe', '.dll'])
     base = 'http://127.0.0.1:18889'
     results = []
