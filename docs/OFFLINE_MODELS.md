@@ -12,6 +12,13 @@ No default model is approved. The app remains an interactive companion viewer wh
 | Microsoft Phi-1.5 | MIT upstream weights/repository notice. The publisher explicitly says it is not instruction fine-tuned and is primarily English. | Experimental CPU baseline only. |
 | Phi-1.5 Q4_K_M conversion | mradermacher identifies the original Microsoft model and MIT; the individual file is approximately 894 MB. | Benchmark the checksum-pinned bytes. No default approval or redistribution approval implied. |
 
+## November voice candidates — audit only
+
+- Original OpenAI Whisper tiny: OpenAI explicitly licences both original code and model weights under MIT. Some Hugging Face Whisper conversion cards instead display Apache-2.0; retain the exact original-source notice and checkpoint provenance rather than assuming all distributions have identical metadata. Whisper tiny is a 39M-parameter ASR candidate. Actual converted pack bytes, tokenization assets, CPU latency and language accuracy remain November checks.
+- MyShell MeloTTS English: the publisher's weight repository declares MIT and the MeloTTS library has an MIT notice. The card's library licence sentence alone is not proof of every auxiliary checkpoint, pronunciation dictionary or bundled runtime. Keep it as a voice-output candidate pending the complete asset/licence audit, size measurement and speech tests. No speech pack is approved or bundled.
+
+Voice remains mandatory in November; these are candidates rather than a claim that microphone capture or spoken replies already work.
+
 ## Reproducible Windows experiment
 
 `models/evaluation.json` records the exact GGUF SHA256, upstream and conversion repositories, runtime release, two CPU threads, zero GPU layers, 2,048 context tokens and 96 reply tokens. The job resolves and records immutable repository revisions before downloading, checks both repositories' declared MIT metadata and the actual upstream MIT notice, archives available tokenizer evidence, and verifies the model hash. The official llama.cpp CPU release is selected from its tag's API response and checked against the published asset SHA256.
@@ -44,5 +51,31 @@ The 100 MB model tier remains a preferred goal, not a guarantee of useful conver
 - https://huggingface.co/mradermacher/phi-1_5-GGUF
 - https://huggingface.co/mradermacher/phi-1_5-GGUF/blob/main/phi-1_5.Q4_K_M.gguf
 - https://github.com/ggml-org/llama.cpp/releases/tag/b11433
+- https://github.com/openai/whisper
+- https://huggingface.co/openai/whisper-tiny
+- https://huggingface.co/myshell-ai/MeloTTS-English
+- https://github.com/myshell-ai/MeloTTS/blob/main/LICENSE
 
-Measured results and quality decisions must be added after inspecting the actual Windows artifact.
+## Measured result and decision
+
+Source: successful [Windows run 38395605277](https://github.com/Rayeen13/project-ruby/actions/runs/38395605277), benchmarked code commit `ee55358550f634d0514ee9f8539faf214c261ca1`. Full raw samples and exact revisions are in [benchmarks/windows-phi-1.5-20261013.json](benchmarks/windows-phi-1.5-20261013.json).
+
+| Measurement | Observed value |
+| --- | --- |
+| Quantized weight file | 893,547,904 bytes (893.55 MB) |
+| Runtime ZIP | 19,399,521 bytes |
+| Extracted runtime EXE/DLL total | 49,477,632 bytes; includes tools not all needed by a future pack |
+| Initial model/server readiness | 1.13 seconds after launch; downloads excluded |
+| First streamed non-empty text | 0.251–0.407 seconds across seven short prompts |
+| Server generation throughput | 25.2–28.7 tokens/sec |
+| Peak process working set | 1,914,306,560 bytes (1.91 GB / 1.78 GiB) |
+| Host/configuration | Windows Server 2025, AMD family 25 model 1, 4 logical CPUs; 2 inference threads, CPU only, 2,048 context tokens |
+
+The small weights alone do not imply small RAM usage. The model plus all extracted runtime executables total 943,025,536 bytes before the application and other assets. This is a component count, not a validated complete-product size or an installer size.
+
+**Decision: reject as Ruby's default conversation model.** The greeting and supplied-name recall probes were coherent. Identity and two-sentence explanation probes drifted into unrelated workbook exercises; the identity reply also addressed the user as Ruby. Arithmetic started correctly but continued with unrelated exercises. The uncertainty probe admitted it could not supply exact weather but then offered area-specific information without a location. The Hindi/Hinglish request received an English reply. These are seven deterministic smoke probes, not a general accuracy benchmark, but the basic instruction failures are sufficient to withhold default approval.
+
+Upstream revision: `77aa61eeac94fbf33d492b9f2744c98b42d5b5eb`. GGUF conversion revision: `fb3f2464a557228caf113b4d6ca7bebb2dc6c08c`. Model/runtime hashes matched the configured pins. The artifact preserves actual upstream tokenizer files and the Microsoft and llama.cpp MIT notices. Cancellation, download recovery, tokenizer conversion correspondence, actual laptop/iGPU measurements and full product packaging remain open.
+
+The first experiment attempt correctly stopped before inference because semantic release `v0.6.0` only provided a nightly-tag pointer rather than the CPU asset. The corrected configuration pins actual build `b11433` and its published CPU-archive SHA256. No failed run was used as a performance result.
+

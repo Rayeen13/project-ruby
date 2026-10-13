@@ -107,7 +107,7 @@ Keep static figurine export separate from articulated printable hardware. Existi
 5. Add semantic animation events and smooth greeting start/end transitions.
 6. Test WebGL on desktop and mobile and record actual rendering/performance limits.
 
-Then begin model licensing/quality benchmarks for v0.3. Kurumi work continues independently.
+Model licensing/quality evaluation has started for v0.3: the first checksum-pinned Phi-1.5 Windows CPU baseline ran successfully but failed conversation quality. No default is approved. See docs/OFFLINE_MODELS.md for the measured results and remaining gates. Kurumi work continues independently.
 
 ## Repository practices
 
