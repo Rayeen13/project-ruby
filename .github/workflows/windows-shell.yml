@@ -1,0 +1,52 @@
+name: Windows desktop build
+on:
+  pull_request:
+    paths: ['src-tauri/**', 'dist/**', 'package.json', 'package-lock.json', '.github/workflows/windows-shell.yml']
+  push:
+    branches: [main, 'release/**']
+    paths: ['src-tauri/**', 'dist/**', 'package.json', 'package-lock.json', '.github/workflows/windows-shell.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  windows:
+    name: Windows x64 installer
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Prepare Rust
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt
+          rustup default stable
+      - run: npm ci
+      - run: npm test
+      - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
+      - run: npm run desktop:build -- --bundles nsis
+      - run: npm run check:assets
+      - name: Prepare preview download
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path desktop-artifact -Force | Out-Null
+          Copy-Item src-tauri/target/release/bundle/nsis/*.exe desktop-artifact/
+          Copy-Item src-tauri/target/release/project-ruby.exe desktop-artifact/
+          Copy-Item LICENSE desktop-artifact/
+          Copy-Item dist/vendor/THREE-LICENSE.txt desktop-artifact/
+          Copy-Item docs/WINDOWS.md desktop-artifact/README.md
+          Copy-Item src-tauri/Cargo.lock desktop-artifact/
+          Get-ChildItem desktop-artifact/*.exe | Get-FileHash -Algorithm SHA256 | Format-List | Out-File desktop-artifact/SHA256.txt
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: project-ruby-windows-x64-preview
+          path: desktop-artifact/
+          if-no-files-found: error
+          retention-days: 30

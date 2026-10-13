@@ -1,0 +1,48 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Project Ruby",
+  "version": "0.2.0",
+  "identifier": "io.github.rayeen13.projectruby",
+  "build": {
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Project Ruby \u2014 Character Lab",
+        "width": 1120,
+        "height": 820,
+        "minWidth": 640,
+        "minHeight": 600,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "capabilities": [
+        "desktop-viewer"
+      ],
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src ipc: http://ipc.localhost; object-src 'none'; frame-src 'none'; base-uri 'self'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "category": "Entertainment",
+    "shortDescription": "Expressive desktop companion prototype",
+    "longDescription": "Project Ruby character lab: five robot bodies, gem profiles, jointed gestures and saved preferences. AI and OS automation are future work.",
+    "licenseFile": "../LICENSE",
+    "icon": [
+      "icons/icon.png",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
+  }
+}
