@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
-use tauri::{AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, PhysicalSize, WebviewWindow};
+use tauri::{
+    AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, PhysicalSize, WebviewWindow,
+};
 
 pub const RECOVERY_SHORTCUT: &str = "Ctrl+Alt+Shift+R";
 
@@ -45,9 +47,13 @@ pub fn set_shortcut_ready(app: &AppHandle, ready: bool) {
 }
 
 pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, String> {
-    let window = app.get_webview_window("main").ok_or("Viewer is unavailable")?;
+    let window = app
+        .get_webview_window("main")
+        .ok_or("Viewer is unavailable")?;
     let state_handle = app.state::<Mutex<DesktopState>>();
-    let mut state = state_handle.lock().map_err(|_| "Desktop state is unavailable")?;
+    let mut state = state_handle
+        .lock()
+        .map_err(|_| "Desktop state is unavailable")?;
     if matches!(action, DesktopAction::ClickThrough) && !state.status.allows_click_through() {
         return Err("Click-through requires floating mode and the recovery shortcut".into());
     }
@@ -129,7 +135,10 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
 }
 
 #[tauri::command]
-pub fn desktop_action(window: WebviewWindow, action: DesktopAction) -> Result<DesktopStatus, String> {
+pub fn desktop_action(
+    window: WebviewWindow,
+    action: DesktopAction,
+) -> Result<DesktopStatus, String> {
     if window.label() != "main" {
         return Err("Only the local viewer can control its companion window".into());
     }
@@ -142,7 +151,9 @@ pub fn desktop_status(window: WebviewWindow) -> Result<DesktopStatus, String> {
         return Err("Only the local viewer can read desktop state".into());
     }
     let state_handle = window.state::<Mutex<DesktopState>>();
-    let state = state_handle.lock().map_err(|_| "Desktop state is unavailable")?;
+    let state = state_handle
+        .lock()
+        .map_err(|_| "Desktop state is unavailable")?;
     Ok(state.status)
 }
 

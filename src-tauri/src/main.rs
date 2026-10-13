@@ -4,18 +4,31 @@ mod desktop;
 
 use desktop::{perform, set_shortcut_ready, DesktopAction, DesktopState, RECOVERY_SHORTCUT};
 use std::sync::Mutex;
-use tauri::{menu::{Menu, MenuItem}, tray::TrayIconBuilder, Manager, WindowEvent};
+use tauri::{
+    menu::{Menu, MenuItem},
+    tray::TrayIconBuilder,
+    Manager, WindowEvent,
+};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(DesktopState::default()))
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![desktop::desktop_action, desktop::desktop_status])
+        .invoke_handler(tauri::generate_handler![
+            desktop::desktop_action,
+            desktop::desktop_status
+        ])
         .setup(|app| {
             let float = MenuItem::with_id(app, "float", "Float companion", true, None::<&str>)?;
             let lab = MenuItem::with_id(app, "lab", "Open character lab", true, None::<&str>)?;
-            let stop = MenuItem::with_id(app, "stop", "Stop / restore interaction", true, None::<&str>)?;
+            let stop = MenuItem::with_id(
+                app,
+                "stop",
+                "Stop / restore interaction",
+                true,
+                None::<&str>,
+            )?;
             let hide = MenuItem::with_id(app, "hide", "Hide companion", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit Project Ruby", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&float, &lab, &stop, &hide, &quit])?;
@@ -28,7 +41,10 @@ fn main() {
                         "lab" => DesktopAction::Lab,
                         "stop" => DesktopAction::Stop,
                         "hide" => DesktopAction::Hide,
-                        "quit" => { app.exit(0); return; }
+                        "quit" => {
+                            app.exit(0);
+                            return;
+                        }
                         _ => return,
                     };
                     if let Err(error) = perform(app, action) {
@@ -39,13 +55,15 @@ fn main() {
                 tray = tray.icon(icon.clone());
             }
             tray.build(app)?;
-            let registered = app.global_shortcut().on_shortcut(RECOVERY_SHORTCUT, |app, _, event| {
-                if event.state == ShortcutState::Pressed {
-                    if let Err(error) = perform(app, DesktopAction::Stop) {
-                        eprintln!("Project Ruby recovery failed: {error}");
-                    }
-                }
-            });
+            let registered =
+                app.global_shortcut()
+                    .on_shortcut(RECOVERY_SHORTCUT, |app, _, event| {
+                        if event.state == ShortcutState::Pressed {
+                            if let Err(error) = perform(app, DesktopAction::Stop) {
+                                eprintln!("Project Ruby recovery failed: {error}");
+                            }
+                        }
+                    });
             set_shortcut_ready(app.handle(), registered.is_ok());
             if let Err(error) = registered {
                 eprintln!("Recovery shortcut unavailable; click-through disabled: {error}");
