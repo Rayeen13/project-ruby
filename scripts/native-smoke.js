@@ -7,6 +7,17 @@
   const stage=document.querySelector('#stage'),menu=document.querySelector('#model-menu'),select=document.querySelector('#model-select');
   assert(stage.dataset.ready==='true','Actual WebView renderer initialized');
   document.querySelector('#reset-preferences').click();await wait(300);
+  assert(document.querySelectorAll('#model-gallery [data-model]').length===5,'Gallery lists all five accepted bodies');
+  document.querySelector('[data-category="Professional"]').click();
+  assert([...document.querySelectorAll('#model-gallery [data-model]')].filter(card=>!card.hidden).length===1,'Category filter shows matching bodies');
+  document.querySelector('[data-model="office"]').click();
+  assert(select.value==='office'&&document.querySelector('#personality-select').value==='focused','Gallery changes body and its default personality');
+  const persona=document.querySelector('#personality-select');persona.value='calm';persona.dispatchEvent(new Event('change'));await wait(300);
+  document.querySelector('[data-category="All"]').click();document.querySelector('[data-model="gamer"]').click();
+  assert(persona.value==='playful','Another body keeps its own personality');document.querySelector('[data-model="office"]').click();
+  assert(persona.value==='calm','Personality override survives body switching');
+  assert(JSON.parse(localStorage.getItem('project-ruby.preferences.v1')).personalities.office==='calm','Personality override is saved');
+
   for(const id of ['classic','cyber','chibi','office','gamer']){
    select.value=id;select.dispatchEvent(new Event('change',{bubbles:true}));await wait(300);
    const r=stage.getBoundingClientRect(),x=r.left+r.width*.5,y=r.top+r.height*.45;
@@ -24,10 +35,10 @@
    assert(document.querySelector('#status').textContent.includes('Curious'),id+': wake action works');
   }
   const r=stage.getBoundingClientRect(),x=r.left+r.width*.5,y=r.top+r.height*.45;
-  stage.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerId:71,clientX:x,clientY:y}));
+  stage.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerId:71,altKey:true,clientX:x,clientY:y}));
   window.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerId:71,clientX:x+40,clientY:y}));
   stage.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,button:0,pointerId:71,clientX:x+40,clientY:y}));await wait(250);
-  assert(Number.parseInt(document.querySelector('#degrees').textContent)<0,'Right drag uses corrected orbit direction');
+  assert(Number.parseInt(document.querySelector('#degrees').textContent)<0,'Alt-drag retains corrected orbit direction');
   document.querySelector('#reset').click();await wait(200);
   stage.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:r.left+5,clientY:r.top+5,button:2}));
   assert(menu.hidden,'Empty background never opens model menu');
@@ -39,7 +50,16 @@
   document.querySelector('#animate').checked=true;document.querySelector('#follow').checked=true;
   await window.__TAURI__.core.invoke('desktop_action',{action:'float'});await wait(250);
   assert(document.documentElement.classList.contains('floating'),'Native floating mode renders compact UI');
+  assert(getComputedStyle(document.querySelector('#floating-toolbar')).display==='none','Floating companion has no permanent toolbar frame');
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'float'});await wait(2500);
+  await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'carry'});
+  for(let i=0;i<80&&stage.dataset.grabbed!=='true';i++)await wait(100);
+  assert(stage.dataset.grabbed==='true','Real Windows mouse hold grabs the model');
+  for(let i=0;i<80&&(stage.dataset.dizzy!=='true'||stage.dataset.grabbed==='true');i++)await wait(100);
+  assert(stage.dataset.dizzy==='true'&&stage.dataset.grabbed==='false','Real Windows carry/shake releases into dizzy reaction');
+  await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'dizzy'});await wait(2500);
+  for(let i=0;i<50&&stage.dataset.dizzy==='true';i++)await wait(100);
+  assert(stage.dataset.dizzy==='false','Dizzy reaction recovers automatically');
   await window.__TAURI__.core.invoke('desktop_action',{action:'click_through'});
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'recovery'});
   for(let i=0;i<100;i++){if((await window.__TAURI__.core.invoke('desktop_status')).stopped)break;await wait(100);}

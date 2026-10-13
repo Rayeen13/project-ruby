@@ -53,6 +53,7 @@ export function mountModelMenu({stage,menu,pick,act,capabilities}){
   }
  });
  for(const button of menu.querySelectorAll('[data-interaction]'))button.addEventListener('click',()=>{act(button.dataset.interaction);close();});
+ for(const button of menu.querySelectorAll('[data-desktop-action]'))button.addEventListener('click',close);
  document.addEventListener('pointerdown',event=>{if(!menu.hidden&&!menu.contains(event.target))close();});
  menu.addEventListener('keydown',event=>{
   if(event.key==='Escape'){event.preventDefault();close();return;}

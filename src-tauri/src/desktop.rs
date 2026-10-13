@@ -146,6 +146,48 @@ pub fn desktop_action(
 }
 
 #[tauri::command]
+pub fn desktop_move(window: WebviewWindow, dx: f64, dy: f64) -> Result<(), String> {
+    if window.label() != "main"
+        || !dx.is_finite()
+        || !dy.is_finite()
+        || dx.abs() > 240.0
+        || dy.abs() > 240.0
+    {
+        return Err("Invalid companion movement".into());
+    }
+    let state_handle = window.state::<Mutex<DesktopState>>();
+    let state = state_handle
+        .lock()
+        .map_err(|_| "Desktop state is unavailable")?;
+    if !state.status.floating || state.status.click_through {
+        return Err("Only the interactive floating companion may move".into());
+    }
+    let scale = window.scale_factor().map_err(|error| error.to_string())?;
+    let position = window.outer_position().map_err(|error| error.to_string())?;
+    let mut x = position.x.saturating_add((dx * scale).round() as i32);
+    let mut y = position.y.saturating_add((dy * scale).round() as i32);
+    if let Some(monitor) = window.current_monitor().map_err(|error| error.to_string())? {
+        let size = window.outer_size().map_err(|error| error.to_string())?;
+        let origin = monitor.position();
+        x = x.clamp(
+            origin.x,
+            origin
+                .x
+                .saturating_add(monitor.size().width.saturating_sub(size.width) as i32),
+        );
+        y = y.clamp(
+            origin.y,
+            origin
+                .y
+                .saturating_add(monitor.size().height.saturating_sub(size.height) as i32),
+        );
+    }
+    window
+        .set_position(PhysicalPosition::new(x, y))
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 pub fn desktop_status(window: WebviewWindow) -> Result<DesktopStatus, String> {
     if window.label() != "main" {
         return Err("Only the local viewer can read desktop state".into());
