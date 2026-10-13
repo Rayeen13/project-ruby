@@ -69,12 +69,12 @@ export class CyberCharacter {
  setAccent(color){this.accent.color.set(color);this.accent.emissive.set(color);this.light.color.set(color);this.eyeColor=color;}
  setProfile(id){this.profile=GEM_PROFILES.find(x=>x.id===id)||GEM_PROFILES[0];this.setAccent(this.profile.color);}
  setMood(mood){this.mood=mood;}
- update(t,{pointer={x:0,y:0},follow=true,dance=false,wave=false,dt=.016}={}){
+ update(t,{pointer={x:0,y:0},follow=true,dance=false,wave=false,waveWeight=wave?1:0,dt=.016}={}){
   const blend=1-Math.exp(-12*dt);this.gaze.lerp(new T.Vector2(follow?pointer.x:0,follow?pointer.y:0),blend);
   const gx=this.gaze.x,gy=this.gaze.y;this.body.position.y=Math.sin(t*2)*.018;
   this.head.rotation.set(-gy*.1,gx*.2,dance?Math.sin(t*7)*.15:Math.sin(t)*.018);
   this.feet.forEach((f,i)=>f.rotation.x=dance?Math.sin(t*7+i*Math.PI)*.27:0);
-  this.arms.forEach(({arm,forearm,hand,side:s})=>{arm.rotation.z=s*(.42+Math.sin(t*2)*.025);arm.rotation.x=Math.sin(t*2)*.045;forearm.rotation.x=0;hand.rotation.set(0,0,0);setHandPose(hand,this.handGestures[s]||'relaxed');if(dance){arm.rotation.z=s*(.7+Math.sin(t*7)*.45);forearm.rotation.x=0;}forearm.rotation.z=0;hand.rotation.x=0;if(wave&&s===-1)applyWavePose(this,{arm,forearm,hand},t);});
+  this.arms.forEach(({arm,forearm,hand,side:s})=>{arm.rotation.z=s*(.42+Math.sin(t*2)*.025);arm.rotation.x=Math.sin(t*2)*.045;forearm.rotation.x=0;hand.rotation.set(0,0,0);setHandPose(hand,this.handGestures[s]||'relaxed');if(dance){arm.rotation.z=s*(.7+Math.sin(t*7)*.45);forearm.rotation.x=0;}forearm.rotation.z=0;hand.rotation.x=0;if(waveWeight>0&&s===-1)applyWavePose(this,{arm,forearm,hand},t,{weight:waveWeight});});
   const c=this.ctx;c.clearRect(0,0,640,280);const color=this.eyeColor||'#ff5278',blink=Math.sin(t*1.3)>.993;
   c.shadowColor=color;c.shadowBlur=22;c.fillStyle=color;c.strokeStyle=color;
   for(const base of [205,435]){const x=base+gx*35,y=133-gy*23;c.beginPath();if(this.mood==='happy'&&!blink){c.lineWidth=15;c.lineCap='round';c.arc(x,y+20,50,Math.PI,Math.PI*2);c.stroke();}else{const h=blink?6:this.mood==='sleep'?12:this.mood==='listen'?146:130;c.roundRect(x-55,y-h/2,110,h,Math.min(30,h/2));c.fill();if(h>20){c.shadowBlur=0;c.fillStyle='#e4fbff';c.beginPath();c.roundRect(x-16,y-h/2+9,10,Math.max(6,h*.24),4);c.fill();c.fillStyle=color;c.shadowBlur=22;}}}
