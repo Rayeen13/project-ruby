@@ -79,3 +79,18 @@ Upstream revision: `77aa61eeac94fbf33d492b9f2744c98b42d5b5eb`. GGUF conversion r
 
 The first experiment attempt correctly stopped before inference because semantic release `v0.6.0` only provided a nightly-tag pointer rather than the CPU asset. The corrected configuration pins actual build `b11433` and its published CPU-archive SHA256. No failed run was used as a performance result.
 
+
+## Next instruction-tuned experiment: Shunya-0.5B
+
+The active experiment now evaluates `vivekmarakana/shunya-0.5b-instruct` at revision `80dbaa0866f6177240db4bc8b27e3f21313d9345`, using the checksum-pinned mradermacher Q4_K_M conversion (approximately 315 MB). The earlier Phi configuration is retained in `models/evaluations/phi-1.5.json`. No default has changed.
+
+Both the base and instruction-tuned publisher cards declare MIT, and the base is described as trained from scratch. However, the instruction-tuned repository does not include a full `LICENSE` copyright notice at this revision. The benchmark permits an explicit **publisher-declaration research-only** case, archives the declaration, and records `licenseNoticePresent: false` and `redistributionApproved: false`. This does not relax the product's licence/redistribution approval gates. Tokenizer provenance and training-data terms also remain review items. Do not substitute an invented copyright notice or bundle this candidate.
+
+The runner verifies that the GGUF chat template exactly matches the archived upstream `tokenizer_config.json`, applies it through llama.cpp's `/apply-template` endpoint, and retains the rendered prompt and input messages. This avoids measuring an instruction model using the old base-model `User:/Assistant:` format. The same seven probe intents, two threads, 2,048 context and 96-token reply cap are retained. Performance comparisons are approximate across separately allocated hosted runners.
+
+Sources:
+- https://huggingface.co/vivekmarakana/shunya-0.5b-instruct
+- https://huggingface.co/vivekmarakana/shunya-0.5b-base
+- https://huggingface.co/vivekmarakana/shunya-0.5b-instruct/tree/80dbaa0866f6177240db4bc8b27e3f21313d9345
+- https://huggingface.co/mradermacher/shunya-0.5b-instruct-GGUF/blob/main/shunya-0.5b-instruct.Q4_K_M.gguf
+- https://github.com/ggml-org/llama.cpp/blob/b11433/tools/server/README.md
