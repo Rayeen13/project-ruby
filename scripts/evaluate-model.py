@@ -172,7 +172,9 @@ def main():
             (OUT / 'server-properties.json').write_text(json.dumps(props, indent=2), encoding='utf-8')
             tokenizer_config = json.loads((OUT / 'upstream-tokenizer_config.json').read_text(encoding='utf-8'))
             if any('messages' in case for case in CONFIG['prompts']):
-                if props.get('chat_template') != tokenizer_config.get('chat_template'):
+                # The runtime strips trailing line endings when reading a template file.
+                # Keep all other whitespace and Jinja instructions significant.
+                if not tokenizer_config.get('chat_template') or props.get('chat_template', '').rstrip('\r\n') != tokenizer_config['chat_template'].rstrip('\r\n'):
                     raise RuntimeError('Server chat template differs from the archived upstream template')
             for case in CONFIG['prompts']:
                 prompt = request_json(base + '/apply-template', {'messages': case['messages']})['prompt'] if 'messages' in case else case['text']
@@ -201,6 +203,11 @@ def main():
                       'licenseNoticePresent': notice_present, 'redistributionApproved': False,
                       'runtime': {**runtime_info, 'release': runtime['release'], 'asset': asset['name'], 'extractedExecutableBytes': native_bytes},
                       'configuration': {'threads': CONFIG['threads'], 'contextTokens': CONFIG['contextTokens'], 'gpuLayers': 0},
+                      'chatTemplateVerification': {
+                          'source': candidate.get('chatTemplateSource', 'embedded'),
+                          'upstreamSha256': hashlib.sha256(tokenizer_config.get('chat_template', '').encode()).hexdigest(),
+                          'serverSha256': hashlib.sha256(props.get('chat_template', '').encode()).hexdigest(),
+                          'trailingLineEndingsIgnored': True},
                       'coldLoadSeconds': cold_load, 'samples': results, 'defaultApproved': False,
                       'limitations': ['Hosted CPU is not the user laptop or an iGPU benchmark.',
                                       'Quality requires human review; instruction tuning does not imply passing.',

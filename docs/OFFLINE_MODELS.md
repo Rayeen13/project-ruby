@@ -80,9 +80,9 @@ Upstream revision: `77aa61eeac94fbf33d492b9f2744c98b42d5b5eb`. GGUF conversion r
 The first experiment attempt correctly stopped before inference because semantic release `v0.6.0` only provided a nightly-tag pointer rather than the CPU asset. The corrected configuration pins actual build `b11433` and its published CPU-archive SHA256. No failed run was used as a performance result.
 
 
-## Next instruction-tuned experiment: Shunya-0.5B
+## Earlier instruction-tuned experiment: Shunya-0.5B
 
-The active experiment now evaluates `vivekmarakana/shunya-0.5b-instruct` at revision `80dbaa0866f6177240db4bc8b27e3f21313d9345`, using the checksum-pinned mradermacher Q4_K_M conversion (approximately 315 MB). The earlier Phi configuration is retained in `models/evaluations/phi-1.5.json`. No default has changed.
+The earlier Shunya experiment evaluated `vivekmarakana/shunya-0.5b-instruct` at revision `80dbaa0866f6177240db4bc8b27e3f21313d9345`, using the checksum-pinned mradermacher Q4_K_M conversion (approximately 315 MB). The earlier Phi configuration is retained in `models/evaluations/phi-1.5.json`. No default has changed.
 
 Both the base and instruction-tuned publisher cards declare MIT, and the base is described as trained from scratch. However, the instruction-tuned repository does not include a full `LICENSE` copyright notice at this revision. The benchmark permits an explicit **publisher-declaration research-only** case, archives the declaration, and records `licenseNoticePresent: false` and `redistributionApproved: false`. This does not relax the product's licence/redistribution approval gates. Tokenizer provenance and training-data terms also remain review items. Do not substitute an invented copyright notice or bundle this candidate.
 
@@ -117,7 +117,7 @@ Conversion revision: `ba7b28eea72b5d1e3eed2484289fe5ae495bb9d7`. The benchmark a
 
 ## Updated packaging decision and external tools
 
-On 13 October, Riyan approved **optional larger model packs outside Ruby's application package**. The app still targets less than 1 GB; under-1 GB models remain preferred where useful. The existing 1 GB download cap applies to this small-candidate experiment, not to every future optional backend. No external download is automatic, no default model is approved, and the The MIT-only model-weight requirement described at that point was subsequently broadened below.
+On 13 October, Riyan approved **optional larger model packs outside Ruby's application package**. The app still targets less than 1 GB; under-1 GB models remain preferred where useful. The existing 1 GB download cap applies to this small-candidate experiment, not to every future optional backend. No external download is automatic, no default model is approved, and the MIT-only model-weight requirement described at that point was subsequently broadened below.
 
 Assuming the suggested names refer to JustVugg/colibri and bradAGI/soup:
 
@@ -141,10 +141,12 @@ Sources:
 
 Riyan explicitly broadened eligibility on 13 October: models need not be MIT provided their terms allow commercial use and selling Ruby without mandatory model royalties. Prior MIT-only exclusions are historical and must be reconsidered under the current policy. No licence implies zero notice obligations or unrestricted trademark rights. MIT and Apache-2.0 are the initial reviewed families; custom licences are reviewed individually. Runtime/source licences and model licences remain separate.
 
-The next experiment uses the **official Qwen/Qwen2.5-0.5B-Instruct-GGUF Q4_K_M**, approximately 491 MB, under Apache-2.0. The runner checks both publisher declarations against Apache-2.0 and retains the actual full upstream licence and available notice files. It explicitly loads the publisher's archived chat-template file rather than assuming an older embedded conversion template is identical; server properties must match it exactly before generation. The two-thread Windows CPU configuration and seven probe intents remain unchanged. No app default or redistribution approval is inferred from a successful run.
+The next experiment uses the **official Qwen/Qwen2.5-0.5B-Instruct-GGUF Q4_K_M**, approximately 491 MB, under Apache-2.0. The runner checks both publisher declarations against Apache-2.0 and retains the actual full upstream licence and available notice files. It explicitly loads the publisher's archived chat-template file rather than assuming an older embedded conversion template is identical; server properties must match it before generation, allowing only the trailing line endings removed by the runtime file loader. Both original template hashes are retained. The two-thread Windows CPU configuration and seven probe intents remain unchanged. No app default or redistribution approval is inferred from a successful run.
 
 Sources:
 - https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct
 - https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF
 - https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/blob/main/qwen2.5-0.5b-instruct-q4_k_m.gguf
 - https://www.apache.org/licenses/LICENSE-2.0
+
+The first Qwen attempt stopped before generation because the runtime removed one trailing newline from the template file. Inspection of the evidence confirmed all other bytes were identical. The comparison now ignores only final CR/LF characters and still rejects changes to indentation or Jinja instructions. No failed run is used for quality or speed claims.
