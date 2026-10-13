@@ -71,6 +71,14 @@ def memory(pid):
         kernel.CloseHandle(handle)
 
 
+def license_notice_matches(weight_license, text):
+    if weight_license == 'mit':
+        return 'MIT License' in text
+    if weight_license == 'apache-2.0':
+        return 'Apache License' in text and 'Version 2.0' in text
+    return False
+
+
 def main():
     if platform.system() != 'Windows':
         raise RuntimeError('This experiment measures the Windows CPU host')
@@ -79,16 +87,19 @@ def main():
     for old in OUT.glob('upstream-*'):
         if old.is_file():
             old.unlink()
+    expected_license = candidate['weightLicense'].lower()
+    if expected_license not in {'mit', 'apache-2.0'}:
+        raise RuntimeError('Candidate licence needs a separate commercial-use review')
     metadata = {}
     for role, repo in [('upstream', candidate['upstream']), ('conversion', candidate['conversion'])]:
         item = request_json('https://huggingface.co/api/models/' + repo)
         metadata[role] = {'repository': repo, 'revision': item['sha'], 'declaredLicense': item.get('cardData', {}).get('license')}
-        if metadata[role]['declaredLicense'] != 'mit':
-            raise RuntimeError('MIT metadata gate failed: ' + repo)
+        if metadata[role]['declaredLicense'] != expected_license:
+            raise RuntimeError('Configured licence differs from publisher metadata: ' + repo)
     upstream_revision = metadata['upstream']['revision']
     if candidate.get('upstreamRevision') and upstream_revision != candidate['upstreamRevision']:
         raise RuntimeError('Upstream revision changed; review the new publisher assets first')
-    for filename in ['LICENSE', 'README.md', 'tokenizer_config.json', 'tokenizer.json', 'tokenizer.model', 'special_tokens_map.json', 'added_tokens.json', 'vocab.json', 'merges.txt']:
+    for filename in ['LICENSE', 'NOTICE', 'NOTICE.md', 'README.md', 'tokenizer_config.json', 'tokenizer.json', 'tokenizer.model', 'special_tokens_map.json', 'added_tokens.json', 'vocab.json', 'merges.txt']:
         url = f"https://huggingface.co/{candidate['upstream']}/resolve/{upstream_revision}/{filename}"
         try:
             with urllib.request.urlopen(url, timeout=60) as response:
@@ -100,12 +111,12 @@ def main():
             if error.code != 404:
                 raise
     license_path = OUT / 'upstream-LICENSE'
-    notice_present = license_path.exists() and 'MIT License' in license_path.read_text(encoding='utf-8')
+    notice_present = license_path.exists() and license_notice_matches(expected_license, license_path.read_text(encoding='utf-8'))
     if not notice_present:
         # This explicit research exception does not approve shipping or replace a copyright notice.
         readme = (OUT / 'upstream-README.md').read_text(encoding='utf-8')
-        if candidate.get('licenseEvidence') != 'publisher-declaration-research-only' or 'license: mit' not in readme:
-            raise RuntimeError('Actual upstream MIT notice missing')
+        if expected_license != 'mit' or candidate.get('licenseEvidence') != 'publisher-declaration-research-only' or 'license: mit' not in readme:
+            raise RuntimeError('Actual configured upstream licence notice missing')
     revision = metadata['conversion']['revision']
     model = CACHE / candidate['filename']
     model_info = download(f"https://huggingface.co/{candidate['conversion']}/resolve/{revision}/{candidate['filename']}",
@@ -134,10 +145,16 @@ def main():
     native_bytes = sum(file.stat().st_size for file in runtime_dir.rglob('*') if file.is_file() and file.suffix in ['.exe', '.dll'])
     base = 'http://127.0.0.1:18889'
     results = []
+    extra_args = []
+    if candidate.get('chatTemplateSource') == 'upstream-file':
+        upstream_template = json.loads((OUT / 'upstream-tokenizer_config.json').read_text(encoding='utf-8'))['chat_template']
+        template_path = OUT / 'upstream-chat-template.jinja'
+        template_path.write_text(upstream_template, encoding='utf-8')
+        extra_args = ['--jinja', '--chat-template-file', str(template_path)]
     with (OUT / 'server.log').open('w', encoding='utf-8') as log:
         start = time.perf_counter()
         server = subprocess.Popen([str(executables[0]), '-m', str(model), '-c', str(CONFIG['contextTokens']),
-                                   '-t', str(CONFIG['threads']), '-ngl', '0', '--host', '127.0.0.1', '--port', '18889', '--slots'],
+                                   '-t', str(CONFIG['threads']), '-ngl', '0', '--host', '127.0.0.1', '--port', '18889', '--slots'] + extra_args,
                                   stdout=log, stderr=log)
         try:
             for _ in range(600):
@@ -155,10 +172,15 @@ def main():
             (OUT / 'server-properties.json').write_text(json.dumps(props, indent=2), encoding='utf-8')
             tokenizer_config = json.loads((OUT / 'upstream-tokenizer_config.json').read_text(encoding='utf-8'))
             if any('messages' in case for case in CONFIG['prompts']):
-                if props.get('chat_template') != tokenizer_config.get('chat_template'):
-                    raise RuntimeError('GGUF chat template differs from the archived upstream template')
+                # The runtime strips trailing line endings when reading a template file.
+                # Keep all other whitespace and Jinja instructions significant.
+                if not tokenizer_config.get('chat_template') or props.get('chat_template', '').rstrip('\r\n') != tokenizer_config['chat_template'].rstrip('\r\n'):
+                    raise RuntimeError('Server chat template differs from the archived upstream template')
             for case in CONFIG['prompts']:
-                prompt = request_json(base + '/apply-template', {'messages': case['messages']})['prompt'] if 'messages' in case else case['text']
+                messages = case.get('messages')
+                if messages and CONFIG.get('systemMessage'):
+                    messages = [{'role': 'system', 'content': CONFIG['systemMessage']}, *messages]
+                prompt = request_json(base + '/apply-template', {'messages': messages})['prompt'] if messages else case['text']
                 payload = {'prompt': prompt, 'n_predict': CONFIG['maxReplyTokens'], 'stream': True,
                            'temperature': 0, 'seed': 42, 'cache_prompt': False, 'stop': CONFIG.get('stop', ['\nUser:'])}
                 request = urllib.request.Request(base + '/completion', data=json.dumps(payload).encode(),
@@ -175,7 +197,7 @@ def main():
                         output += text
                         if part.get('stop'):
                             final = part
-                results.append({'id': case['id'], 'prompt': prompt, 'messages': case.get('messages'), 'reply': output, 'reviewCriterion': case['review'],
+                results.append({'id': case['id'], 'prompt': prompt, 'messages': messages, 'reply': output, 'reviewCriterion': case['review'],
                                 'firstTextSeconds': first, 'totalSeconds': time.perf_counter() - begin,
                                 'timings': final.get('timings'), 'peakWorkingSetBytes': memory(server.pid)})
             report = {'schemaVersion': 1, 'dateUtc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
@@ -183,7 +205,12 @@ def main():
                       'candidate': candidate, 'metadata': metadata, 'model': model_info,
                       'licenseNoticePresent': notice_present, 'redistributionApproved': False,
                       'runtime': {**runtime_info, 'release': runtime['release'], 'asset': asset['name'], 'extractedExecutableBytes': native_bytes},
-                      'configuration': {'threads': CONFIG['threads'], 'contextTokens': CONFIG['contextTokens'], 'gpuLayers': 0},
+                      'configuration': {'threads': CONFIG['threads'], 'contextTokens': CONFIG['contextTokens'], 'gpuLayers': 0, 'systemMessage': CONFIG.get('systemMessage')},
+                      'chatTemplateVerification': {
+                          'source': candidate.get('chatTemplateSource', 'embedded'),
+                          'upstreamSha256': hashlib.sha256(tokenizer_config.get('chat_template', '').encode()).hexdigest(),
+                          'serverSha256': hashlib.sha256(props.get('chat_template', '').encode()).hexdigest(),
+                          'trailingLineEndingsIgnored': True},
                       'coldLoadSeconds': cold_load, 'samples': results, 'defaultApproved': False,
                       'limitations': ['Hosted CPU is not the user laptop or an iGPU benchmark.',
                                       'Quality requires human review; instruction tuning does not imply passing.',

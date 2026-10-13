@@ -30,7 +30,7 @@ STL files and notes are in dist/prints. They are static figurines; review suppor
 
 ## Roadmap and architecture
 
-See [ROADMAP.md](ROADMAP.md) for the milestones from the visual MVP through local conversation, desktop actions, voice, mobile hosts, the companion world and creator studio. Capability contracts, gesture previews, persistent settings and animation transitions are implemented. The current slice is the Windows floating companion shell; MIT model evaluation follows. Model selection follows measured performance and verified MIT weight licensing.
+See [ROADMAP.md](ROADMAP.md) for the milestones from the visual MVP through local conversation, desktop actions, voice, mobile hosts, the companion world and creator studio. Capability contracts, gesture previews, persistent settings and animation transitions are implemented. The current slice is the Windows floating companion shell; Model evaluation follows measured performance and verified commercial-use weight licensing without mandatory model royalties.
 
 See [HAND_RIG.md](HAND_RIG.md) for jointed hands and gestures. Four finger chains and an opposing thumb support open, relaxed, point, fist and grip poses; object pickup physics is future work.
 
@@ -56,4 +56,4 @@ Tap a robot's head/body for a pat or boop, or its hand for a greeting. Right-cli
 
 ## Offline model gate
 
-See [docs/OFFLINE_MODELS.md](docs/OFFLINE_MODELS.md) for the MIT weight/tokenizer audit, Windows CPU benchmark and raw quality probes. The first Phi-1.5 quantized baseline ran successfully but is rejected as the default because it fails basic conversational instruction checks. No model is bundled or presented as a working Ruby chat provider yet. Use the Offline model evaluation workflow for repeatable measured candidates; November voice remains a required milestone.
+See [docs/OFFLINE_MODELS.md](docs/OFFLINE_MODELS.md) for the commercial-use weight/tokenizer audit, Windows CPU benchmark and raw quality probes. Phi-1.5 and Shunya baselines were rejected for basic conversation failures. Official Qwen2.5-0.5B Q4_K_M (491 MB, Apache-2.0) with an explicit Ruby persona is now an English chat integration candidate; Hindi and strict introduction formatting remain limited. No model is bundled or presented as a working Ruby chat provider yet. Use the Offline model evaluation workflow for repeatable measured candidates; November voice remains a required milestone.

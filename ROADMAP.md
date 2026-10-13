@@ -16,7 +16,7 @@ Budget: **45 hours**. This is a target for a narrow Windows desktop assistant MV
 | 2 | Settings persistence, gesture controls and smooth wave transitions | Model/profile/gesture settings survive reload. |
 | 3 | Windows Tauri host and shared renderer connection | Character runs in a native application window. |
 | 4 | Floating window, tray, positioning, click-through and stop shortcut | Usable desktop companion shell. |
-| 5 | MIT chat/speech weight and tokenizer licence audit and CPU/model benchmarks | Select a model only if licence, quality and memory gates pass; record blockers otherwise. |
+| 5 | Commercial-use chat/speech weight and tokenizer licence audit and CPU/model benchmarks | Select a model only if licence, quality and memory gates pass; record blockers otherwise. |
 | 6 | Local model adapter and streamed text chat | First local conversation without fake responses. |
 | 7 | Cancel/unload, chat history, settings and offline restart | Local conversation recovers after restart/network loss. |
 | 8 | Optional internet-search provider, bounded evidence and source links | Online answers work with the selected/configured search service; failures remain explicit. |
@@ -25,7 +25,7 @@ Budget: **45 hours**. This is a target for a narrow Windows desktop assistant MV
 | 11 | Structured command routing, permission gates and emergency-stop checks | Model output cannot directly invoke unrestricted OS actions. |
 | 12 | Integrate typed chat, gesture feedback and approved actions | One coherent typed-command user flow; voice interfaces remain prepared for November. |
 | 13 | Hardware/WebGL, performance, offline/online and action-failure tests | Written test results on actual Windows hardware; blockers identified. |
-| 14 | Fix blockers, build installer/default pack, verify licences and size | Release candidate within the 1 GB product target where measured. |
+| 14 | Fix blockers, build installer/default pack, verify licences and size | Application release candidate within 1 GB; default and optional pack sizes measured separately. |
 | 15 | Final acceptance, release notes, tested PR merge to main and version tag | Stable release only if acceptance checks pass; otherwise keep a clearly labelled beta and documented blockers. |
 
 Scope priority: **P0** native companion, local text conversation, cancel/stop, deterministic approved OS actions and saved settings. **P1** internet retrieval with sources. **Stretch** extra languages, screen perception and additional platforms. Model approval and working local runtime are gates; a sub-100 MB pack is an aspiration, not a shipping guarantee. Download size, latency and RAM must be measured.
@@ -52,8 +52,8 @@ Typed input remains available. Additional languages, continuous wake-word listen
 | --- | --- | --- |
 | v0.1 — visual MVP | Current character catalog and rig | Freeze the accepted designs; preserve all catalog IDs; check physical-device WebGL, mobile rendering and animation transitions. |
 | v0.2 — companion foundation | Character capabilities, gesture preview, persistent settings and semantic animation commands | Profiles/expressions survive reload; open/point/grip poses can be reviewed; hosts can switch characters without special-case UI code; classic gracefully reports no hands. |
-| v0.3 — conversation beta | Text chat, model-provider selector, downloadable MIT model packs and optional internet search | A verified MIT-weight model passes the benchmark; cancellation and history work; answers show whether search was used and link sources; no network request is needed for local chat after download. |
-| v0.4 — desktop assistant MVP | Windows floating companion, tray, click-through mode and bounded mouse/keyboard actions | The assistant follows typed commands such as opening an allowed app or typing into a user-selected field; an emergency stop cancels actions; permissions, action results and failures are visible; installer/default pack meets the 1 GB target. |
+| v0.3 — conversation beta | Text chat, model-provider selector, downloadable commercially licensed model packs and optional internet search | A verified commercial-use model passes the benchmark; cancellation and history work; answers show whether search was used and link sources; no network request is needed for local chat after download. |
+| v0.4 — desktop assistant MVP | Windows floating companion, tray, click-through mode and bounded mouse/keyboard actions | The assistant follows typed commands such as opening an allowed app or typing into a user-selected field; an emergency stop cancels actions; permissions, action results and failures are visible; application installer meets the 1 GB target; model pack sizes and RAM needs are stated separately. |
 | v0.5 — voice and emotion | Microphone, speech recognition, speech output and semantic mood/gesture mapping | Listening indicators reflect real capture; mute/cancel work; typing remains available; emotion does not interrupt active commands; every bundled voice/model has recorded redistribution terms. |
 | v0.6 — platform expansion | Linux/macOS desktop hosts, mobile app and platform-specific widget/overlay hosts | Each supported host has real-device tests and a capability matrix; unsupported OS actions are disabled; mobile widgets use suitable native state snapshots rather than promising arbitrary live overlays. |
 | v0.7 — companion world | Small interactive space, reach animation, prop grip/release and persistence | Objects have colliders and grip anchors; fingers follow contacts; objects attach/release predictably; saving restores the scene; this is distinct from OS automation. |
@@ -80,9 +80,9 @@ The orchestrator depends on these contracts. Hosts supply concrete adapters. Cap
 
 ## Offline AI decision gate
 
-MIT applies to the chosen model weights, not merely its inference library or a conversion script. Record the exact upstream model, weight revision, tokenizer, licence and redistribution conditions before selecting or shipping a pack. The project source remains GPL-2.0-only as requested; preserve dependency notices.
+Commercial-use and royalty requirements apply to the chosen model weights, not merely its inference library or a conversion script. Record the exact upstream model, weight revision, tokenizer, licence and redistribution conditions before selecting or shipping a pack. The project source remains GPL-2.0-only as requested; preserve dependency notices.
 
-Aim for a compact default pack, with approximately 100 MB as a preferred benchmark tier rather than a promise of useful conversation on every device. Keep the desktop application/default pack within the 1 GB product target; optional downloads must show their size. Model file size alone does not determine speed or runtime RAM.
+Aim for a compact default pack, with approximately 100 MB as a preferred benchmark tier rather than a promise of useful conversation on every device. Keep the desktop application within 1 GB; prefer compact default weights, and show separate sizes for default and optional packs. Model file size alone does not determine speed or runtime RAM.
 
 Evaluate CPU inference first and available GPU acceleration second. Browser ONNX/WASM or WebGPU and native inference are candidate adapters, chosen after verifying model compatibility. Use a small local command/intent layer when a tiny conversational model is insufficient. Internet search supplements answers but does not substitute for a capable conversation model; a remote inference option must be explicit.
 
@@ -107,7 +107,7 @@ Keep static figurine export separate from articulated printable hardware. Existi
 5. Add semantic animation events and smooth greeting start/end transitions.
 6. Test WebGL on desktop and mobile and record actual rendering/performance limits.
 
-Model licensing/quality evaluation has started for v0.3: the checksum-pinned Phi-1.5 baseline and smaller instruction-tuned Shunya-0.5B Windows CPU experiments both ran successfully but failed basic conversation quality. No default is approved. See docs/OFFLINE_MODELS.md for the measured results and remaining gates. Kurumi work continues independently.
+Model licensing/quality evaluation has started for v0.3: the checksum-pinned Phi-1.5 baseline and smaller instruction-tuned Shunya-0.5B Windows CPU experiments both ran successfully but failed basic conversation quality. Qwen2.5-0.5B Q4_K_M with an explicit Ruby system prompt is now an English chat integration candidate under the broadened commercial-use licence policy. No production default is approved. See docs/OFFLINE_MODELS.md for the measured results and remaining gates. Kurumi work continues independently.
 
 ## Repository practices
 
@@ -122,4 +122,6 @@ Public repository: `Rayeen13/project-ruby`. Default branch: `main`. Stable relea
 
 ## Optional model packs — 13 October decision
 
-Keep Ruby's application package under 1 GB. Riyan approved optional larger model downloads outside that package; under-1 GB models remain preferred when useful. Expose pack size, RAM needs and licences before an explicit user-selected install. MIT-only model weights remain required. Colibri/Soup may be evaluated as separately installed inference/training tools behind a pluggable provider interface; neither is integrated or an approved model today. See `docs/OFFLINE_MODELS.md` for the audit, GPT-family options and rejected candidates.
+Keep Ruby's application package under 1 GB. Riyan approved optional larger model downloads outside that package; under-1 GB models remain preferred when useful. Expose pack size, RAM needs and licences before an explicit user-selected install. Model weights must allow commercial use and selling Ruby without mandatory model royalties; MIT is no longer required. Colibri/Soup may be evaluated as separately installed inference/training tools behind a pluggable provider interface; neither is integrated or an approved model today. See `docs/OFFLINE_MODELS.md` for the audit, GPT-family options and rejected candidates.
+
+On 13 October Riyan broadened model eligibility from MIT-only to commercially usable licences with no mandatory model royalty. MIT and Apache-2.0 are the first reviewed licence families for experiments; other licences require their exact terms to be reviewed. Keep licence/copyright notices and any required attribution. Ruby source remains GPL-2.0-only.

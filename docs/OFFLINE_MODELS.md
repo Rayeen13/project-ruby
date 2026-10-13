@@ -1,8 +1,8 @@
 # Offline model evaluation — 13 October 2026
 
-No default model is approved. The app remains an interactive companion viewer while the model gate is evaluated. MIT means the model weights must actually be MIT; a permissive inference runtime cannot change a weight licence. Preserve the exact upstream copyright/licence and separately inspect tokenizer and converted model provenance before redistributing a pack.
+No default model is approved. The app remains an interactive companion viewer while the model gate is evaluated. Current eligibility requires commercial use and selling Ruby without a mandatory model royalty; MIT is no longer mandatory. The inference runtime cannot change the weight licence. Preserve the exact upstream copyright/licence and separately inspect tokenizer and converted model provenance before redistributing a pack.
 
-## Initial shortlist
+## Initial shortlist under the earlier MIT-only rule
 
 | Candidate | Primary-source finding | Decision |
 | --- | --- | --- |
@@ -21,7 +21,7 @@ Voice remains mandatory in November; these are candidates rather than a claim th
 
 ## Reproducible Windows experiment
 
-`models/evaluation.json` records the exact GGUF SHA256, upstream and conversion repositories, runtime release, two CPU threads, zero GPU layers, 2,048 context tokens and 96 reply tokens. The job resolves and records immutable repository revisions before downloading, checks both repositories' declared MIT metadata and the actual upstream MIT notice, archives available tokenizer evidence, and verifies the model hash. The official llama.cpp CPU release is selected from its tag's API response and checked against the published asset SHA256.
+`models/evaluation.json` records the exact GGUF SHA256, upstream and conversion repositories, runtime release, two CPU threads, zero GPU layers, 2,048 context tokens and 96 reply tokens. The job resolves and records immutable repository revisions before downloading, checks both repositories against the configured, reviewed weight licence and archives the actual upstream licence notice, archives available tokenizer evidence, and verifies the model hash. The official llama.cpp CPU release is selected from its tag's API response and checked against the published asset SHA256.
 
 Run `python scripts/evaluate-model.py` on Windows, or use **Offline model evaluation** in GitHub Actions. This is an explicit experiment downloading approximately 894 MB of model data plus a native runtime, not an app startup operation. Python's standard library is sufficient; no Torch install or remote model code is executed. Cache/results directories are ignored by Git. The evidence artifact excludes the weights and runtime executables.
 
@@ -31,7 +31,7 @@ Reported metrics: cold process/model readiness, client-observed first non-empty 
 
 ## Approval gates
 
-- Model weights MIT; upstream licence/copyright retained; tokenizer and conversion correspondence reviewed.
+- Model weights allow commercial use and selling Ruby without mandatory model royalties; upstream licence/copyright retained; tokenizer and conversion correspondence reviewed.
 - Coherent short conversation, usable instruction following and context recall; no invented claim of using internet or controlling the PC.
 - Ruby application package within 1,000,000,000 bytes. Prefer a compact default model tier. Optional, explicitly selected external model packs may be larger and must display their separate download/disk/RAM requirements; see the updated packaging decision below. Peak RAM is a separate measurement.
 - Acceptable load/first-token/throughput on a modest CPU laptop and the user's Ryzen 7 machine. A hosted runner is not a laptop/iGPU benchmark.
@@ -80,9 +80,9 @@ Upstream revision: `77aa61eeac94fbf33d492b9f2744c98b42d5b5eb`. GGUF conversion r
 The first experiment attempt correctly stopped before inference because semantic release `v0.6.0` only provided a nightly-tag pointer rather than the CPU asset. The corrected configuration pins actual build `b11433` and its published CPU-archive SHA256. No failed run was used as a performance result.
 
 
-## Next instruction-tuned experiment: Shunya-0.5B
+## Earlier instruction-tuned experiment: Shunya-0.5B
 
-The active experiment now evaluates `vivekmarakana/shunya-0.5b-instruct` at revision `80dbaa0866f6177240db4bc8b27e3f21313d9345`, using the checksum-pinned mradermacher Q4_K_M conversion (approximately 315 MB). The earlier Phi configuration is retained in `models/evaluations/phi-1.5.json`. No default has changed.
+The earlier Shunya experiment evaluated `vivekmarakana/shunya-0.5b-instruct` at revision `80dbaa0866f6177240db4bc8b27e3f21313d9345`, using the checksum-pinned mradermacher Q4_K_M conversion (approximately 315 MB). The earlier Phi configuration is retained in `models/evaluations/phi-1.5.json`. No default has changed.
 
 Both the base and instruction-tuned publisher cards declare MIT, and the base is described as trained from scratch. However, the instruction-tuned repository does not include a full `LICENSE` copyright notice at this revision. The benchmark permits an explicit **publisher-declaration research-only** case, archives the declaration, and records `licenseNoticePresent: false` and `redistributionApproved: false`. This does not relax the product's licence/redistribution approval gates. Tokenizer provenance and training-data terms also remain review items. Do not substitute an invented copyright notice or bundle this candidate.
 
@@ -117,15 +117,15 @@ Conversion revision: `ba7b28eea72b5d1e3eed2484289fe5ae495bb9d7`. The benchmark a
 
 ## Updated packaging decision and external tools
 
-On 13 October, Riyan approved **optional larger model packs outside Ruby's application package**. The app still targets less than 1 GB; under-1 GB models remain preferred where useful. The existing 1 GB download cap applies to this small-candidate experiment, not to every future optional backend. No external download is automatic, no default model is approved, and the MIT-only model-weight requirement remains unchanged.
+On 13 October, Riyan approved **optional larger model packs outside Ruby's application package**. The app still targets less than 1 GB; under-1 GB models remain preferred where useful. The existing 1 GB download cap applies to this small-candidate experiment, not to every future optional backend. No external download is automatic, no default model is approved, and the MIT-only model-weight requirement described at that point was subsequently broadened below.
 
 Assuming the suggested names refer to JustVugg/colibri and bradAGI/soup:
 
 | Tool/model | Role and source findings | Ruby decision |
 | --- | --- | --- |
 | Colibri | A runtime for large models that streams routed experts from disk; a small engine does not mean small weights. Its current catalogue lists chat downloads of 19 GB and larger, and its code is Apache-2.0. The local gateway exposes an OpenAI-compatible endpoint. | Candidate for an optional, separately installed local backend. Review the actual selected model's weight licence and hardware requirements; no model installed or benchmarked here. |
-| Soup | A fine-tuning tool with serving/export support and an OpenAI-compatible server; code is Apache-2.0. Layer streaming reduces GPU residency during training rather than converting a large base into a tiny standalone model. | Candidate for the later assistant studio/training workflow or a separately running local server. It does not itself provide an approved MIT chat model. |
-| OpenAI gpt-oss-20b | Official model card reports a 12.8 GiB checkpoint; Apache-2.0 weights. | Excluded under the unchanged MIT-only weight requirement, independently of optional-pack size allowance. |
+| Soup | A fine-tuning tool with serving/export support and an OpenAI-compatible server; code is Apache-2.0. Layer streaming reduces GPU residency during training rather than converting a large base into a tiny standalone model. | Candidate for the later assistant studio/training workflow or a separately running local server. It does not itself provide an approved chat model. |
+| OpenAI gpt-oss-20b | Official model card reports a 12.8 GiB checkpoint; Apache-2.0 weights. | Now eligible for licence review under the broadened policy below, but its 12.8 GiB checkpoint remains far above the preferred small-model tier. |
 | GPT-2 small | A smaller GPT-family text-generation model; the Hugging Face model card declares MIT. It is a pretrained base model rather than a ready companion chat model. | No default approval. A specific chat fine-tune and its weight/tokenizer provenance would need evaluation; do not assume the GPT name guarantees useful conversation. |
 
 Keep inference providers pluggable behind one conversation interface. A future localhost adapter can support separately installed servers without placing training frameworks or large weights inside Ruby's application. Browser access needs a configured reachable service and explicit connection handling; web/mobile offline inference is a separate runtime requirement. This is an architecture decision, not a claim that chat or either backend is integrated today.
@@ -136,3 +136,45 @@ Sources:
 - https://github.com/bradAGI/soup
 - https://deploymentsafety.openai.com/gpt-oss/a2
 - https://huggingface.co/openai-community/gpt2
+
+## Current licence policy and Qwen experiment
+
+Riyan explicitly broadened eligibility on 13 October: models need not be MIT provided their terms allow commercial use and selling Ruby without mandatory model royalties. Prior MIT-only exclusions are historical and must be reconsidered under the current policy. No licence implies zero notice obligations or unrestricted trademark rights. MIT and Apache-2.0 are the initial reviewed families; custom licences are reviewed individually. Runtime/source licences and model licences remain separate.
+
+The current experiment uses the **official Qwen/Qwen2.5-0.5B-Instruct-GGUF Q4_K_M**, approximately 491 MB, under Apache-2.0. The runner checks both publisher declarations against Apache-2.0 and retains the actual full upstream licence and available notice files. It explicitly loads the publisher's archived chat-template file rather than assuming an older embedded conversion template is identical; server properties must match it before generation, allowing only the trailing line endings removed by the runtime file loader. Both original template hashes are retained. The two-thread Windows CPU configuration and seven probe intents remain unchanged. No app default or redistribution approval is inferred from a successful run.
+
+Sources:
+- https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct
+- https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF
+- https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/blob/main/qwen2.5-0.5b-instruct-q4_k_m.gguf
+- https://www.apache.org/licenses/LICENSE-2.0
+
+The first Qwen attempt stopped before generation because the runtime removed one trailing newline from the template file. Inspection of the evidence confirmed all other bytes were identical. The comparison now ignores only final CR/LF characters and still rejects changes to indentation or Jinja instructions. No failed run is used for quality or speed claims.
+
+### Qwen publisher-default baseline
+
+[Run 38434286282](https://github.com/Rayeen13/project-ruby/actions/runs/38434286282), code `cb82ac0b8e3d5c427088540f382ce171bde6c689`, measured 491,400,032 bytes of weights, 52.1–55.5 tokens/sec, 0.203–0.301 seconds to first non-empty text, and 536,346,624 bytes peak working set on a Windows Server 2025 AMD family 25 model 17 host. Both checksum pins and the Apache licence-notice check passed. Raw evidence is [benchmarks/windows-qwen2.5-0.5b-20261013.json](benchmarks/windows-qwen2.5-0.5b-20261013.json).
+
+The mouse explanation followed the two-sentence request and arithmetic answered five. The default template inserted a system instruction naming Qwen, while the identity request only named Ruby in the user message; the reply retained Qwen and ignored the one-sentence limit. Name recall incorrectly answered Qwen instead of Riyan. The Hindi probe was repetitive and reached the reply cap. The weather answer refused without inventing live data, but did not explain the missing-data issue. This baseline does not pass companion quality.
+
+A follow-up uses an explicit **Ruby system message**, matching the intended app persona configuration and replacing the publisher's default Qwen identity. All seven user probe intents and resource settings remain unchanged. The runner records the effective messages and system configuration, so this follow-up is distinguished from the retained default-template baseline. A system prompt is not proof of reliable name recall; inspect the new raw replies before any selection decision.
+
+### Qwen Ruby-persona result: advance to integration testing
+
+Source: [Windows run 38434720219](https://github.com/Rayeen13/project-ruby/actions/runs/38434720219), code `fe13b82aabdeb5d6908eb0781a719c7b382caaae`. Full raw replies, effective system/user messages and measured timings: [benchmarks/windows-qwen2.5-ruby-persona-20261013.json](benchmarks/windows-qwen2.5-ruby-persona-20261013.json). The weight/runtime pins, Apache-2.0 notice check and upstream-file template check passed. The report continues to set `defaultApproved: false` and `redistributionApproved: false`.
+
+| Measurement | Observed value |
+| --- | --- |
+| Q4_K_M weights | 491,400,032 bytes (491.40 MB) |
+| Weights plus all extracted runtime EXE/DLL | 540,877,664 bytes; application and other assets excluded |
+| Initial model/server readiness | 0.945 seconds after launch, downloads excluded |
+| First non-empty streamed text | 0.630–0.777 seconds |
+| Server generation throughput | 42.6–47.9 tokens/sec |
+| Peak process working set | 536,694,784 bytes (536.69 MB) |
+| Host/configuration | Windows Server 2025, AMD family 25 model 1, 4 logical CPUs; 2 inference threads, CPU only, 2,048 context; explicit Ruby system persona |
+
+**Decision: advance Qwen2.5-0.5B Q4_K_M as an English chat integration candidate, not a production-approved default.** The greeting was coherent; context recall correctly answered Riyan; the mouse explanation was relevant and followed the two-sentence request; arithmetic answered five; and the weather response explicitly acknowledged missing location and live data. The introduction used the robot-companion role but omitted Ruby's name and added a greeting, so it did not completely satisfy the strict name/one-sentence criterion. Hindi remained weak and partly echoed the request. Do not claim all seven criteria passed or advertise reliable Hindi support.
+
+The explicit Ruby system message is a required part of this evaluated configuration. The original publisher-default run failed name recall and persona behaviour and remains preserved. These seven probes do not establish general reliability, tool-use accuracy or hardware compatibility. The different hosted CPU allocations and prompt lengths mean the baseline and persona throughput/first-text numbers are not a controlled prompt-only comparison.
+
+Next gates: implement a pluggable streamed-chat adapter with cancellation and failure handling, then verify actual local offline restart, unload, pack/tokenizer correspondence, complete packaged size, and physical laptop performance. Model output remains text; it must not execute desktop actions directly. No weights or backend were added to the current app in this change.
