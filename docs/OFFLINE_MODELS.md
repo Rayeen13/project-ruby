@@ -94,3 +94,23 @@ Sources:
 - https://huggingface.co/vivekmarakana/shunya-0.5b-instruct/tree/80dbaa0866f6177240db4bc8b27e3f21313d9345
 - https://huggingface.co/mradermacher/shunya-0.5b-instruct-GGUF/blob/main/shunya-0.5b-instruct.Q4_K_M.gguf
 - https://github.com/ggml-org/llama.cpp/blob/b11433/tools/server/README.md
+
+### Shunya measured result and decision
+
+Source: successful [Windows run 38432260383](https://github.com/Rayeen13/project-ruby/actions/runs/38432260383), measured code commit `e9c3bd028073b8676b9095183ca31e60d5bf9d2a`. Full raw replies, messages, rendered prompts and metadata: [benchmarks/windows-shunya-0.5b-20261013.json](benchmarks/windows-shunya-0.5b-20261013.json). Both model and runtime SHA256 pins matched, and the embedded chat template matched the upstream template exactly.
+
+| Measurement | Observed value |
+| --- | --- |
+| Q4_K_M weights | 314,656,736 bytes (314.66 MB) |
+| Model plus all extracted runtime EXE/DLL | 364,134,368 bytes; application and other assets excluded |
+| Initial model/server readiness | 0.64 seconds after launch, downloads excluded |
+| First non-empty streamed text | 0.313–0.353 seconds |
+| Server generation throughput | 40.0–41.2 tokens/sec |
+| Peak process working set | 624,574,464 bytes (624.57 MB) |
+| Host/configuration | Windows Server 2025, Intel family 6 model 207, 4 logical CPUs; 2 inference threads, CPU only, 2,048 context |
+
+**Decision: reject as Ruby's default conversation model.** Greeting was coherent and the weather answer acknowledged the absence of live data. The identity response did not adopt Ruby's name and included an insulting, malformed continuation. The explanation confused a computer mouse with preparing a meal. The arithmetic answer repeated the question and failed to produce five. Context recall repeated the correct name but used the assistant's first person rather than identifying the user. The Hindi probe simply echoed the input. These seven deterministic probes are sufficient to withhold approval; they do not establish a general accuracy score.
+
+The smaller model used substantially less RAM in this experiment, but the Phi and Shunya runs were allocated different CPU families. The throughput difference is not a controlled same-hardware comparison or an estimate of laptop/iGPU performance. The licence notice remains missing (`licenseNoticePresent: false`), and redistribution remains explicitly unapproved. No weights were added to the repository or app.
+
+Conversion revision: `ba7b28eea72b5d1e3eed2484289fe5ae495bb9d7`. The benchmark artifact contains the publisher declaration, tokenizer files, server properties and runtime notice, but no model weights or runtime binaries. Complete product packaging, real laptop performance, cancellation and offline restart remain future gates after a viable candidate is found.

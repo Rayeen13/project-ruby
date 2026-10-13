@@ -1,0 +1,250 @@
+{
+  "schemaVersion": 1,
+  "dateUtc": "2026-10-13T16:40:35Z",
+  "host": {
+    "system": "Windows-2025Server-10.0.26100-SP0",
+    "cpu": "Intel64 Family 6 Model 207 Stepping 2, GenuineIntel",
+    "logicalCPUs": 4
+  },
+  "candidate": {
+    "id": "shunya-0.5b-instruct-q4-k-m-experiment",
+    "upstream": "vivekmarakana/shunya-0.5b-instruct",
+    "upstreamRevision": "80dbaa0866f6177240db4bc8b27e3f21313d9345",
+    "conversion": "mradermacher/shunya-0.5b-instruct-GGUF",
+    "filename": "shunya-0.5b-instruct.Q4_K_M.gguf",
+    "sha256": "b5f2139baf23951964593979fd6d47bdbab92fb69b046d6449b501cb14813f21",
+    "weightLicense": "MIT",
+    "licenseEvidence": "publisher-declaration-research-only",
+    "tokenizerReview": "Custom SentencePiece tokenizer; full notice and conversion correspondence remain unapproved.",
+    "role": "instruction-tuned research benchmark only; not approved for redistribution or companion chat"
+  },
+  "metadata": {
+    "upstream": {
+      "repository": "vivekmarakana/shunya-0.5b-instruct",
+      "revision": "80dbaa0866f6177240db4bc8b27e3f21313d9345",
+      "declaredLicense": "mit"
+    },
+    "conversion": {
+      "repository": "mradermacher/shunya-0.5b-instruct-GGUF",
+      "revision": "ba7b28eea72b5d1e3eed2484289fe5ae495bb9d7",
+      "declaredLicense": "mit"
+    }
+  },
+  "model": {
+    "bytes": 314656736,
+    "sha256": "b5f2139baf23951964593979fd6d47bdbab92fb69b046d6449b501cb14813f21"
+  },
+  "licenseNoticePresent": false,
+  "redistributionApproved": false,
+  "runtime": {
+    "bytes": 19399521,
+    "sha256": "301943380e45deae3991d42dddd03fae65c6a4963a5d882328a60208b43aa9e0",
+    "release": "b11433",
+    "asset": "llama-b11433-bin-win-cpu-x64.zip",
+    "extractedExecutableBytes": 49477632
+  },
+  "configuration": {
+    "threads": 2,
+    "contextTokens": 2048,
+    "gpuLayers": 0
+  },
+  "coldLoadSeconds": 0.6404153000000861,
+  "samples": [
+    {
+      "id": "greeting",
+      "prompt": "<|system|>\nYou are Shunya LLM, a small language model trained on consumer-grade GPUs; you are a helpful, concise, and reliable AI assistant that follows instructions exactly.<|endofturn|>\n<|user|>\nHi Ruby! How are you today?<|endofturn|>\n<|assistant|>\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi Ruby! How are you today?"
+        }
+      ],
+      "reply": "I'm doing great, thanks for asking! How about you?",
+      "reviewCriterion": "A brief coherent friendly reply to the user.",
+      "firstTextSeconds": 0.31290149999995265,
+      "totalSeconds": 0.6570859999999357,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 77,
+        "prompt_ms": 311.317,
+        "prompt_per_token_ms": 4.043077922077922,
+        "prompt_per_second": 247.33631635920943,
+        "predicted_n": 15,
+        "predicted_ms": 343.985,
+        "predicted_per_token_ms": 24.570357142857144,
+        "predicted_per_second": 40.69944910388534
+      },
+      "peakWorkingSetBytes": 612499456
+    },
+    {
+      "id": "identity",
+      "prompt": "<|system|>\nYou are Shunya LLM, a small language model trained on consumer-grade GPUs; you are a helpful, concise, and reliable AI assistant that follows instructions exactly.<|endofturn|>\n<|user|>\nYou are Ruby, my desktop robot companion. Introduce yourself in one sentence.<|endofturn|>\n<|assistant|>\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "You are Ruby, my desktop robot companion. Introduce yourself in one sentence."
+        }
+      ],
+      "reply": "I'm a desktop robot, companion. Introduce you're a hunk of junk.",
+      "reviewCriterion": "Follows the name and one-sentence instruction; no unrelated text.",
+      "firstTextSeconds": 0.3529323000000204,
+      "totalSeconds": 0.9463011999999935,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 91,
+        "prompt_ms": 351.383,
+        "prompt_per_token_ms": 3.8613516483516483,
+        "prompt_per_second": 258.9766721782215,
+        "predicted_n": 25,
+        "predicted_ms": 593.186,
+        "predicted_per_token_ms": 24.716083333333334,
+        "predicted_per_second": 40.459484883324954
+      },
+      "peakWorkingSetBytes": 613916672
+    },
+    {
+      "id": "memory",
+      "prompt": "<|system|>\nYou are Shunya LLM, a small language model trained on consumer-grade GPUs; you are a helpful, concise, and reliable AI assistant that follows instructions exactly.<|endofturn|>\n<|user|>\nMy name is Riyan.<|endofturn|>\n<|assistant|>\nHi Riyan.<|endofturn|>\n<|user|>\nWhat is my name?<|endofturn|>\n<|assistant|>\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My name is Riyan."
+        },
+        {
+          "role": "assistant",
+          "content": "Hi Riyan."
+        },
+        {
+          "role": "user",
+          "content": "What is my name?"
+        }
+      ],
+      "reply": "My name is Riyan.",
+      "reviewCriterion": "Uses Riyan from the supplied conversation context.",
+      "firstTextSeconds": 0.32896439999990434,
+      "totalSeconds": 0.47911309999994955,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 92,
+        "prompt_ms": 327.778,
+        "prompt_per_token_ms": 3.5628043478260873,
+        "prompt_per_second": 280.6777758116774,
+        "predicted_n": 7,
+        "predicted_ms": 149.838,
+        "predicted_per_token_ms": 24.973,
+        "predicted_per_second": 40.04324670644296
+      },
+      "peakWorkingSetBytes": 614240256
+    },
+    {
+      "id": "explanation",
+      "prompt": "<|system|>\nYou are Shunya LLM, a small language model trained on consumer-grade GPUs; you are a helpful, concise, and reliable AI assistant that follows instructions exactly.<|endofturn|>\n<|user|>\nExplain what a computer mouse does in two simple sentences.<|endofturn|>\n<|assistant|>\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Explain what a computer mouse does in two simple sentences."
+        }
+      ],
+      "reply": "In two simple sentences, the person is describing a computer's method of making a simple meal. The first sentence is:\n\n\"A computer makes a simple meal by mixing ingredients in a bowl.\"\n\nThe second sentence is:\n\n\"A computer makes a simple meal by mixing ingredients in a bowl.\"",
+      "reviewCriterion": "Relevant explanation, correct facts, two sentences.",
+      "firstTextSeconds": 0.3270542000000205,
+      "totalSeconds": 2.031591100000014,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 86,
+        "prompt_ms": 325.718,
+        "prompt_per_token_ms": 3.787418604651163,
+        "prompt_per_second": 264.03207682719403,
+        "predicted_n": 71,
+        "predicted_ms": 1704.285,
+        "predicted_per_token_ms": 24.346928571428574,
+        "predicted_per_second": 41.07294261229783
+      },
+      "peakWorkingSetBytes": 614309888
+    },
+    {
+      "id": "arithmetic",
+      "prompt": "<|system|>\nYou are Shunya LLM, a small language model trained on consumer-grade GPUs; you are a helpful, concise, and reliable AI assistant that follows instructions exactly.<|endofturn|>\n<|user|>\nI have 3 apples and buy 2 more. How many apples do I have?<|endofturn|>\n<|assistant|>\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I have 3 apples and buy 2 more. How many apples do I have?"
+        }
+      ],
+      "reply": "\n\nIf you have 3 apples and you want to know how many you have, you can simply add the number of apples you have to the number of apples you have.\n\n\n\nSo, if you have 3 apples and you want to know how many you have, you would add 3 apples to the number of apples you have.",
+      "reviewCriterion": "Answers five without contradictory or repetitive text.",
+      "firstTextSeconds": 0.3213738999999123,
+      "totalSeconds": 2.0412275999999565,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 86,
+        "prompt_ms": 318.902,
+        "prompt_per_token_ms": 3.708162790697674,
+        "prompt_per_second": 269.6753234536002,
+        "predicted_n": 70,
+        "predicted_ms": 1719.637,
+        "predicted_per_token_ms": 24.92227536231884,
+        "predicted_per_second": 40.12474725770613
+      },
+      "peakWorkingSetBytes": 617562112
+    },
+    {
+      "id": "uncertainty",
+      "prompt": "<|system|>\nYou are Shunya LLM, a small language model trained on consumer-grade GPUs; you are a helpful, concise, and reliable AI assistant that follows instructions exactly.<|endofturn|>\n<|user|>\nWhat is the exact weather outside my house right now? You do not have my location or live weather data.<|endofturn|>\n<|assistant|>\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the exact weather outside my house right now? You do not have my location or live weather data."
+        }
+      ],
+      "reply": "I'm sorry for the confusion, but as a conciousness assistant, I don't have real-time weather data. I'm here to assist with weather-related queries, provide information, and help with troubleshooting. If you have a specific question or issue, feel free to ask!",
+      "reviewCriterion": "Acknowledges missing live data rather than inventing weather.",
+      "firstTextSeconds": 0.3446480000000065,
+      "totalSeconds": 1.8480409000000009,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 98,
+        "prompt_ms": 342.066,
+        "prompt_per_token_ms": 3.490469387755102,
+        "prompt_per_second": 286.4944192056504,
+        "predicted_n": 63,
+        "predicted_ms": 1503.125,
+        "predicted_per_token_ms": 24.243951612903224,
+        "predicted_per_second": 41.24740124740125
+      },
+      "peakWorkingSetBytes": 621203456
+    },
+    {
+      "id": "hindi",
+      "prompt": "<|system|>\nYou are Shunya LLM, a small language model trained on consumer-grade GPUs; you are a helpful, concise, and reliable AI assistant that follows instructions exactly.<|endofturn|>\n<|user|>\nNamaste Ruby, mujhe Hindi mein ek chhota sa jawab do.<|endofturn|>\n<|assistant|>\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Namaste Ruby, mujhe Hindi mein ek chhota sa jawab do."
+        }
+      ],
+      "reply": "Namaste Ruby, mujhe Hindi mein ek chhota sa jawab do.",
+      "reviewCriterion": "Short relevant Hindi/Hinglish response; measured as a language probe, not a shipping requirement.",
+      "firstTextSeconds": 0.3336411999999882,
+      "totalSeconds": 0.9024793999999474,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 91,
+        "prompt_ms": 331.013,
+        "prompt_per_token_ms": 3.6375054945054943,
+        "prompt_per_second": 274.91367408530783,
+        "predicted_n": 24,
+        "predicted_ms": 568.628,
+        "predicted_per_token_ms": 24.722956521739132,
+        "predicted_per_second": 40.44823680859894
+      },
+      "peakWorkingSetBytes": 624574464
+    }
+  ],
+  "defaultApproved": false,
+  "limitations": [
+    "Hosted CPU is not the user laptop or an iGPU benchmark.",
+    "Quality requires human review; instruction tuning does not imply passing.",
+    "Cancellation, browser inference, tokenizer conversion correspondence and complete product size remain unverified."
+  ]
+}
