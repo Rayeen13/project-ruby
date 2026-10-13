@@ -11,6 +11,8 @@
   "permissions": [
     "allow-desktop-action",
     "allow-desktop-status",
+    "allow-desktop-smoke-report",
+    "allow-desktop-smoke-checkpoint",
     "core:event:allow-listen",
     "core:event:allow-unlisten"
   ]

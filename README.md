@@ -49,3 +49,7 @@ The lab saves model, gem, expression, hand poses, camera, tracking and animation
 ## Windows shell preview
 
 See [docs/WINDOWS.md](docs/WINDOWS.md) for the Tauri host, local build instructions and the Windows CI installer artifact. The native viewer embeds the same lab assets. The Windows preview includes a transparent floating window, tray, pointer drag handle, click-through and Ctrl+Alt+Shift+R recovery. OS control and AI are not connected yet. Build validation and physical-device runtime validation are separate checks.
+
+## Touch and model menu
+
+Tap a robot's head/body for a pat or boop, or its hand for a greeting. Right-click the mesh or long-press on touch screens to open the interaction bubble. Menu actions include wave, dance, sleep, wake and stop. Dragging turns the model in the direction of the drag; taps and long-presses are distinct from orbit/pinch gestures. Native Windows CI exercises these actions in the packaged WebView and captures screenshots.
