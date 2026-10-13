@@ -1,6 +1,6 @@
 # Project Ruby
 
-A desktop-companion prototype with five procedural 3D robot bodies, gem colour profiles, cursor tracking and expressive animation. Built with Three.js and browser JavaScript; a native desktop host and conversational AI are future work.
+A desktop-companion prototype with five procedural 3D robot bodies, gem colour profiles, cursor tracking and expressive animation. Built with Three.js and browser JavaScript; a first Windows desktop shell is available as a build preview; conversational AI and OS automation are future work.
 
 ## Run locally
 
@@ -45,3 +45,7 @@ See [HAND_RIG.md](HAND_RIG.md) for jointed hands and gestures. Four finger chain
 Select either hand and preview relaxed/open/point/grip/fist poses. Classic disables hand controls; Gamer reserves its right hand for the controller. Wave temporarily overrides the right pose, then the chosen pose resumes.
 
 The lab saves model, gem, expression, hand poses, camera, tracking and animation preferences on the current browser/device. Reset preferences restores defaults; Reset view affects only the camera. Export preferences downloads a versioned JSON snapshot. Storage errors do not prevent using the lab, and corrupt/unsupported saved values fall back to valid defaults. Preferences are not shared chat memory or an account sync service.
+
+## Windows shell preview
+
+See [docs/WINDOWS.md](docs/WINDOWS.md) for the Tauri host, local build instructions and the Windows CI installer artifact. The native viewer embeds the same lab assets. This milestone adds a native app window; floating/tray mode, OS control and AI are not connected yet. Build validation and physical-device runtime validation are separate checks.

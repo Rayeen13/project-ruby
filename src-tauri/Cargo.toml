@@ -1,0 +1,13 @@
+[package]
+name = "project-ruby"
+version = "0.2.0"
+description = "Project Ruby desktop companion prototype"
+authors = ["Project Ruby contributors"]
+license = "GPL-2.0-only"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "=2.7.2", features = [] }
+
+[dependencies]
+tauri = { version = "=2.12.3", features = [] }
