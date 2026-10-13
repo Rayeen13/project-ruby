@@ -42,27 +42,34 @@ export function mountSideArms(character){
  }
 }
 // Joint angles can be driven by an animator or future object-grip solver.
-export function setHandPose(hand,pose='relaxed'){
+export function setHandPose(hand,pose='relaxed',weight=1){
  const digits=hand.userData.digits;if(!digits)return;
  const curl=pose==='open'?0:pose==='relaxed'?.18:pose==='grip'?.8:1.1;
  digits.fingers.forEach(({base,tip},i)=>{
   const angle=pose==='point'&&i===0?0:curl;
-  base.rotation.x=-angle;tip.rotation.x=-angle*.9;
+  base.rotation.x=T.MathUtils.lerp(base.rotation.x,-angle,weight);tip.rotation.x=T.MathUtils.lerp(tip.rotation.x,-angle*.9,weight);
  });
- digits.thumb.rotation.x=pose==='open'?0:-curl*.65;
- digits.thumb.rotation.y=pose==='grip'||pose==='fist'?-digits.side*.65:0;
- digits.thumbTip.rotation.x=-curl*.8;
+ digits.thumb.rotation.x=T.MathUtils.lerp(digits.thumb.rotation.x,pose==='open'?0:-curl*.65,weight);
+ digits.thumb.rotation.y=T.MathUtils.lerp(digits.thumb.rotation.y,pose==='grip'||pose==='fist'?-digits.side*.65:0,weight);
+ digits.thumbTip.rotation.x=T.MathUtils.lerp(digits.thumbTip.rotation.x,-curl*.8,weight);
 }
-export function applyWavePose(character,rig,t,{holding=false}={}){
+const target=new T.Quaternion(),identity=new T.Quaternion(),rotation=new T.Euler();
+function blendRotation(group,x,y,z,weight){
+ target.setFromEuler(rotation.set(x,y,z));group.quaternion.slerp(target,weight);
+}
+export function applyWavePose(character,rig,t,{holding=false,weight=1}={}){
  const {arm,forearm,hand}=rig;
- character.head.rotation.set(0,0,0);
- setHandPose(hand,holding?'grip':'open');
- // The whole short arm swings sideways at its body hinge; no forward thrust.
- arm.rotation.set(0,0,-1.87+Math.sin(t*3.7)*.28);
- forearm.rotation.set(0,0,0);
- hand.rotation.set(0,0,Math.PI-arm.rotation.z+Math.sin(t*3.7)*.16);
+ const restPropAngle=holding?arm.rotation.z+hand.rotation.z+character.controller.rotation.z:0;
+ weight=T.MathUtils.clamp(weight,0,1);
+ character.head.quaternion.slerp(identity,weight);
+ setHandPose(hand,holding?'grip':'open',weight);
+ const shoulder=-1.87+Math.sin(t*3.7)*.28;
+ blendRotation(arm,0,0,shoulder,weight);
+ blendRotation(forearm,0,0,0,weight);
+ blendRotation(hand,0,0,Math.PI-shoulder+Math.sin(t*3.7)*.16,weight);
  if(holding&&character.controller){
-  character.controller.rotation.z=-(arm.rotation.z+hand.rotation.z);
-  character.controller.position.set(.13,.10,.12);
+  // Keep the prop upright throughout the blended wrist/shoulder movement.
+  character.controller.rotation.z=-(arm.rotation.z+hand.rotation.z)+restPropAngle*(1-weight);
+  character.controller.position.set(.13,T.MathUtils.lerp(-.04,.10,weight),.12);
  }
 }

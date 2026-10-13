@@ -52,11 +52,12 @@ export class GamerCharacter extends OfficeCharacter {
  }
  update(t,options={}){
   // Controller stays attached as the right arm rises and waves.
-  super.update(t,{...options,wave:false});
+  super.update(t,{...options,wave:false,waveWeight:0});
   this.controller.rotation.z=0;this.controller.position.set(.13,-.04,.12);
   const r=this.rightArm;r.arm.rotation.set(0,0,-.42);r.forearm.rotation.set(0,0,0);r.hand.rotation.set(0,0,0);
   setHandPose(r.hand,'grip');
-  if(options.wave)applyWavePose(this,r,t,{holding:true});
+  const waveWeight=options.waveWeight??(options.wave?1:0);
+  if(waveWeight>0)applyWavePose(this,r,t,{holding:true,weight:waveWeight});
   // EMO-inspired digital eyes: cyan, rounded and expressive, without a mouth.
   const c=this.ctx,gx=this.gaze.x,gy=this.gaze.y,blink=Math.sin(t*1.3)>.993;
   c.clearRect(0,0,640,280);c.globalAlpha=1;c.fillStyle='#76f4f1';c.strokeStyle='#76f4f1';c.shadowColor='#35d9ed';c.shadowBlur=18;
