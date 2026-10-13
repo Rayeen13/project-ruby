@@ -107,7 +107,7 @@ Keep static figurine export separate from articulated printable hardware. Existi
 5. Add semantic animation events and smooth greeting start/end transitions.
 6. Test WebGL on desktop and mobile and record actual rendering/performance limits.
 
-Model licensing/quality evaluation has started for v0.3: the first checksum-pinned Phi-1.5 Windows CPU baseline ran successfully but failed conversation quality. No default is approved. See docs/OFFLINE_MODELS.md for the measured results and remaining gates. Kurumi work continues independently.
+Model licensing/quality evaluation has started for v0.3: the checksum-pinned Phi-1.5 baseline and smaller instruction-tuned Shunya-0.5B Windows CPU experiments both ran successfully but failed basic conversation quality. No default is approved. See docs/OFFLINE_MODELS.md for the measured results and remaining gates. Kurumi work continues independently.
 
 ## Repository practices
 
@@ -119,3 +119,7 @@ Public repository: `Rayeen13/project-ruby`. Default branch: `main`. Stable relea
 - Tauri platform-specific capabilities: https://v2.tauri.app/learn/security/capabilities-for-windows-and-platforms/
 - ONNX Runtime browser inference: https://onnxruntime.ai/docs/tutorials/web/
 - ONNX Runtime Web execution providers/browser support: https://onnxruntime.ai/docs/get-started/with-javascript/web.html
+
+## Optional model packs — 13 October decision
+
+Keep Ruby's application package under 1 GB. Riyan approved optional larger model downloads outside that package; under-1 GB models remain preferred when useful. Expose pack size, RAM needs and licences before an explicit user-selected install. MIT-only model weights remain required. Colibri/Soup may be evaluated as separately installed inference/training tools behind a pluggable provider interface; neither is integrated or an approved model today. See `docs/OFFLINE_MODELS.md` for the audit, GPT-family options and rejected candidates.

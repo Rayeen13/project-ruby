@@ -75,6 +75,10 @@ def main():
     if platform.system() != 'Windows':
         raise RuntimeError('This experiment measures the Windows CPU host')
     candidate, runtime = CONFIG['candidate'], CONFIG['runtime']
+    # A reused results directory must not inherit another model's licence evidence.
+    for old in OUT.glob('upstream-*'):
+        if old.is_file():
+            old.unlink()
     metadata = {}
     for role, repo in [('upstream', candidate['upstream']), ('conversion', candidate['conversion'])]:
         item = request_json('https://huggingface.co/api/models/' + repo)
@@ -82,7 +86,9 @@ def main():
         if metadata[role]['declaredLicense'] != 'mit':
             raise RuntimeError('MIT metadata gate failed: ' + repo)
     upstream_revision = metadata['upstream']['revision']
-    for filename in ['LICENSE', 'tokenizer_config.json', 'tokenizer.json', 'vocab.json', 'merges.txt']:
+    if candidate.get('upstreamRevision') and upstream_revision != candidate['upstreamRevision']:
+        raise RuntimeError('Upstream revision changed; review the new publisher assets first')
+    for filename in ['LICENSE', 'README.md', 'tokenizer_config.json', 'tokenizer.json', 'tokenizer.model', 'special_tokens_map.json', 'added_tokens.json', 'vocab.json', 'merges.txt']:
         url = f"https://huggingface.co/{candidate['upstream']}/resolve/{upstream_revision}/{filename}"
         try:
             with urllib.request.urlopen(url, timeout=60) as response:
@@ -93,9 +99,13 @@ def main():
         except urllib.error.HTTPError as error:
             if error.code != 404:
                 raise
-    license_text = (OUT / 'upstream-LICENSE').read_text(encoding='utf-8')
-    if 'MIT License' not in license_text:
-        raise RuntimeError('Actual upstream MIT notice missing')
+    license_path = OUT / 'upstream-LICENSE'
+    notice_present = license_path.exists() and 'MIT License' in license_path.read_text(encoding='utf-8')
+    if not notice_present:
+        # This explicit research exception does not approve shipping or replace a copyright notice.
+        readme = (OUT / 'upstream-README.md').read_text(encoding='utf-8')
+        if candidate.get('licenseEvidence') != 'publisher-declaration-research-only' or 'license: mit' not in readme:
+            raise RuntimeError('Actual upstream MIT notice missing')
     revision = metadata['conversion']['revision']
     model = CACHE / candidate['filename']
     model_info = download(f"https://huggingface.co/{candidate['conversion']}/resolve/{revision}/{candidate['filename']}",
@@ -141,9 +151,16 @@ def main():
             else:
                 raise RuntimeError('Model load timed out')
             cold_load = time.perf_counter() - start
+            props = request_json(base + '/props')
+            (OUT / 'server-properties.json').write_text(json.dumps(props, indent=2), encoding='utf-8')
+            tokenizer_config = json.loads((OUT / 'upstream-tokenizer_config.json').read_text(encoding='utf-8'))
+            if any('messages' in case for case in CONFIG['prompts']):
+                if props.get('chat_template') != tokenizer_config.get('chat_template'):
+                    raise RuntimeError('GGUF chat template differs from the archived upstream template')
             for case in CONFIG['prompts']:
-                payload = {'prompt': case['text'], 'n_predict': CONFIG['maxReplyTokens'], 'stream': True,
-                           'temperature': 0, 'seed': 42, 'cache_prompt': False, 'stop': ['\nUser:']}
+                prompt = request_json(base + '/apply-template', {'messages': case['messages']})['prompt'] if 'messages' in case else case['text']
+                payload = {'prompt': prompt, 'n_predict': CONFIG['maxReplyTokens'], 'stream': True,
+                           'temperature': 0, 'seed': 42, 'cache_prompt': False, 'stop': CONFIG.get('stop', ['\nUser:'])}
                 request = urllib.request.Request(base + '/completion', data=json.dumps(payload).encode(),
                                                  headers={'Content-Type': 'application/json'})
                 begin, first, output, final = time.perf_counter(), None, '', {}
@@ -158,17 +175,18 @@ def main():
                         output += text
                         if part.get('stop'):
                             final = part
-                results.append({'id': case['id'], 'prompt': case['text'], 'reply': output, 'reviewCriterion': case['review'],
+                results.append({'id': case['id'], 'prompt': prompt, 'messages': case.get('messages'), 'reply': output, 'reviewCriterion': case['review'],
                                 'firstTextSeconds': first, 'totalSeconds': time.perf_counter() - begin,
                                 'timings': final.get('timings'), 'peakWorkingSetBytes': memory(server.pid)})
             report = {'schemaVersion': 1, 'dateUtc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
                       'host': {'system': platform.platform(), 'cpu': platform.processor(), 'logicalCPUs': os.cpu_count()},
                       'candidate': candidate, 'metadata': metadata, 'model': model_info,
+                      'licenseNoticePresent': notice_present, 'redistributionApproved': False,
                       'runtime': {**runtime_info, 'release': runtime['release'], 'asset': asset['name'], 'extractedExecutableBytes': native_bytes},
                       'configuration': {'threads': CONFIG['threads'], 'contextTokens': CONFIG['contextTokens'], 'gpuLayers': 0},
                       'coldLoadSeconds': cold_load, 'samples': results, 'defaultApproved': False,
                       'limitations': ['Hosted CPU is not the user laptop or an iGPU benchmark.',
-                                      'This is a base model; quality requires human review.',
+                                      'Quality requires human review; instruction tuning does not imply passing.',
                                       'Cancellation, browser inference, tokenizer conversion correspondence and complete product size remain unverified.']}
             (OUT / 'results.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
             print(json.dumps({'coldLoadSeconds': cold_load, 'modelBytes': model_info['bytes'], 'samples': len(results)}))
