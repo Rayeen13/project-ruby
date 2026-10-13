@@ -36,6 +36,6 @@ See [HAND_RIG.md](HAND_RIG.md) for jointed hands and gestures. Four finger chain
 
 ## Build and validation
 
-`npm run build` creates versioned browser assets after source changes. `npm test` checks 1,920 sampled waving poses, head clearance, gesture joints/handedness, eye dimensions and controller attachment. Visual review is still required on real WebGL devices. The software SVG renderer is a compatibility fallback.
+`npm run build` creates versioned browser assets after source changes. `npm test` checks host-injected character contracts, capability-aware gesture routing and 1,920 sampled waving poses, head clearance, gesture joints/handedness, eye dimensions and controller attachment. `npm run check:assets` verifies the built browser module graph. GitHub Actions runs these checks on Windows/Linux with Node 22/24. Visual review is still required on real WebGL devices. The software SVG renderer is a compatibility fallback.
 
 `npm run export:print` regenerates static STL figurines. Python dependencies: trimesh, manifold3d, numpy, scipy and scikit-image. Exported files are reloaded and checked for a connected watertight solid with positive volume. They contain no mechanical joints; inspect thin fingers and supports in your slicer.

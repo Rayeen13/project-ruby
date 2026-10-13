@@ -16,8 +16,8 @@ for(const category of [...new Set(CHARACTER_MODELS.map(m=>m.category))]){
 }
 function updateModelUI(){
  modelSelect.value=selection.spec.id;
- const wave=document.querySelector('#wave');wave.disabled=!selection.spec.canWave;
- wave.title=selection.spec.canWave?'Wave hello':'The classic body has no hands';
+ const wave=document.querySelector('#wave');wave.disabled=!selection.capabilities.wave;
+ wave.title=selection.capabilities.wave?'Wave hello':'The classic body has no hands';
  document.querySelector('#model-caption').textContent=selection.spec.name;
  document.querySelector('#model-description').textContent=selection.spec.description;
  document.querySelector('#print-download').href='./prints/'+selection.spec.id+'-120mm.stl';

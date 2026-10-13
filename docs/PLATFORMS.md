@@ -11,3 +11,11 @@ Web: current WebGL viewer, touch orbit and pinch zoom, capped pixel ratio and 30
 Native widget views should consume companion-state snapshots (model/profile/mood/status/last update) and launch the main assistant for full interaction. Android and iOS widgets are distinct implementations. Floating assistant windows and OS-control capabilities must be declared per host, with unsupported features unavailable.
 
 3D printing is a separate output: static solid STL, physical eye relief, reinforcement bridges and base. It cannot retain animation. Every new body must be appended to the registry without replacing earlier IDs and include scripts/export-print-input.mjs + scripts/build-prints.py validation output. The current printable exports are static figurines, not articulated engineering designs.
+
+## Implemented character capabilities
+
+Catalog entries expose an immutable `capabilities` declaration: gaze, dance, wave, hands, expressions, gestures, and an optional held prop. `CharacterSelection.capabilities` exposes the active declaration. Legacy `spec.canWave` is derived from the same declaration for compatibility.
+
+Use `selection.setHandGesture(pose, side)` to route a gesture. Side is anatomical right `-1` or left `1`. Unsupported gestures return false; invalid hand sides throw. Classic reports no hand gestures. Gamer reserves its right hand for its controller grip, while left-hand gestures remain available. These are visual capabilities, not OS permissions or live microphone support.
+
+CI runs the dependency-free character/animation tests, builds the browser modules and verifies their reachable imports on Node 22/24 on Windows and Linux. This validates module contracts and packaging; it does not replace physical-device WebGL or native host tests.
