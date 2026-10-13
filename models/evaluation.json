@@ -2,16 +2,16 @@
   "schemaVersion": 1,
   "approvedDefault": null,
   "candidate": {
-    "id": "shunya-0.5b-instruct-q4-k-m-experiment",
-    "upstream": "vivekmarakana/shunya-0.5b-instruct",
-    "upstreamRevision": "80dbaa0866f6177240db4bc8b27e3f21313d9345",
-    "conversion": "mradermacher/shunya-0.5b-instruct-GGUF",
-    "filename": "shunya-0.5b-instruct.Q4_K_M.gguf",
-    "sha256": "b5f2139baf23951964593979fd6d47bdbab92fb69b046d6449b501cb14813f21",
-    "weightLicense": "MIT",
-    "licenseEvidence": "publisher-declaration-research-only",
-    "tokenizerReview": "Custom SentencePiece tokenizer; full notice and conversion correspondence remain unapproved.",
-    "role": "instruction-tuned research benchmark only; not approved for redistribution or companion chat"
+    "id": "qwen2.5-0.5b-instruct-q4-k-m-experiment",
+    "upstream": "Qwen/Qwen2.5-0.5B-Instruct",
+    "conversion": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+    "filename": "qwen2.5-0.5b-instruct-q4_k_m.gguf",
+    "sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+    "weightLicense": "Apache-2.0",
+    "chatTemplateSource": "upstream-file",
+    "tokenizerReview": "Official publisher assets and GGUF; retain Apache-2.0 licence and notices and review tokenization correspondence before shipping.",
+    "role": "commercially licensed instruction-tuned benchmark; not yet approved for app integration",
+    "upstreamRevision": "7ae557604adf67be50417f59c2c2f167def9a775"
   },
   "runtime": {
     "repository": "ggml-org/llama.cpp",
@@ -105,7 +105,7 @@
     }
   ],
   "stop": [
-    "<|endofturn|>",
-    "<|user|>"
+    "<|im_end|>",
+    "<|im_start|>"
   ]
 }

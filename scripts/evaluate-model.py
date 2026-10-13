@@ -71,6 +71,14 @@ def memory(pid):
         kernel.CloseHandle(handle)
 
 
+def license_notice_matches(weight_license, text):
+    if weight_license == 'mit':
+        return 'MIT License' in text
+    if weight_license == 'apache-2.0':
+        return 'Apache License' in text and 'Version 2.0' in text
+    return False
+
+
 def main():
     if platform.system() != 'Windows':
         raise RuntimeError('This experiment measures the Windows CPU host')
@@ -79,16 +87,19 @@ def main():
     for old in OUT.glob('upstream-*'):
         if old.is_file():
             old.unlink()
+    expected_license = candidate['weightLicense'].lower()
+    if expected_license not in {'mit', 'apache-2.0'}:
+        raise RuntimeError('Candidate licence needs a separate commercial-use review')
     metadata = {}
     for role, repo in [('upstream', candidate['upstream']), ('conversion', candidate['conversion'])]:
         item = request_json('https://huggingface.co/api/models/' + repo)
         metadata[role] = {'repository': repo, 'revision': item['sha'], 'declaredLicense': item.get('cardData', {}).get('license')}
-        if metadata[role]['declaredLicense'] != 'mit':
-            raise RuntimeError('MIT metadata gate failed: ' + repo)
+        if metadata[role]['declaredLicense'] != expected_license:
+            raise RuntimeError('Configured licence differs from publisher metadata: ' + repo)
     upstream_revision = metadata['upstream']['revision']
     if candidate.get('upstreamRevision') and upstream_revision != candidate['upstreamRevision']:
         raise RuntimeError('Upstream revision changed; review the new publisher assets first')
-    for filename in ['LICENSE', 'README.md', 'tokenizer_config.json', 'tokenizer.json', 'tokenizer.model', 'special_tokens_map.json', 'added_tokens.json', 'vocab.json', 'merges.txt']:
+    for filename in ['LICENSE', 'NOTICE', 'NOTICE.md', 'README.md', 'tokenizer_config.json', 'tokenizer.json', 'tokenizer.model', 'special_tokens_map.json', 'added_tokens.json', 'vocab.json', 'merges.txt']:
         url = f"https://huggingface.co/{candidate['upstream']}/resolve/{upstream_revision}/{filename}"
         try:
             with urllib.request.urlopen(url, timeout=60) as response:
@@ -100,12 +111,12 @@ def main():
             if error.code != 404:
                 raise
     license_path = OUT / 'upstream-LICENSE'
-    notice_present = license_path.exists() and 'MIT License' in license_path.read_text(encoding='utf-8')
+    notice_present = license_path.exists() and license_notice_matches(expected_license, license_path.read_text(encoding='utf-8'))
     if not notice_present:
         # This explicit research exception does not approve shipping or replace a copyright notice.
         readme = (OUT / 'upstream-README.md').read_text(encoding='utf-8')
-        if candidate.get('licenseEvidence') != 'publisher-declaration-research-only' or 'license: mit' not in readme:
-            raise RuntimeError('Actual upstream MIT notice missing')
+        if expected_license != 'mit' or candidate.get('licenseEvidence') != 'publisher-declaration-research-only' or 'license: mit' not in readme:
+            raise RuntimeError('Actual configured upstream licence notice missing')
     revision = metadata['conversion']['revision']
     model = CACHE / candidate['filename']
     model_info = download(f"https://huggingface.co/{candidate['conversion']}/resolve/{revision}/{candidate['filename']}",
@@ -134,10 +145,16 @@ def main():
     native_bytes = sum(file.stat().st_size for file in runtime_dir.rglob('*') if file.is_file() and file.suffix in ['.exe', '.dll'])
     base = 'http://127.0.0.1:18889'
     results = []
+    extra_args = []
+    if candidate.get('chatTemplateSource') == 'upstream-file':
+        upstream_template = json.loads((OUT / 'upstream-tokenizer_config.json').read_text(encoding='utf-8'))['chat_template']
+        template_path = OUT / 'upstream-chat-template.jinja'
+        template_path.write_text(upstream_template, encoding='utf-8')
+        extra_args = ['--jinja', '--chat-template-file', str(template_path)]
     with (OUT / 'server.log').open('w', encoding='utf-8') as log:
         start = time.perf_counter()
         server = subprocess.Popen([str(executables[0]), '-m', str(model), '-c', str(CONFIG['contextTokens']),
-                                   '-t', str(CONFIG['threads']), '-ngl', '0', '--host', '127.0.0.1', '--port', '18889', '--slots'],
+                                   '-t', str(CONFIG['threads']), '-ngl', '0', '--host', '127.0.0.1', '--port', '18889', '--slots'] + extra_args,
                                   stdout=log, stderr=log)
         try:
             for _ in range(600):
@@ -156,7 +173,7 @@ def main():
             tokenizer_config = json.loads((OUT / 'upstream-tokenizer_config.json').read_text(encoding='utf-8'))
             if any('messages' in case for case in CONFIG['prompts']):
                 if props.get('chat_template') != tokenizer_config.get('chat_template'):
-                    raise RuntimeError('GGUF chat template differs from the archived upstream template')
+                    raise RuntimeError('Server chat template differs from the archived upstream template')
             for case in CONFIG['prompts']:
                 prompt = request_json(base + '/apply-template', {'messages': case['messages']})['prompt'] if 'messages' in case else case['text']
                 payload = {'prompt': prompt, 'n_predict': CONFIG['maxReplyTokens'], 'stream': True,

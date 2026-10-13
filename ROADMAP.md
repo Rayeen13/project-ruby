@@ -16,7 +16,7 @@ Budget: **45 hours**. This is a target for a narrow Windows desktop assistant MV
 | 2 | Settings persistence, gesture controls and smooth wave transitions | Model/profile/gesture settings survive reload. |
 | 3 | Windows Tauri host and shared renderer connection | Character runs in a native application window. |
 | 4 | Floating window, tray, positioning, click-through and stop shortcut | Usable desktop companion shell. |
-| 5 | MIT chat/speech weight and tokenizer licence audit and CPU/model benchmarks | Select a model only if licence, quality and memory gates pass; record blockers otherwise. |
+| 5 | Commercial-use chat/speech weight and tokenizer licence audit and CPU/model benchmarks | Select a model only if licence, quality and memory gates pass; record blockers otherwise. |
 | 6 | Local model adapter and streamed text chat | First local conversation without fake responses. |
 | 7 | Cancel/unload, chat history, settings and offline restart | Local conversation recovers after restart/network loss. |
 | 8 | Optional internet-search provider, bounded evidence and source links | Online answers work with the selected/configured search service; failures remain explicit. |
@@ -80,7 +80,7 @@ The orchestrator depends on these contracts. Hosts supply concrete adapters. Cap
 
 ## Offline AI decision gate
 
-MIT applies to the chosen model weights, not merely its inference library or a conversion script. Record the exact upstream model, weight revision, tokenizer, licence and redistribution conditions before selecting or shipping a pack. The project source remains GPL-2.0-only as requested; preserve dependency notices.
+Commercial-use and royalty requirements apply to the chosen model weights, not merely its inference library or a conversion script. Record the exact upstream model, weight revision, tokenizer, licence and redistribution conditions before selecting or shipping a pack. The project source remains GPL-2.0-only as requested; preserve dependency notices.
 
 Aim for a compact default pack, with approximately 100 MB as a preferred benchmark tier rather than a promise of useful conversation on every device. Keep the desktop application/default pack within the 1 GB product target; optional downloads must show their size. Model file size alone does not determine speed or runtime RAM.
 
@@ -122,4 +122,6 @@ Public repository: `Rayeen13/project-ruby`. Default branch: `main`. Stable relea
 
 ## Optional model packs — 13 October decision
 
-Keep Ruby's application package under 1 GB. Riyan approved optional larger model downloads outside that package; under-1 GB models remain preferred when useful. Expose pack size, RAM needs and licences before an explicit user-selected install. MIT-only model weights remain required. Colibri/Soup may be evaluated as separately installed inference/training tools behind a pluggable provider interface; neither is integrated or an approved model today. See `docs/OFFLINE_MODELS.md` for the audit, GPT-family options and rejected candidates.
+Keep Ruby's application package under 1 GB. Riyan approved optional larger model downloads outside that package; under-1 GB models remain preferred when useful. Expose pack size, RAM needs and licences before an explicit user-selected install. Model weights must allow commercial use and selling Ruby without mandatory model royalties; MIT is no longer required. Colibri/Soup may be evaluated as separately installed inference/training tools behind a pluggable provider interface; neither is integrated or an approved model today. See `docs/OFFLINE_MODELS.md` for the audit, GPT-family options and rejected candidates.
+
+On 13 October Riyan broadened model eligibility from MIT-only to commercially usable licences with no mandatory model royalty. MIT and Apache-2.0 are the first reviewed licence families for experiments; other licences require their exact terms to be reviewed. Keep licence/copyright notices and any required attribution. Ruby source remains GPL-2.0-only.

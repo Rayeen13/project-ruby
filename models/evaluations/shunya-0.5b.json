@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "approvedDefault": null,
+  "candidate": {
+    "id": "shunya-0.5b-instruct-q4-k-m-experiment",
+    "upstream": "vivekmarakana/shunya-0.5b-instruct",
+    "upstreamRevision": "80dbaa0866f6177240db4bc8b27e3f21313d9345",
+    "conversion": "mradermacher/shunya-0.5b-instruct-GGUF",
+    "filename": "shunya-0.5b-instruct.Q4_K_M.gguf",
+    "sha256": "b5f2139baf23951964593979fd6d47bdbab92fb69b046d6449b501cb14813f21",
+    "weightLicense": "MIT",
+    "licenseEvidence": "publisher-declaration-research-only",
+    "tokenizerReview": "Custom SentencePiece tokenizer; full notice and conversion correspondence remain unapproved.",
+    "role": "instruction-tuned research benchmark only; not approved for redistribution or companion chat"
+  },
+  "runtime": {
+    "repository": "ggml-org/llama.cpp",
+    "release": "b11433",
+    "assetSuffix": "bin-win-cpu-x64.zip",
+    "sha256": "301943380e45deae3991d42dddd03fae65c6a4963a5d882328a60208b43aa9e0"
+  },
+  "maxProductBytes": 1000000000,
+  "maxModelDownloadBytes": 1000000000,
+  "contextTokens": 2048,
+  "maxReplyTokens": 96,
+  "threads": 2,
+  "prompts": [
+    {
+      "id": "greeting",
+      "review": "A brief coherent friendly reply to the user.",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi Ruby! How are you today?"
+        }
+      ]
+    },
+    {
+      "id": "identity",
+      "review": "Follows the name and one-sentence instruction; no unrelated text.",
+      "messages": [
+        {
+          "role": "user",
+          "content": "You are Ruby, my desktop robot companion. Introduce yourself in one sentence."
+        }
+      ]
+    },
+    {
+      "id": "memory",
+      "review": "Uses Riyan from the supplied conversation context.",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My name is Riyan."
+        },
+        {
+          "role": "assistant",
+          "content": "Hi Riyan."
+        },
+        {
+          "role": "user",
+          "content": "What is my name?"
+        }
+      ]
+    },
+    {
+      "id": "explanation",
+      "review": "Relevant explanation, correct facts, two sentences.",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Explain what a computer mouse does in two simple sentences."
+        }
+      ]
+    },
+    {
+      "id": "arithmetic",
+      "review": "Answers five without contradictory or repetitive text.",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I have 3 apples and buy 2 more. How many apples do I have?"
+        }
+      ]
+    },
+    {
+      "id": "uncertainty",
+      "review": "Acknowledges missing live data rather than inventing weather.",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the exact weather outside my house right now? You do not have my location or live weather data."
+        }
+      ]
+    },
+    {
+      "id": "hindi",
+      "review": "Short relevant Hindi/Hinglish response; measured as a language probe, not a shipping requirement.",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Namaste Ruby, mujhe Hindi mein ek chhota sa jawab do."
+        }
+      ]
+    }
+  ],
+  "stop": [
+    "<|endofturn|>",
+    "<|user|>"
+  ]
+}
