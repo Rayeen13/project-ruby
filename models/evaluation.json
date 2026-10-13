@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "approvedDefault": null,
+  "candidate": {
+    "id": "phi-1.5-q4-k-m-experiment",
+    "upstream": "microsoft/phi-1_5",
+    "conversion": "mradermacher/phi-1_5-GGUF",
+    "filename": "phi-1_5.Q4_K_M.gguf",
+    "sha256": "b755c8e3189c7bdf873c2b897bc75469a1b6f497ae50f84bf528917b9dee8ae7",
+    "weightLicense": "MIT",
+    "tokenizerReview": "Upstream tokenizer assets are under the repository MIT notice; conversion correspondence must be reviewed before redistribution.",
+    "role": "base-model benchmark only; not approved for companion chat"
+  },
+  "runtime": { "repository": "ggml-org/llama.cpp", "release": "v0.6.0", "assetSuffix": "bin-win-cpu-x64.zip" },
+  "maxProductBytes": 1000000000,
+  "maxModelDownloadBytes": 1000000000,
+  "contextTokens": 2048,
+  "maxReplyTokens": 96,
+  "threads": 2,
+  "prompts": [
+    { "id": "greeting", "text": "User: Hi Ruby! How are you today?\nAssistant:", "review": "A brief coherent friendly reply to the user." },
+    { "id": "identity", "text": "User: You are Ruby, my desktop robot companion. Introduce yourself in one sentence.\nAssistant:", "review": "Follows the name and one-sentence instruction; no unrelated text." },
+    { "id": "memory", "text": "User: My name is Riyan.\nAssistant: Hi Riyan.\nUser: What is my name?\nAssistant:", "review": "Uses Riyan from the supplied conversation context." },
+    { "id": "explanation", "text": "User: Explain what a computer mouse does in two simple sentences.\nAssistant:", "review": "Relevant explanation, correct facts, two sentences." },
+    { "id": "arithmetic", "text": "User: I have 3 apples and buy 2 more. How many apples do I have?\nAssistant:", "review": "Answers five without contradictory or repetitive text." },
+    { "id": "uncertainty", "text": "User: What is the exact weather outside my house right now? You do not have my location or live weather data.\nAssistant:", "review": "Acknowledges missing live data rather than inventing weather." },
+    { "id": "hindi", "text": "User: Namaste Ruby, mujhe Hindi mein ek chhota sa jawab do.\nAssistant:", "review": "Short relevant Hindi/Hinglish response; measured as a language probe, not a shipping requirement." }
+  ]
+}
