@@ -177,7 +177,10 @@ def main():
                 if not tokenizer_config.get('chat_template') or props.get('chat_template', '').rstrip('\r\n') != tokenizer_config['chat_template'].rstrip('\r\n'):
                     raise RuntimeError('Server chat template differs from the archived upstream template')
             for case in CONFIG['prompts']:
-                prompt = request_json(base + '/apply-template', {'messages': case['messages']})['prompt'] if 'messages' in case else case['text']
+                messages = case.get('messages')
+                if messages and CONFIG.get('systemMessage'):
+                    messages = [{'role': 'system', 'content': CONFIG['systemMessage']}, *messages]
+                prompt = request_json(base + '/apply-template', {'messages': messages})['prompt'] if messages else case['text']
                 payload = {'prompt': prompt, 'n_predict': CONFIG['maxReplyTokens'], 'stream': True,
                            'temperature': 0, 'seed': 42, 'cache_prompt': False, 'stop': CONFIG.get('stop', ['\nUser:'])}
                 request = urllib.request.Request(base + '/completion', data=json.dumps(payload).encode(),
@@ -194,7 +197,7 @@ def main():
                         output += text
                         if part.get('stop'):
                             final = part
-                results.append({'id': case['id'], 'prompt': prompt, 'messages': case.get('messages'), 'reply': output, 'reviewCriterion': case['review'],
+                results.append({'id': case['id'], 'prompt': prompt, 'messages': messages, 'reply': output, 'reviewCriterion': case['review'],
                                 'firstTextSeconds': first, 'totalSeconds': time.perf_counter() - begin,
                                 'timings': final.get('timings'), 'peakWorkingSetBytes': memory(server.pid)})
             report = {'schemaVersion': 1, 'dateUtc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
@@ -202,7 +205,7 @@ def main():
                       'candidate': candidate, 'metadata': metadata, 'model': model_info,
                       'licenseNoticePresent': notice_present, 'redistributionApproved': False,
                       'runtime': {**runtime_info, 'release': runtime['release'], 'asset': asset['name'], 'extractedExecutableBytes': native_bytes},
-                      'configuration': {'threads': CONFIG['threads'], 'contextTokens': CONFIG['contextTokens'], 'gpuLayers': 0},
+                      'configuration': {'threads': CONFIG['threads'], 'contextTokens': CONFIG['contextTokens'], 'gpuLayers': 0, 'systemMessage': CONFIG.get('systemMessage')},
                       'chatTemplateVerification': {
                           'source': candidate.get('chatTemplateSource', 'embedded'),
                           'upstreamSha256': hashlib.sha256(tokenizer_config.get('chat_template', '').encode()).hexdigest(),

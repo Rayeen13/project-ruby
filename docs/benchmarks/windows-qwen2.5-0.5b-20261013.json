@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 1,
+  "dateUtc": "2026-10-13T16:54:43Z",
+  "host": {
+    "system": "Windows-2025Server-10.0.26100-SP0",
+    "cpu": "AMD64 Family 25 Model 17 Stepping 1, AuthenticAMD",
+    "logicalCPUs": 4
+  },
+  "candidate": {
+    "id": "qwen2.5-0.5b-instruct-q4-k-m-experiment",
+    "upstream": "Qwen/Qwen2.5-0.5B-Instruct",
+    "conversion": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+    "filename": "qwen2.5-0.5b-instruct-q4_k_m.gguf",
+    "sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+    "weightLicense": "Apache-2.0",
+    "chatTemplateSource": "upstream-file",
+    "tokenizerReview": "Official publisher assets and GGUF; retain Apache-2.0 licence and notices and review tokenization correspondence before shipping.",
+    "role": "commercially licensed instruction-tuned benchmark; not yet approved for app integration",
+    "upstreamRevision": "7ae557604adf67be50417f59c2c2f167def9a775"
+  },
+  "metadata": {
+    "upstream": {
+      "repository": "Qwen/Qwen2.5-0.5B-Instruct",
+      "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+      "declaredLicense": "apache-2.0"
+    },
+    "conversion": {
+      "repository": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+      "revision": "9217f5db79a29953eb74d5343926648285ec7e67",
+      "declaredLicense": "apache-2.0"
+    }
+  },
+  "model": {
+    "bytes": 491400032,
+    "sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db"
+  },
+  "licenseNoticePresent": true,
+  "redistributionApproved": false,
+  "runtime": {
+    "bytes": 19399521,
+    "sha256": "301943380e45deae3991d42dddd03fae65c6a4963a5d882328a60208b43aa9e0",
+    "release": "b11433",
+    "asset": "llama-b11433-bin-win-cpu-x64.zip",
+    "extractedExecutableBytes": 49477632
+  },
+  "configuration": {
+    "threads": 2,
+    "contextTokens": 2048,
+    "gpuLayers": 0
+  },
+  "chatTemplateVerification": {
+    "source": "upstream-file",
+    "upstreamSha256": "cd8e9439f0570856fd70470bf8889ebd8b5d1107207f67a5efb46e342330527f",
+    "serverSha256": "55b2f4a26ac9ee719330a61a0c39d9e538b0e9322212f048326318cff4f8674a",
+    "trailingLineEndingsIgnored": true
+  },
+  "coldLoadSeconds": 0.9410056000000111,
+  "samples": [
+    {
+      "id": "greeting",
+      "prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nHi Ruby! How are you today?<|im_end|>\n<|im_start|>assistant\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Hi Ruby! How are you today?"
+        }
+      ],
+      "reply": "Hello! I'm Qwen, a large language model created by Alibaba Cloud. I'm here to assist you with any questions or tasks you have. How can I help you today?",
+      "reviewCriterion": "A brief coherent friendly reply to the user.",
+      "firstTextSeconds": 0.20271959999999467,
+      "totalSeconds": 0.9011425999999858,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 37,
+        "prompt_ms": 201.589,
+        "prompt_per_token_ms": 5.448351351351351,
+        "prompt_per_second": 183.54176071114992,
+        "predicted_n": 38,
+        "predicted_ms": 698.097,
+        "predicted_per_token_ms": 18.867486486486484,
+        "predicted_per_second": 53.00123048802674
+      },
+      "peakWorkingSetBytes": 528728064
+    },
+    {
+      "id": "identity",
+      "prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nYou are Ruby, my desktop robot companion. Introduce yourself in one sentence.<|im_end|>\n<|im_start|>assistant\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "You are Ruby, my desktop robot companion. Introduce yourself in one sentence."
+        }
+      ],
+      "reply": "Hello! I'm Qwen, a Ruby-based AI assistant created by Alibaba Cloud. I'm here to help you with any questions or tasks you have, whether it's about technology, science, or anything else. How can I assist you today?",
+      "reviewCriterion": "Follows the name and one-sentence instruction; no unrelated text.",
+      "firstTextSeconds": 0.2029100000000028,
+      "totalSeconds": 1.1330437000000018,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 45,
+        "prompt_ms": 201.467,
+        "prompt_per_token_ms": 4.477044444444445,
+        "prompt_per_second": 223.36164235333825,
+        "predicted_n": 51,
+        "predicted_ms": 929.826,
+        "predicted_per_token_ms": 18.59652,
+        "predicted_per_second": 53.77350170892188
+      },
+      "peakWorkingSetBytes": 530354176
+    },
+    {
+      "id": "memory",
+      "prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nMy name is Riyan.<|im_end|>\n<|im_start|>assistant\nHi Riyan.<|im_end|>\n<|im_start|>user\nWhat is my name?<|im_end|>\n<|im_start|>assistant\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "My name is Riyan."
+        },
+        {
+          "role": "assistant",
+          "content": "Hi Riyan."
+        },
+        {
+          "role": "user",
+          "content": "What is my name?"
+        }
+      ],
+      "reply": "Your name is Qwen.",
+      "reviewCriterion": "Uses Riyan from the supplied conversation context.",
+      "firstTextSeconds": 0.24260449999999878,
+      "totalSeconds": 0.35804880000000594,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 54,
+        "prompt_ms": 241.233,
+        "prompt_per_token_ms": 4.4672777777777775,
+        "prompt_per_second": 223.84997077514268,
+        "predicted_n": 7,
+        "predicted_ms": 115.193,
+        "predicted_per_token_ms": 19.198833333333333,
+        "predicted_per_second": 52.08649831152935
+      },
+      "peakWorkingSetBytes": 532303872
+    },
+    {
+      "id": "explanation",
+      "prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nExplain what a computer mouse does in two simple sentences.<|im_end|>\n<|im_start|>assistant\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Explain what a computer mouse does in two simple sentences."
+        }
+      ],
+      "reply": "A computer mouse is a device that allows users to interact with their computer by pointing and clicking on a screen. It enables users to navigate through applications, access files, and perform other tasks by simply moving their mouse cursor over the screen.",
+      "reviewCriterion": "Relevant explanation, correct facts, two sentences.",
+      "firstTextSeconds": 0.21027480000000764,
+      "totalSeconds": 1.0912740999999926,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 41,
+        "prompt_ms": 208.988,
+        "prompt_per_token_ms": 5.0972682926829265,
+        "prompt_per_second": 196.18351292897202,
+        "predicted_n": 48,
+        "predicted_ms": 880.711,
+        "predicted_per_token_ms": 18.738531914893617,
+        "predicted_per_second": 53.36597362812546
+      },
+      "peakWorkingSetBytes": 533389312
+    },
+    {
+      "id": "arithmetic",
+      "prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nI have 3 apples and buy 2 more. How many apples do I have?<|im_end|>\n<|im_start|>assistant\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I have 3 apples and buy 2 more. How many apples do I have?"
+        }
+      ],
+      "reply": "You have 5 apples.",
+      "reviewCriterion": "Answers five without contradictory or repetitive text.",
+      "firstTextSeconds": 0.2490565000000231,
+      "totalSeconds": 0.35734870000001706,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 47,
+        "prompt_ms": 247.663,
+        "prompt_per_token_ms": 5.2694255319148935,
+        "prompt_per_second": 189.774007421375,
+        "predicted_n": 7,
+        "predicted_ms": 108.054,
+        "predicted_per_token_ms": 18.009,
+        "predicted_per_second": 55.52779165972569
+      },
+      "peakWorkingSetBytes": 534622208
+    },
+    {
+      "id": "uncertainty",
+      "prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nWhat is the exact weather outside my house right now? You do not have my location or live weather data.<|im_end|>\n<|im_start|>assistant\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "What is the exact weather outside my house right now? You do not have my location or live weather data."
+        }
+      ],
+      "reply": "I'm sorry, but I can't assist with that.",
+      "reviewCriterion": "Acknowledges missing live data rather than inventing weather.",
+      "firstTextSeconds": 0.30075279999999793,
+      "totalSeconds": 0.5266148999999984,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 51,
+        "prompt_ms": 273.781,
+        "prompt_per_token_ms": 5.368254901960785,
+        "prompt_per_second": 186.28027511039843,
+        "predicted_n": 13,
+        "predicted_ms": 225.618,
+        "predicted_per_token_ms": 18.8015,
+        "predicted_per_second": 53.187245698481505
+      },
+      "peakWorkingSetBytes": 535367680
+    },
+    {
+      "id": "hindi",
+      "prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nNamaste Ruby, mujhe Hindi mein ek chhota sa jawab do.<|im_end|>\n<|im_start|>assistant\n",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Namaste Ruby, mujhe Hindi mein ek chhota sa jawab do."
+        }
+      ],
+      "reply": "Namaste Ruby, Hindi mein ek chhota sa jawab do:\n\n\"Namaste Ruby, Hindi mein ek chhota sa jawab do. Hindi mein ek chhota sa jawab do.\"\n\nThis is a simple and respectful way to greet someone in Hindi. It's a common way to start a conversation in Hindi, especially when you're trying to establish a connection with someone who speaks Hindi. The phrase \"Namaste\" is a traditional gesture of respect and gratitude",
+      "reviewCriterion": "Short relevant Hindi/Hinglish response; measured as a language probe, not a shipping requirement.",
+      "firstTextSeconds": 0.24621199999998566,
+      "totalSeconds": 2.0257416999999975,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 46,
+        "prompt_ms": 244.908,
+        "prompt_per_token_ms": 5.324086956521739,
+        "prompt_per_second": 187.82563248240157,
+        "predicted_n": 96,
+        "predicted_ms": 1779.219,
+        "predicted_per_token_ms": 18.728621052631578,
+        "predicted_per_second": 53.39421397815559
+      },
+      "peakWorkingSetBytes": 536346624
+    }
+  ],
+  "defaultApproved": false,
+  "limitations": [
+    "Hosted CPU is not the user laptop or an iGPU benchmark.",
+    "Quality requires human review; instruction tuning does not imply passing.",
+    "Cancellation, browser inference, tokenizer conversion correspondence and complete product size remain unverified."
+  ]
+}
