@@ -1,10 +1,10 @@
 name: Windows desktop build
 on:
   pull_request:
-    paths: ['src-tauri/**', 'dist/**', 'package.json', 'package-lock.json', '.github/workflows/windows-shell.yml']
+    paths: ['src-tauri/**', 'scripts/native-smoke.js', 'scripts/windows-smoke.ps1', 'dist/**', 'package.json', 'package-lock.json', '.github/workflows/windows-shell.yml']
   push:
     branches: [main, 'release/**']
-    paths: ['src-tauri/**', 'dist/**', 'package.json', 'package-lock.json', '.github/workflows/windows-shell.yml']
+    paths: ['src-tauri/**', 'scripts/native-smoke.js', 'scripts/windows-smoke.ps1', 'dist/**', 'package.json', 'package-lock.json', '.github/workflows/windows-shell.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -34,6 +34,9 @@ jobs:
       - run: cargo test --release --manifest-path src-tauri/Cargo.toml --bin project-ruby
       - run: npm run desktop:build -- --bundles nsis
       - run: npm run check:assets
+      - name: Exercise actual Windows WebView and native window
+        shell: pwsh
+        run: ./scripts/windows-smoke.ps1
       - name: Prepare preview download
         shell: pwsh
         run: |
@@ -44,6 +47,8 @@ jobs:
           Copy-Item dist/vendor/THREE-LICENSE.txt desktop-artifact/
           Copy-Item docs/WINDOWS.md desktop-artifact/README.md
           Copy-Item src-tauri/Cargo.lock desktop-artifact/
+          Copy-Item ruby-native-smoke.txt desktop-artifact/
+          Copy-Item ruby-native-menu.png,ruby-native-float.png desktop-artifact/
           Get-ChildItem desktop-artifact/*.exe | Get-FileHash -Algorithm SHA256 | Format-List | Out-File desktop-artifact/SHA256.txt
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

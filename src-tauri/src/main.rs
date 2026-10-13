@@ -11,13 +11,43 @@ use tauri::{
 };
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
+#[tauri::command]
+fn desktop_smoke_report(
+    app: tauri::AppHandle,
+    passed: bool,
+    details: String,
+) -> Result<(), String> {
+    if !std::env::args().any(|arg| arg == "--native-smoke-test") {
+        return Err("Smoke reporting is disabled outside the test launch".into());
+    }
+    std::fs::write(
+        "ruby-native-smoke.txt",
+        format!("passed={passed}\n{details}\n"),
+    )
+    .map_err(|error| error.to_string())?;
+    app.exit(if passed { 0 } else { 1 });
+    Ok(())
+}
+
+#[tauri::command]
+fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
+    if !std::env::args().any(|arg| arg == "--native-smoke-test")
+        || !["menu", "float", "recovery"].contains(&phase.as_str())
+    {
+        return Err("Smoke checkpoints are disabled outside the test launch".into());
+    }
+    std::fs::write("ruby-native-phase.txt", phase).map_err(|error| error.to_string())
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(DesktopState::default()))
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             desktop::desktop_action,
-            desktop::desktop_status
+            desktop::desktop_status,
+            desktop_smoke_report,
+            desktop_smoke_checkpoint
         ])
         .setup(|app| {
             let float = MenuItem::with_id(app, "float", "Float companion", true, None::<&str>)?;
@@ -69,6 +99,13 @@ fn main() {
                 eprintln!("Recovery shortcut unavailable; click-through disabled: {error}");
             }
             Ok(())
+        })
+        .on_page_load(|window, payload| {
+            if std::env::args().any(|arg| arg == "--native-smoke-test")
+                && payload.event() == tauri::webview::PageLoadEvent::Finished
+            {
+                let _ = window.eval(include_str!("../../scripts/native-smoke.js"));
+            }
         })
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
