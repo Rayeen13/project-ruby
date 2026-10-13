@@ -16,7 +16,8 @@
         "height": 820,
         "minWidth": 640,
         "minHeight": 600,
-        "resizable": true
+        "resizable": true,
+        "transparent": true
       }
     ],
     "security": {
@@ -24,7 +25,8 @@
         "desktop-viewer"
       ],
       "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src ipc: http://ipc.localhost; object-src 'none'; frame-src 'none'; base-uri 'self'"
-    }
+    },
+    "withGlobalTauri": true
   },
   "bundle": {
     "active": true,

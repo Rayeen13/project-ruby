@@ -30,7 +30,7 @@ STL files and notes are in dist/prints. They are static figurines; review suppor
 
 ## Roadmap and architecture
 
-See [ROADMAP.md](ROADMAP.md) for the milestones from the visual MVP through local conversation, desktop actions, voice, mobile hosts, the companion world and creator studio. The next slice is v0.2: capability contracts, gesture previews, persistent settings and animation transitions. Model selection follows measured performance and verified MIT weight licensing.
+See [ROADMAP.md](ROADMAP.md) for the milestones from the visual MVP through local conversation, desktop actions, voice, mobile hosts, the companion world and creator studio. Capability contracts, gesture previews, persistent settings and animation transitions are implemented. The current slice is the Windows floating companion shell; MIT model evaluation follows. Model selection follows measured performance and verified MIT weight licensing.
 
 See [HAND_RIG.md](HAND_RIG.md) for jointed hands and gestures. Four finger chains and an opposing thumb support open, relaxed, point, fist and grip poses; object pickup physics is future work.
 
@@ -48,4 +48,4 @@ The lab saves model, gem, expression, hand poses, camera, tracking and animation
 
 ## Windows shell preview
 
-See [docs/WINDOWS.md](docs/WINDOWS.md) for the Tauri host, local build instructions and the Windows CI installer artifact. The native viewer embeds the same lab assets. This milestone adds a native app window; floating/tray mode, OS control and AI are not connected yet. Build validation and physical-device runtime validation are separate checks.
+See [docs/WINDOWS.md](docs/WINDOWS.md) for the Tauri host, local build instructions and the Windows CI installer artifact. The native viewer embeds the same lab assets. The Windows preview includes a transparent floating window, tray, pointer drag handle, click-through and Ctrl+Alt+Shift+R recovery. OS control and AI are not connected yet. Build validation and physical-device runtime validation are separate checks.
