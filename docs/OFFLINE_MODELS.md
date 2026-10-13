@@ -158,3 +158,23 @@ The first Qwen attempt stopped before generation because the runtime removed one
 The mouse explanation followed the two-sentence request and arithmetic answered five. The default template inserted a system instruction naming Qwen, while the identity request only named Ruby in the user message; the reply retained Qwen and ignored the one-sentence limit. Name recall incorrectly answered Qwen instead of Riyan. The Hindi probe was repetitive and reached the reply cap. The weather answer refused without inventing live data, but did not explain the missing-data issue. This baseline does not pass companion quality.
 
 A follow-up uses an explicit **Ruby system message**, matching the intended app persona configuration and replacing the publisher's default Qwen identity. All seven user probe intents and resource settings remain unchanged. The runner records the effective messages and system configuration, so this follow-up is distinguished from the retained default-template baseline. A system prompt is not proof of reliable name recall; inspect the new raw replies before any selection decision.
+
+### Qwen Ruby-persona result: advance to integration testing
+
+Source: [Windows run 38434720219](https://github.com/Rayeen13/project-ruby/actions/runs/38434720219), code `fe13b82aabdeb5d6908eb0781a719c7b382caaae`. Full raw replies, effective system/user messages and measured timings: [benchmarks/windows-qwen2.5-ruby-persona-20261013.json](benchmarks/windows-qwen2.5-ruby-persona-20261013.json). The weight/runtime pins, Apache-2.0 notice check and upstream-file template check passed. The report continues to set `defaultApproved: false` and `redistributionApproved: false`.
+
+| Measurement | Observed value |
+| --- | --- |
+| Q4_K_M weights | 491,400,032 bytes (491.40 MB) |
+| Weights plus all extracted runtime EXE/DLL | 540,877,664 bytes; application and other assets excluded |
+| Initial model/server readiness | 0.945 seconds after launch, downloads excluded |
+| First non-empty streamed text | 0.630–0.777 seconds |
+| Server generation throughput | 42.6–47.9 tokens/sec |
+| Peak process working set | 536,694,784 bytes (536.69 MB) |
+| Host/configuration | Windows Server 2025, AMD family 25 model 1, 4 logical CPUs; 2 inference threads, CPU only, 2,048 context; explicit Ruby system persona |
+
+**Decision: advance Qwen2.5-0.5B Q4_K_M as an English chat integration candidate, not a production-approved default.** The greeting was coherent; context recall correctly answered Riyan; the mouse explanation was relevant and followed the two-sentence request; arithmetic answered five; and the weather response explicitly acknowledged missing location and live data. The introduction used the robot-companion role but omitted Ruby's name and added a greeting, so it did not completely satisfy the strict name/one-sentence criterion. Hindi remained weak and partly echoed the request. Do not claim all seven criteria passed or advertise reliable Hindi support.
+
+The explicit Ruby system message is a required part of this evaluated configuration. The original publisher-default run failed name recall and persona behaviour and remains preserved. These seven probes do not establish general reliability, tool-use accuracy or hardware compatibility. The different hosted CPU allocations and prompt lengths mean the baseline and persona throughput/first-text numbers are not a controlled prompt-only comparison.
+
+Next gates: implement a pluggable streamed-chat adapter with cancellation and failure handling, then verify actual local offline restart, unload, pack/tokenizer correspondence, complete packaged size, and physical laptop performance. Model output remains text; it must not execute desktop actions directly. No weights or backend were added to the current app in this change.
