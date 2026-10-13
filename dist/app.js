@@ -40,7 +40,7 @@ function updateGestureUI(){
  const side=Number(handSide.value),caps=selection.capabilities,locked=caps.heldProp?.side===side;
  handSide.disabled=!caps.hands;handGesture.disabled=!caps.hands||locked;
  handGesture.value=locked?caps.heldProp.gesture:handPoses[side===-1?'right':'left'];
- document.querySelector('#gesture-note').textContent=!caps.hands?'This body has no hands.':locked?'Right hand keeps its controller grip. Try the left hand.':'Wave temporarily opens the right palm; the selected pose returns afterward.';
+ document.querySelector('#gesture-note').textContent=!caps.hands?'This body has no hands.':locked?'Right hand keeps its controller grip. Try the left hand.':caps.heldProp?'Left-hand poses stay active while the right hand waves with its controller.':'Wave temporarily opens the right palm; the selected pose returns afterward.';
 }
 function changeMood(mood){
  selection.setMood(mood);document.querySelectorAll('[data-mood]').forEach(b=>b.classList.toggle('active',b.dataset.mood===mood));
