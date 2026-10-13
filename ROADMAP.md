@@ -4,7 +4,7 @@
 
 Project Ruby is an ADICE (Artificial Digital Intelligent Companion Entity) companion product. Its first release combines an expressive robot, conversation, and explicitly enabled desktop actions. Project Kurumi continues as a separate character/research project; shared components can be extracted when both projects need them.
 
-The current milestone is a **visual MVP**, not yet a functioning AI assistant. Five character bodies, four gem profiles, expressions, gaze tracking, orbit/touch controls, dance, wave, jointed hands and static STL exports are implemented. The public browser demo is available. Conversation, microphone input, internet answers, desktop input control, native widgets and world physics are not implemented.
+The current milestone is a **visual MVP**, not yet a functioning AI assistant. Five character bodies, four gem profiles, expressions, gaze tracking, orbit/touch controls, dance, wave, jointed hands and static STL exports are implemented. The public browser demo is available. Conversation, microphone input, internet answers, desktop input control, native widgets and world physics are not implemented. Windows native lab and floating/tray/click-through shell builds are implemented; physical-device acceptance remains open.
 
 ## October delivery window: 15 days, 3 hours/day
 

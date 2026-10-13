@@ -1,8 +1,17 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "desktop-viewer",
-  "description": "Local character viewer; no filesystem, shell, input or remote-page access.",
-  "windows": ["main"],
-  "platforms": ["windows", "linux", "macOS"],
-  "permissions": []
+  "description": "Local viewer may control only its own companion window and receive host status; no filesystem, shell or OS input commands.",
+  "windows": [
+    "main"
+  ],
+  "platforms": [
+    "windows"
+  ],
+  "permissions": [
+    "allow-desktop-action",
+    "allow-desktop-status",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten"
+  ]
 }

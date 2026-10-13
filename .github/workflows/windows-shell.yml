@@ -31,6 +31,7 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
+      - run: cargo test --release --manifest-path src-tauri/Cargo.toml --bin project-ruby
       - run: npm run desktop:build -- --bundles nsis
       - run: npm run check:assets
       - name: Prepare preview download
