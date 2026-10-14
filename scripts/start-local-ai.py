@@ -96,7 +96,7 @@ def main():
                     time.sleep(.2)
             else:
                 raise RuntimeError('Local AI startup timed out')
-            print('Local AI ready. Open Ruby → Talk → Connect. Ctrl+C unloads the model.', flush=True)
+            print('Local AI ready. Open Ruby / Talk / Connect. Ctrl+C unloads the model.', flush=True)
             if args.verify:
                 root = Path(__file__).resolve().parents[1]
                 subprocess.run(['node', 'tests/chat-live.mjs'], cwd=root, check=True)
