@@ -23,7 +23,9 @@ public static class RubyBounds {
     return found;
   }
   [StructLayout(LayoutKind.Sequential)] public struct Rect { public int Left, Top, Right, Bottom; }
-  [DllImport("user32.dll")] public static extern int GetWindowLong(IntPtr window, int index);
+  [StructLayout(LayoutKind.Sequential)] public struct Point { public int X, Y; }
+  [DllImport("user32.dll")] public static extern bool GetClientRect(IntPtr window, out Rect rect);
+  [DllImport("user32.dll")] public static extern bool ClientToScreen(IntPtr window, ref Point point);
   [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
   [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
   [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr window, out Rect rect);
@@ -87,7 +89,12 @@ try {
         } elseif ($phase -in @('menu','float','dizzy') -and $rubyHandle -ne [IntPtr]::Zero) {
           $bounds = New-Object RubyBounds+Rect
           if (-not [RubyBounds]::GetWindowRect($rubyHandle,[ref]$bounds)) { throw 'Cannot capture native window bounds' }
-          if (([RubyBounds]::GetWindowLong($rubyHandle,-16) -band 0x00C00000) -ne 0) { throw 'Native caption/frame is still present' }
+          $clientOrigin = New-Object RubyBounds+Point
+          [RubyBounds]::ClientToScreen($rubyHandle,[ref]$clientOrigin) | Out-Null
+          $clientBounds = New-Object RubyBounds+Rect
+          [RubyBounds]::GetClientRect($rubyHandle,[ref]$clientBounds) | Out-Null
+          $topInset = $clientOrigin.Y - $bounds.Top
+          "${phase}: visible window ($($bounds.Left),$($bounds.Top)) $($bounds.Right-$bounds.Left)x$($bounds.Bottom-$bounds.Top), client top inset $topInset" | Tee-Object -FilePath ruby-native-frame.txt -Append
           $width = $bounds.Right - $bounds.Left
           $height = $bounds.Bottom - $bounds.Top
           $bitmap = New-Object System.Drawing.Bitmap($width,$height)
@@ -96,6 +103,7 @@ try {
             $graphics.CopyFromScreen($bounds.Left,$bounds.Top,0,0,$bitmap.Size)
             $bitmap.Save("$PWD/ruby-native-$phase.png",[System.Drawing.Imaging.ImageFormat]::Png)
           } finally { $graphics.Dispose(); $bitmap.Dispose() }
+          if ($topInset -gt 8) { throw 'Native title bar occupies the top of the window' }
         }
       }
     }
