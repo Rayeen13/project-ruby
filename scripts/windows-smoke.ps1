@@ -6,6 +6,7 @@ using System;
 using System.Runtime.InteropServices;
 public static class RubyBounds {
   [StructLayout(LayoutKind.Sequential)] public struct Rect { public int Left, Top, Right, Bottom; }
+  [DllImport("user32.dll")] public static extern int GetWindowLong(IntPtr window, int index);
   [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
   [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
   [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr window, out Rect rect);
@@ -25,6 +26,17 @@ try {
         $seen[$phase] = $true
         if ($phase -eq 'recovery') {
           [System.Windows.Forms.SendKeys]::SendWait('^%+r')
+        } elseif ($phase -eq 'look') {
+          [RubyBounds]::SetCursorPos(20,20) | Out-Null
+        } elseif ($phase -eq 'click' -and $rubyHandle -ne [IntPtr]::Zero) {
+          $bounds = New-Object RubyBounds+Rect
+          [RubyBounds]::GetWindowRect($rubyHandle,[ref]$bounds) | Out-Null
+          $cx = [int](($bounds.Left + $bounds.Right) / 2)
+          $cy = [int]($bounds.Top + ($bounds.Bottom - $bounds.Top) * 0.45)
+          [RubyBounds]::SetCursorPos($cx,$cy) | Out-Null
+          [RubyBounds]::mouse_event(2,0,0,0,[UIntPtr]::Zero)
+          Start-Sleep -Milliseconds 300
+          [RubyBounds]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
         } elseif ($phase -eq 'carry' -and $rubyHandle -ne [IntPtr]::Zero) {
           $before = New-Object RubyBounds+Rect
           if (-not [RubyBounds]::GetWindowRect($rubyHandle,[ref]$before)) { throw 'Cannot read native carry bounds' }
@@ -47,6 +59,7 @@ try {
         } elseif ($phase -in @('menu','float','dizzy') -and $rubyHandle -ne [IntPtr]::Zero) {
           $bounds = New-Object RubyBounds+Rect
           if (-not [RubyBounds]::GetWindowRect($rubyHandle,[ref]$bounds)) { throw 'Cannot capture native window bounds' }
+          if (([RubyBounds]::GetWindowLong($rubyHandle,-16) -band 0x00C00000) -ne 0) { throw 'Native caption/frame is still present' }
           $width = $bounds.Right - $bounds.Left
           $height = $bounds.Bottom - $bounds.Top
           $bitmap = New-Object System.Drawing.Bitmap($width,$height)

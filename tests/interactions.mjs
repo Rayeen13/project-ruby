@@ -13,7 +13,7 @@ assert(characterHit(root,camera,rect,250,250));assert.equal(characterHit(root,ca
 root.visible=false;assert.equal(characterHit(root,camera,rect,250,250),null);root.visible=true;
 const reaction=new TouchReaction();reaction.trigger('pet',0);
 reaction.apply(root,0);assert.equal(root.position.y,0);
-reaction.apply(root,.8);assert(root.position.y>0);assert.equal(reaction.moodAt(.8),'happy');
+reaction.apply(root,.8);assert.equal(root.position.y,0,'A tap must keep the robot grounded');const head=new T.Group();reaction.applyHead(head,.8);assert(head.rotation.z>0);assert.equal(reaction.moodAt(.8),'happy');
 reaction.apply(root,2.2);assert.equal(root.position.y,0);assert.equal(root.rotation.z,0);assert.equal(reaction.moodAt(2.2),null);
 reaction.trigger('boop',3);reaction.apply(root,3.5);reaction.clear();reaction.apply(root,3.5);assert.equal(root.position.y,0);
 console.log('PASS: screen-space drag direction, visible mesh-only hit tests and transient touch restoration.');

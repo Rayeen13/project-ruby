@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import * as T from '../dist/vendor/three.module.js';
-import {GrabState,GrabVisual} from '../dist/companion-grab.js';
+import {GrabState,GrabVisual,HOLD_TO_GRAB_MS,mayStartGrab} from '../dist/companion-grab.js';
 import {TouchReaction} from '../dist/interactions.js';
 import {normalizePreferences} from '../dist/preferences.js';
 const bounds={width:600,height:600};
@@ -14,8 +14,9 @@ state.clear();state.begin(0,0,0);state.move(9999,-9999,90,bounds);assert.equal(s
 state.clear();state.begin(0,0,0);state.move(80,20,90,{...bounds,native:true});assert.deepEqual(state.offset,{x:0,y:0},'Native carry must move the window rather than double-moving the mesh');
 const scene=new T.Scene(),root=new T.Group(),head=new T.Mesh(new T.BoxGeometry(1,1,1),new T.MeshBasicMaterial());root.add(head);scene.add(root);
 const visual=new GrabVisual(scene),reaction=new TouchReaction(),camera=new T.PerspectiveCamera(35,1,.1,100);camera.position.set(0,1,8);camera.lookAt(0,1,0);camera.updateMatrixWorld();
-const character={root,head};state.dizzyUntil=2000;reaction.apply(root,0);visual.apply(character,state,camera,bounds,8,500,{native:true});assert(visual.stars.visible);assert(root.position.y>0);
-state.clear();reaction.apply(root,0);visual.apply(character,state,camera,bounds,8,3000,{native:true});assert(!visual.stars.visible);assert.equal(root.position.y,0);assert.equal(root.rotation.z,0);
+const character={root,head};state.dizzyUntil=2000;reaction.apply(root,0);visual.apply(character,state,camera,bounds,8,0,{native:true});visual.apply(character,state,camera,bounds,8,500,{native:true});assert(visual.stars.visible);assert(root.position.y>0);
+state.clear();reaction.apply(root,0);visual.apply(character,state,camera,bounds,8,3000,{native:true});assert(!visual.stars.visible);for(let ms=3050;ms<6000;ms+=50){reaction.apply(root,0);visual.apply(character,state,camera,bounds,8,ms,{native:true});}assert(Math.abs(root.position.y)<1e-9);assert(Math.abs(root.rotation.z)<1e-9);
+assert(HOLD_TO_GRAB_MS>350);assert(!mayStartGrab(null,7));assert(!mayStartGrab({id:6},7));assert(!mayStartGrab({id:7,orbit:true},7));assert(mayStartGrab({id:7},7));
 const options={models:['classic','cyber','chibi','office','gamer'],profiles:['ruby'],moods:['idle'],gestures:['relaxed']};
 const prefs=normalizePreferences({version:1,personalities:{office:'calm',gamer:'made-up'}},options);assert.equal(prefs.personalities.office,'calm');assert.equal(prefs.personalities.gamer,'playful');assert.equal(prefs.personalities.classic,'calm');
 assert.equal(normalizePreferences(null,options).personalities.office,'focused','One body’s override must not mutate defaults');

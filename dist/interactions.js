@@ -27,9 +27,14 @@ export class TouchReaction {
  apply(root,time){
   if(!this.bases.has(root))this.bases.set(root,{y:root.position.y,z:root.rotation.z});
   const base=this.bases.get(root),elapsed=Math.max(0,time-this.start),p=Math.min(1,elapsed/(this.duration||1));
-  const envelope=this.kind&&p<1?Math.sin(Math.PI*p)**2:0;
-  root.position.y=base.y+(this.kind==='pet'?.045:.13)*Math.abs(Math.sin(elapsed*9))*envelope;
-  root.rotation.z=base.z+(this.kind==='pet'?.035:.065)*Math.sin(elapsed*11)*envelope;
+  root.position.y=base.y;
+  root.rotation.z=base.z;
+ }
+ applyHead(head,time,{reduced=false}={}){
+  if(!this.kind||reduced)return;
+  const p=Math.max(0,Math.min(1,(time-this.start)/(this.duration||1))),weight=Math.sin(Math.PI*p)**2;
+  if(this.kind==='pet')head.rotation.z+=.028*weight;
+  else head.rotation.x+=.035*weight;
  }
 }
 

@@ -14,7 +14,7 @@ Hakko's official quick-start documents a large full-body preview beside selectab
 - Choose any of the five existing bodies from category-filtered companion cards; the large live 3D preview updates. Gem colour remains independent.
 - Each body has its own saved personality: Classic calm, Cyber curious, Chibi playful, Office focused, Gamer playful. Change the preset per body. Reactions and idle rhythm use these presets. The prompt strings are a future chat-provider seam; there is no connected AI conversation or voice here yet.
 - Tap the model for head/body/hand reactions. Right-click the visible mesh, or touch long-press without moving, for its action bubble.
-- Hold the left mouse button on the mesh for 180 ms, or drag it, to carry it. Touch-drag carries it too. Background drag or Alt-drag still rotates the camera; scroll/pinch zooms.
+- Hold the left mouse button on the mesh for 420 ms, or drag it, to carry it. Touch-drag carries it too. Background drag or Alt-drag still rotates the camera; scroll/pinch zooms.
 - Deliberate fast back-and-forth swings make the companion dizzy, with spiral digital eyes and five 3D stars above its head. Detection accumulates whole swings, so small high-frequency mouse events work; ordinary straight/slow dragging does not trigger it. The effect recovers after 3.8 seconds and stops immediately with Stop. Reduced-motion settings keep the feedback without spinning stars or wobble.
 - Return to centre resets the browser preview position. Dizzy preview in the action bubble offers an accessible way to try the reaction.
 
@@ -27,3 +27,11 @@ Browser carrying is confined to the preview stage; a website cannot create an al
 ## Validation
 
 Local checks cover shake hysteresis, fast/slow/straight movement, high-frequency input, expiry/reset, mesh-versus-native movement separation and per-body preferences, alongside existing hand-clearance/interaction checks. Windows CI exercises the real packaged WebView, gallery and saved personalities, then uses the Windows mouse to hold, carry and shake the native companion, verifies actual window movement, captures dizzy/floating screenshots, and checks global shortcut recovery. Record the successful run and any limits before merging.
+
+## Tap and motion correction — 14 October
+
+Quick clicks leave the robot grounded and only trigger a small, eased head response. Hold-to-grab now requires 420 ms or deliberate movement beyond 12 pixels, is tied to the current pointer, and is cancelled on release/capture loss. Carry lift/lean ease in and out; gaze is smoothed; the old full-body tap bounce and abrupt limb dance are replaced by gentle head gestures/sway.
+
+The executable starts in floating mode. Both floating and lab windows remove native decorations and shadow; lab has Move/Float/Hide controls. Windows polls the global cursor at 20 Hz while the window is visible, emitting only transient normalised coordinates to the local viewer. Follow/Stop still control visible gaze. Browser tracking is confined to its page; whole-screen tracking is native Windows only in this slice.
+
+Windows regression checks include an actual 300 ms mouse click with continuous no-grab/no-lift observations, outside-window cursor tracking, native caption-style checks, then deliberate carry/shake and emergency recovery.

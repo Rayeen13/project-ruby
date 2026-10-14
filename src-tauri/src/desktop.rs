@@ -89,7 +89,7 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
                 }
                 window.set_always_on_top(false)?;
                 window.set_skip_taskbar(false)?;
-                window.set_decorations(true)?;
+                window.set_decorations(false)?;
                 window.set_min_size(Some(LogicalSize::new(640.0, 600.0)))?;
                 if let Some((position, size)) = state.lab_bounds {
                     window.set_size(size)?;
@@ -101,7 +101,7 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
                 window.set_focus()?;
             }
             DesktopAction::Drag => {
-                if state.status.floating && !state.status.click_through {
+                if !state.status.click_through {
                     window.start_dragging()?;
                 }
             }
@@ -218,3 +218,48 @@ mod tests {
         assert!(!status.allows_click_through());
     }
 }
+
+#[cfg(windows)]
+pub fn start_pointer_tracking(app: AppHandle) {
+    #[repr(C)]
+    struct Point {
+        x: i32,
+        y: i32,
+    }
+    #[link(name = "user32")]
+    unsafe extern "system" {
+        fn GetCursorPos(point: *mut Point) -> i32;
+    }
+    #[derive(Clone, Serialize)]
+    struct Pointer {
+        x: f64,
+        y: f64,
+    }
+    std::thread::spawn(move || loop {
+        std::thread::sleep(std::time::Duration::from_millis(50));
+        let Some(window) = app.get_webview_window("main") else {
+            break;
+        };
+        if !window.is_visible().unwrap_or(false) {
+            continue;
+        }
+        let mut cursor = Point { x: 0, y: 0 };
+        if unsafe { GetCursorPos(&mut cursor) } == 0 {
+            continue;
+        }
+        if let (Ok(position), Ok(size)) = (window.outer_position(), window.inner_size()) {
+            if size.width > 0 && size.height > 0 {
+                let pointer = Pointer {
+                    x: (((cursor.x - position.x) as f64 / size.width as f64) * 2.0 - 1.0)
+                        .clamp(-1.0, 1.0),
+                    y: (1.0 - ((cursor.y - position.y) as f64 / size.height as f64) * 2.0)
+                        .clamp(-1.0, 1.0),
+                };
+                let _ = window.emit("ruby-global-pointer", pointer);
+            }
+        }
+    });
+}
+
+#[cfg(not(windows))]
+pub fn start_pointer_tracking(_app: AppHandle) {}

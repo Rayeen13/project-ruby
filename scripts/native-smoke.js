@@ -6,6 +6,8 @@
   for(let i=0;i<200&&!document.querySelector('#stage')?.dataset.ready;i++)await wait(100);
   const stage=document.querySelector('#stage'),menu=document.querySelector('#model-menu'),select=document.querySelector('#model-select');
   assert(stage.dataset.ready==='true','Actual WebView renderer initialized');
+  assert((await window.__TAURI__.core.invoke('desktop_status')).floating,'Executable opens directly as floating mascot');
+  await window.__TAURI__.core.invoke('desktop_action',{action:'lab'});await wait(350);
   document.querySelector('#reset-preferences').click();await wait(300);
   assert(document.querySelectorAll('#model-gallery [data-model]').length===5,'Gallery lists all five accepted bodies');
   document.querySelector('[data-category="Professional"]').click();
@@ -52,6 +54,10 @@
   assert(document.documentElement.classList.contains('floating'),'Native floating mode renders compact UI');
   assert(getComputedStyle(document.querySelector('#floating-toolbar')).display==='none','Floating companion has no permanent toolbar frame');
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'float'});await wait(2500);
+  await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'look'});await wait(650);
+  const globalPointer=JSON.parse(stage.dataset.globalPointer||'null');assert(globalPointer?.x<0&&globalPointer?.y>0,'Native gaze receives pointer outside the companion window');
+  await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'click'});
+  let neverGrabbed=true,grounded=true;for(let i=0;i<50;i++){neverGrabbed&&=stage.dataset.grabbed!=='true';grounded&&=Math.abs(Number(stage.dataset.rootY))<.001;await wait(20);}assert(neverGrabbed,'Quick mouse tap never enters grab state');assert(grounded,'Quick mouse tap keeps robot grounded');
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'carry'});
   for(let i=0;i<80&&stage.dataset.grabbed!=='true';i++)await wait(100);
   assert(stage.dataset.grabbed==='true','Real Windows mouse hold grabs the model');

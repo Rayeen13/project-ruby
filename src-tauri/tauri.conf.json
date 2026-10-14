@@ -17,7 +17,10 @@
         "minWidth": 640,
         "minHeight": 600,
         "resizable": true,
-        "transparent": true
+        "transparent": true,
+        "decorations": false,
+        "visible": false,
+        "shadow": false
       }
     ],
     "security": {
