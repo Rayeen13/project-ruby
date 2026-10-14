@@ -1,7 +1,7 @@
 // Host operations stay outside the renderer; browser hosts expose none of them.
 export function createDesktopHost(tauri) {
  if(typeof tauri?.core?.invoke!=='function'||typeof tauri?.event?.listen!=='function')return null;
- const allowed=new Set(['float','lab','drag','click_through','hide','stop']);
+ const allowed=new Set(['float','lab','drag','click_through','hide','stop','toggle_pin','snap_left','snap_right','undock','peek','reveal','release','zoom_in','zoom_out','size_reset']);
  return Object.freeze({
   status:()=>tauri.core.invoke('desktop_status'),
   move:(dx,dy)=>{
@@ -17,11 +17,12 @@ export function createDesktopHost(tauri) {
  });
 }
 
-export async function mountDesktopControls({host,document,onMode,onStop,onPointer}) {
+export async function mountDesktopControls({host,document,onMode,onStop,onPointer,onState=()=>{}}) {
  if(!host)return;
  const controls=document.querySelector('#desktop-controls'),toolbar=document.querySelector('#floating-toolbar');
  const statusText=document.querySelector('#desktop-status'),floatStatus=document.querySelector('#floating-status');
  controls.hidden=false;document.querySelector('#desktop-window-actions').hidden=false;
+ let previousMode;
  const apply=status=>{
   const floating=status.floating===true;
   document.documentElement.classList.toggle('floating',floating);
@@ -31,7 +32,9 @@ export async function mountDesktopControls({host,document,onMode,onStop,onPointe
   document.querySelector('#menu-click-through').disabled=!status.shortcutReady||!floating;
   const text=status.clickThrough?'Click-through · Ctrl+Alt+Shift+R restores interaction':status.stopped?'Stopped · interaction restored':status.shortcutReady?'Ctrl+Alt+Shift+R stops animation and restores interaction':'Recovery shortcut unavailable · click-through disabled';
   statusText.textContent=text;floatStatus.textContent=text;
-  onMode(floating);
+  if(floating!==previousMode){onMode(floating);previousMode=floating;}
+  onState(status);
+  for(const button of document.querySelectorAll('[data-desktop-action="toggle_pin"]')){button.textContent=status.pinned?'Unpin from top':'Pin above windows';button.setAttribute('aria-pressed',String(status.pinned));}
   if(status.stopped)onStop();
  };
  let pending=false;

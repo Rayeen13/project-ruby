@@ -34,4 +34,8 @@ Quick clicks leave the robot grounded and only trigger a small, eased head respo
 
 The executable starts in floating mode. Both floating and lab windows remove native decorations and shadow; lab has Move/Float/Hide controls. Windows polls the global cursor at 20 Hz while the window is visible, emitting only transient normalised coordinates to the local viewer. Follow/Stop still control visible gaze. Browser tracking is confined to its page; whole-screen tracking is native Windows only in this slice.
 
-Windows regression checks include an actual 300 ms mouse click with continuous no-grab/no-lift observations, outside-window cursor tracking, native caption-style checks, then deliberate carry/shake and emergency recovery.
+Windows regression checks include an actual 300 ms mouse click with continuous no-grab/no-lift observations, outside-window cursor tracking, native client-frame geometry checks, then deliberate carry/shake and emergency recovery.
+
+## Edge companion slice — 14 October
+
+Floating zoom resizes the transparent native canvas rather than clipping the character inside a fixed rectangle. A shared camera-fit module bounds the current geometry across all five accepted bodies. Right-click desktop controls expose size, left/right peek, undock and pin-above-windows actions. Pinning keeps Ruby above other windows and remains compatible with carrying; it is not a position lock. Edge hover reveals the body and an inward head tilt gives the peek pose. Native placement, size, edge and pin are saved separately from character preferences. Conversation and voice remain on their existing roadmap.

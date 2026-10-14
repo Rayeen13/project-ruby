@@ -15,7 +15,7 @@ public static class RubyBounds {
       uint owner; GetWindowThreadProcessId(window, out owner);
       Rect bounds;
       if (owner == processId && IsWindowVisible(window) && GetWindowRect(window, out bounds)
-          && bounds.Right - bounds.Left >= 280 && bounds.Bottom - bounds.Top >= 340) {
+          && bounds.Right - bounds.Left >= 220 && bounds.Bottom - bounds.Top >= 272) {
         found = window; return false;
       }
       return true;
@@ -24,6 +24,7 @@ public static class RubyBounds {
   }
   [StructLayout(LayoutKind.Sequential)] public struct Rect { public int Left, Top, Right, Bottom; }
   [StructLayout(LayoutKind.Sequential)] public struct Point { public int X, Y; }
+  [DllImport("user32.dll")] public static extern int GetWindowLong(IntPtr window, int index);
   [DllImport("user32.dll")] public static extern bool GetClientRect(IntPtr window, out Rect rect);
   [DllImport("user32.dll")] public static extern bool ClientToScreen(IntPtr window, ref Point point);
   [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
@@ -46,6 +47,19 @@ try {
         $seen[$phase] = $true
         if ($phase -eq 'recovery') {
           [System.Windows.Forms.SendKeys]::SendWait('^%+r')
+        } elseif ($phase -in @('pin','unpin')) {
+          $topmost = ([RubyBounds]::GetWindowLong($rubyHandle,-20) -band 8) -ne 0
+          if ($topmost -ne ($phase -eq 'pin')) { throw "Always-on-top pin state failed: $phase" }
+          "${phase}: actual Windows topmost=$topmost" | Out-File ruby-native-pin.txt -Append
+        } elseif ($phase -eq 'zoom') {
+          $before = New-Object RubyBounds+Rect
+          [RubyBounds]::GetWindowRect($rubyHandle,[ref]$before) | Out-Null
+          [RubyBounds]::SetCursorPos([int](($before.Left+$before.Right)/2),[int](($before.Top+$before.Bottom)/2)) | Out-Null
+          for ($wheel=0; $wheel -lt 6; $wheel++) { [RubyBounds]::mouse_event(0x0800,0,0,120,[UIntPtr]::Zero); Start-Sleep -Milliseconds 140 }
+          $after = New-Object RubyBounds+Rect
+          [RubyBounds]::GetWindowRect($rubyHandle,[ref]$after) | Out-Null
+          if ($after.Right-$after.Left -le $before.Right-$before.Left) { throw 'Mouse wheel did not enlarge native canvas' }
+          "Wheel resize: $($before.Right-$before.Left)x$($before.Bottom-$before.Top) -> $($after.Right-$after.Left)x$($after.Bottom-$after.Top)" | Out-File ruby-native-zoom.txt
         } elseif ($phase -eq 'look') {
           [RubyBounds]::SetCursorPos(20,20) | Out-Null
         } elseif ($phase -eq 'click' -and $rubyHandle -ne [IntPtr]::Zero) {
@@ -86,7 +100,7 @@ try {
             if (Test-Path ruby-native-smoke.txt) { Get-Content ruby-native-smoke.txt }
             throw 'Mesh carry did not move the actual native window'
           }
-        } elseif ($phase -in @('menu','float','dizzy') -and $rubyHandle -ne [IntPtr]::Zero) {
+        } elseif ($phase -in @('menu','float','dizzy','zoom_view','left','right') -and $rubyHandle -ne [IntPtr]::Zero) {
           $bounds = New-Object RubyBounds+Rect
           if (-not [RubyBounds]::GetWindowRect($rubyHandle,[ref]$bounds)) { throw 'Cannot capture native window bounds' }
           $clientOrigin = New-Object RubyBounds+Point
@@ -95,15 +109,25 @@ try {
           [RubyBounds]::GetClientRect($rubyHandle,[ref]$clientBounds) | Out-Null
           $topInset = $clientOrigin.Y - $bounds.Top
           "${phase}: visible window ($($bounds.Left),$($bounds.Top)) $($bounds.Right-$bounds.Left)x$($bounds.Bottom-$bounds.Top), client top inset $topInset" | Tee-Object -FilePath ruby-native-frame.txt -Append
-          $width = $bounds.Right - $bounds.Left
-          $height = $bounds.Bottom - $bounds.Top
+          $screen = [System.Windows.Forms.Screen]::FromHandle($rubyHandle)
+          if ($phase -eq 'zoom_view' -and ($bounds.Left -lt $screen.WorkingArea.Left -or $bounds.Top -lt $screen.WorkingArea.Top -or $bounds.Right -gt $screen.WorkingArea.Right -or $bounds.Bottom -gt $screen.WorkingArea.Bottom)) { throw 'Zoomed canvas extends beyond usable screen' }
+          if ($phase -eq 'left' -and $bounds.Left -ge $screen.WorkingArea.Left) { throw 'Left peek is not at the actual screen edge' }
+          if ($phase -eq 'right' -and $bounds.Right -le $screen.WorkingArea.Right) { throw 'Right peek is not at the actual screen edge' }
+          $captureLeft = [Math]::Max($bounds.Left,$screen.Bounds.Left)
+          $captureTop = [Math]::Max($bounds.Top,$screen.Bounds.Top)
+          $width = [Math]::Min($bounds.Right,$screen.Bounds.Right)-$captureLeft
+          $height = [Math]::Min($bounds.Bottom,$screen.Bounds.Bottom)-$captureTop
           $bitmap = New-Object System.Drawing.Bitmap($width,$height)
           $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
           try {
-            $graphics.CopyFromScreen($bounds.Left,$bounds.Top,0,0,$bitmap.Size)
+            $graphics.CopyFromScreen($captureLeft,$captureTop,0,0,$bitmap.Size)
             $bitmap.Save("$PWD/ruby-native-$phase.png",[System.Drawing.Imaging.ImageFormat]::Png)
           } finally { $graphics.Dispose(); $bitmap.Dispose() }
           if ($topInset -gt 8) { throw 'Native title bar occupies the top of the window' }
+          if ($phase -in @('left','right')) {
+            $hoverX = if ($phase -eq 'left') { $screen.WorkingArea.Left+80 } else { $screen.WorkingArea.Right-80 }
+            [RubyBounds]::SetCursorPos($hoverX,[int]($bounds.Top+($bounds.Bottom-$bounds.Top)*0.45)) | Out-Null
+          }
         }
       }
     }
@@ -116,9 +140,17 @@ try {
   if (-not (Test-Path ruby-native-carry.txt)) { throw 'Missing real native carry evidence' }
   Get-Content ruby-native-smoke.txt
   if ($rubyProcess.ExitCode -ne 0) { throw 'Native WebView smoke checks failed' }
-  foreach ($phase in @('menu','float','dizzy')) {
+  foreach ($phase in @('menu','float','dizzy','left','right')) {
     if (-not (Test-Path "ruby-native-$phase.png")) { throw "Missing native $phase screenshot" }
   }
+  Move-Item ruby-native-smoke.txt ruby-native-first.txt -Force
+  $rubyProcess = Start-Process src-tauri/target/release/project-ruby.exe -ArgumentList '--native-smoke-test','--native-smoke-restart' -PassThru
+  if (-not $rubyProcess.WaitForExit(30000)) { throw 'Native settings restart check timed out' }
+  if ($rubyProcess.ExitCode -ne 0) { Get-Content ruby-native-smoke.txt; throw 'Native settings were not restored' }
+  $restartReport = Get-Content ruby-native-smoke.txt -Raw
+  Get-Content ruby-native-first.txt | Set-Content ruby-native-smoke.txt
+  $restartReport | Add-Content ruby-native-smoke.txt
+  Get-Content ruby-native-smoke.txt
 } finally {
   if (-not $rubyProcess.HasExited) { Stop-Process -Id $rubyProcess.Id -Force }
 }
