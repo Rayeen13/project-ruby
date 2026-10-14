@@ -1,5 +1,9 @@
 import * as T from './vendor/three.module.js';
 
+export const HOLD_TO_GRAB_MS=420;
+export const DRAG_TO_GRAB_PX=12;
+export function mayStartGrab(tap,pointerId){return !!tap&&tap.id===pointerId&&!tap.orbit&&!tap.menu;}
+
 // Screen-space input only. Native positioning belongs to the desktop host.
 export class GrabState {
  constructor(){this.clear();}
@@ -35,9 +39,9 @@ export class GrabVisual {
   this.stars=new T.Group();this.stars.visible=false;scene.add(this.stars);
   const shape=new T.Shape();for(let i=0;i<10;i++){const a=i*Math.PI/5+Math.PI/2,r=i%2?.045:.1;const x=Math.cos(a)*r,y=Math.sin(a)*r;if(i)shape.lineTo(x,y);else shape.moveTo(x,y);}shape.closePath();
   const geometry=new T.ExtrudeGeometry(shape,{depth:.025,bevelEnabled:true,bevelSize:.006,bevelThickness:.006,bevelSegments:1,steps:1});
-  const material=new T.MeshBasicMaterial({color:0xffdf72});
+  const material=new T.MeshBasicMaterial({color:0xffdf72,transparent:true,depthWrite:false});
   for(let i=0;i<5;i++){const star=new T.Mesh(geometry,material);this.stars.add(star);}
-  this.box=new T.Box3();this.bases=new WeakMap();
+  this.box=new T.Box3();this.bases=new WeakMap();this.pose={lift:0,lean:0};this.previousMs=null;
  }
  apply(character,state,camera,rect,distance,ms,{native=false,reduced=false}={}){
   const root=character.root;if(!this.bases.has(root))this.bases.set(root,root.position.clone());const base=this.bases.get(root);
@@ -48,15 +52,18 @@ export class GrabVisual {
    const delta=right.multiplyScalar(state.offset.x*scale).add(up.multiplyScalar(-state.offset.y*scale));root.position.add(delta);
   }
   const dizzy=state.dizzy(ms);
-  if(state.held){root.position.y+=.12;root.rotation.z+=reduced?0:state.velocity*-.13;}
-  else if(dizzy&&!reduced)root.rotation.z+=Math.sin(ms*.008)*.065;
-  this.stars.visible=dizzy;
+  const dt=this.previousMs===null?0:Math.min(.05,Math.max(0,(ms-this.previousMs)/1000));this.previousMs=ms;
+  const blend=1-Math.exp(-10*dt),targetLift=state.held?.055:0;
+  const targetLean=reduced?0:state.held?state.velocity*-.06:dizzy?Math.sin(ms*.003)*.025:0;
+  this.pose.lift+=(targetLift-this.pose.lift)*blend;this.pose.lean+=(targetLean-this.pose.lean)*blend;
+  root.position.y+=this.pose.lift;root.rotation.z+=this.pose.lean;
+  this.stars.visible=dizzy;const fade=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};const opacity=fade((ms-(state.dizzyUntil-3800))/220)*fade((state.dizzyUntil-ms)/400);for(const star of this.stars.children)star.material.opacity=opacity;
   if(dizzy){
    this.box.setFromObject(character.head);const top=this.box.max.y,centre=this.box.getCenter(new T.Vector3());
-   for(let i=0;i<5;i++){const star=this.stars.children[i],a=(reduced?0:ms*.003)+i*Math.PI*2/5;star.position.set(centre.x+Math.cos(a)*.48,top+.18+Math.sin(a*2)*.035,centre.z+Math.sin(a)*.3);star.rotation.set(0,-a,Math.sin(a)*.3);}
+   for(let i=0;i<5;i++){const star=this.stars.children[i],a=(reduced?0:ms*.0016)+i*Math.PI*2/5;star.position.set(centre.x+Math.cos(a)*.48,top+.18+Math.sin(a*2)*.035,centre.z+Math.sin(a)*.3);star.rotation.set(0,-a,Math.sin(a)*.3);}
   }
  }
- reset(character){const base=this.bases.get(character.root);if(base)character.root.position.copy(base);this.stars.visible=false;}
+ reset(character){const base=this.bases.get(character.root);if(base)character.root.position.copy(base);this.stars.visible=false;this.pose={lift:0,lean:0};this.previousMs=null;}
 }
 
 export function drawDizzyFace(character,ms){

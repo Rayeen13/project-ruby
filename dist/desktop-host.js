@@ -12,15 +12,16 @@ export function createDesktopHost(tauri) {
    if(!allowed.has(action))return Promise.reject(new Error('Unsupported desktop action'));
    return tauri.core.invoke('desktop_action',{action});
   },
-  listen:callback=>tauri.event.listen('ruby-desktop-status',event=>callback(event.payload))
+  listen:callback=>tauri.event.listen('ruby-desktop-status',event=>callback(event.payload)),
+  listenPointer:callback=>tauri.event.listen('ruby-global-pointer',event=>callback(event.payload))
  });
 }
 
-export async function mountDesktopControls({host,document,onMode,onStop}) {
+export async function mountDesktopControls({host,document,onMode,onStop,onPointer}) {
  if(!host)return;
  const controls=document.querySelector('#desktop-controls'),toolbar=document.querySelector('#floating-toolbar');
  const statusText=document.querySelector('#desktop-status'),floatStatus=document.querySelector('#floating-status');
- controls.hidden=false;
+ controls.hidden=false;document.querySelector('#desktop-window-actions').hidden=false;
  const apply=status=>{
   const floating=status.floating===true;
   document.documentElement.classList.toggle('floating',floating);
@@ -51,6 +52,7 @@ export async function mountDesktopControls({host,document,onMode,onStop}) {
   // Subscribe first so tray/shortcut changes cannot be lost during initialization.
   const unlisten=await host.listen(apply);
   window.addEventListener('pagehide',unlisten,{once:true});
+  const stopPointer=await host.listenPointer(onPointer);window.addEventListener('pagehide',stopPointer,{once:true});
   apply(await host.status());
  }catch(error){statusText.textContent='Desktop controls unavailable: '+(error.message||String(error));}
 }

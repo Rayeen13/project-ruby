@@ -32,7 +32,10 @@ fn desktop_smoke_report(
 #[tauri::command]
 fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
     if !std::env::args().any(|arg| arg == "--native-smoke-test")
-        || !["menu", "float", "carry", "dizzy", "recovery"].contains(&phase.as_str())
+        || ![
+            "menu", "float", "look", "click", "carry", "dizzy", "recovery",
+        ]
+        .contains(&phase.as_str())
     {
         return Err("Smoke checkpoints are disabled outside the test launch".into());
     }
@@ -99,13 +102,17 @@ fn main() {
             if let Err(error) = registered {
                 eprintln!("Recovery shortcut unavailable; click-through disabled: {error}");
             }
+            desktop::start_pointer_tracking(app.handle().clone());
             Ok(())
         })
         .on_page_load(|window, payload| {
-            if std::env::args().any(|arg| arg == "--native-smoke-test")
-                && payload.event() == tauri::webview::PageLoadEvent::Finished
-            {
-                let _ = window.eval(include_str!("../../scripts/native-smoke.js"));
+            if payload.event() == tauri::webview::PageLoadEvent::Finished {
+                if let Err(error) = perform(window.app_handle(), DesktopAction::Float) {
+                    eprintln!("Project Ruby could not open the floating companion: {error}");
+                }
+                if std::env::args().any(|arg| arg == "--native-smoke-test") {
+                    let _ = window.eval(include_str!("../../scripts/native-smoke.js"));
+                }
             }
         })
         .on_window_event(|window, event| {
