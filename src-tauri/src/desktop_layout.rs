@@ -26,8 +26,22 @@ pub fn bounded_position(
     let right = area.x + area.width.saturating_sub(width) as i32;
     let bottom = area.y + area.height.saturating_sub(height) as i32;
     let x = match edge {
-        Some(Edge::Left) => area.x - if peeking { (width as f64 * 0.42) as i32 } else { 0 },
-        Some(Edge::Right) => right + if peeking { (width as f64 * 0.42) as i32 } else { 0 },
+        Some(Edge::Left) => {
+            area.x
+                - if peeking {
+                    (width as f64 * 0.42) as i32
+                } else {
+                    0
+                }
+        }
+        Some(Edge::Right) => {
+            right
+                + if peeking {
+                    (width as f64 * 0.42) as i32
+                } else {
+                    0
+                }
+        }
         None => position.0.clamp(area.x, right),
     };
     (x, position.1.clamp(area.y, bottom))
@@ -52,11 +66,28 @@ mod tests {
 
     #[test]
     fn docks_peeks_and_recovers_with_negative_monitor_origin() {
-        let area = Area { x: -1920, y: 0, width: 1920, height: 1040 };
-        assert_eq!(bounded_position(area, (340, 420), (-1800, 900), Some(Edge::Left), true), (-2062, 620));
-        assert_eq!(bounded_position(area, (340, 420), (-2062, 620), Some(Edge::Left), false), (-1920, 620));
-        assert_eq!(bounded_position(area, (340, 420), (500, -80), Some(Edge::Right), true), (-198, 0));
-        assert_eq!(nearby_edge(area, (340, 420), (-1900, 10), 1.0), Some(Edge::Left));
+        let area = Area {
+            x: -1920,
+            y: 0,
+            width: 1920,
+            height: 1040,
+        };
+        assert_eq!(
+            bounded_position(area, (340, 420), (-1800, 900), Some(Edge::Left), true),
+            (-2062, 620)
+        );
+        assert_eq!(
+            bounded_position(area, (340, 420), (-2062, 620), Some(Edge::Left), false),
+            (-1920, 620)
+        );
+        assert_eq!(
+            bounded_position(area, (340, 420), (500, -80), Some(Edge::Right), true),
+            (-198, 0)
+        );
+        assert_eq!(
+            nearby_edge(area, (340, 420), (-1900, 10), 1.0),
+            Some(Edge::Left)
+        );
         assert_eq!(nearby_edge(area, (340, 420), (-900, 10), 1.0), None);
     }
 }

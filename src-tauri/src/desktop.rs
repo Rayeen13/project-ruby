@@ -1,7 +1,9 @@
 use crate::desktop_layout::{bounded_position, nearby_edge, Area, Edge};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
-use tauri::{AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, PhysicalSize, WebviewWindow};
+use tauri::{
+    AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, PhysicalSize, WebviewWindow,
+};
 
 pub const RECOVERY_SHORTCUT: &str = "Ctrl+Alt+Shift+R";
 
@@ -57,10 +59,18 @@ fn settings_name() -> &'static str {
 }
 
 pub fn load_settings(app: &AppHandle) {
-    let Ok(directory) = app.path().app_config_dir() else { return };
-    let Ok(bytes) = std::fs::read(directory.join(settings_name())) else { return };
-    let Ok(settings) = serde_json::from_slice::<Settings>(&bytes) else { return };
-    if !settings.size.is_finite() { return; }
+    let Ok(directory) = app.path().app_config_dir() else {
+        return;
+    };
+    let Ok(bytes) = std::fs::read(directory.join(settings_name())) else {
+        return;
+    };
+    let Ok(settings) = serde_json::from_slice::<Settings>(&bytes) else {
+        return;
+    };
+    if !settings.size.is_finite() {
+        return;
+    }
     let state_handle = app.state::<Mutex<DesktopState>>();
     if let Ok(mut state) = state_handle.lock() {
         state.status.pinned = settings.pinned;
@@ -72,7 +82,10 @@ pub fn load_settings(app: &AppHandle) {
 
 fn save_settings(app: &AppHandle, state: &DesktopState) -> Result<(), String> {
     // Smoke tests use a separate file, leaving normal desktop placement untouched.
-    let directory = app.path().app_config_dir().map_err(|error| error.to_string())?;
+    let directory = app
+        .path()
+        .app_config_dir()
+        .map_err(|error| error.to_string())?;
     std::fs::create_dir_all(&directory).map_err(|error| error.to_string())?;
     let settings = Settings {
         pinned: state.status.pinned,
@@ -119,21 +132,41 @@ pub fn set_shortcut_ready(app: &AppHandle, ready: bool) {
 }
 
 fn work_area(window: &WebviewWindow) -> Result<Area, String> {
-    let monitor = window.current_monitor().map_err(|error| error.to_string())?
-        .or(window.primary_monitor().map_err(|error| error.to_string())?)
+    let monitor = window
+        .current_monitor()
+        .map_err(|error| error.to_string())?
+        .or(window
+            .primary_monitor()
+            .map_err(|error| error.to_string())?)
         .ok_or("No monitor is available")?;
     let area = monitor.work_area();
-    Ok(Area { x: area.position.x, y: area.position.y, width: area.size.width, height: area.size.height })
+    Ok(Area {
+        x: area.position.x,
+        y: area.position.y,
+        width: area.size.width,
+        height: area.size.height,
+    })
 }
 
-fn position_float(window: &WebviewWindow, state: &mut DesktopState, resize: bool, keep_center: bool) -> Result<(), String> {
+fn position_float(
+    window: &WebviewWindow,
+    state: &mut DesktopState,
+    resize: bool,
+    keep_center: bool,
+) -> Result<(), String> {
     let area = work_area(window)?;
     let scale = window.scale_factor().map_err(|error| error.to_string())?;
     let old = window.outer_size().map_err(|error| error.to_string())?;
-    let maximum = (area.width as f64 / (340.0 * scale)).min(area.height as f64 / (420.0 * scale)).min(1.8);
+    let maximum = (area.width as f64 / (340.0 * scale))
+        .min(area.height as f64 / (420.0 * scale))
+        .min(1.8);
     state.status.size = state.status.size.min(maximum).max(0.7_f64.min(maximum));
     if resize {
-        window.set_size(LogicalSize::new(340.0 * state.status.size, 420.0 * state.status.size))
+        window
+            .set_size(LogicalSize::new(
+                340.0 * state.status.size,
+                420.0 * state.status.size,
+            ))
             .map_err(|error| error.to_string())?;
     }
     let size = window.outer_size().map_err(|error| error.to_string())?;
@@ -145,51 +178,90 @@ fn position_float(window: &WebviewWindow, state: &mut DesktopState, resize: bool
         position.x += (old.width as i32 - size.width as i32) / 2;
         position.y += (old.height as i32 - size.height as i32) / 2;
     }
-    let (x, y) = bounded_position(area, (size.width, size.height), (position.x, position.y), state.status.edge, state.status.peeking);
-    window.set_position(PhysicalPosition::new(x, y)).map_err(|error| error.to_string())?;
+    let (x, y) = bounded_position(
+        area,
+        (size.width, size.height),
+        (position.x, position.y),
+        state.status.edge,
+        state.status.peeking,
+    );
+    window
+        .set_position(PhysicalPosition::new(x, y))
+        .map_err(|error| error.to_string())?;
     state.float_position = Some(PhysicalPosition::new(x, y));
     Ok(())
 }
 
 pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, String> {
-    let window = app.get_webview_window("main").ok_or("Viewer is unavailable")?;
+    let window = app
+        .get_webview_window("main")
+        .ok_or("Viewer is unavailable")?;
     let state_handle = app.state::<Mutex<DesktopState>>();
-    let mut state = state_handle.lock().map_err(|_| "Desktop state is unavailable")?;
+    let mut state = state_handle
+        .lock()
+        .map_err(|_| "Desktop state is unavailable")?;
     if matches!(action, DesktopAction::ClickThrough) && !state.status.allows_click_through() {
         return Err("Click-through requires floating mode and the recovery shortcut".into());
     }
-    if !state.status.floating && !matches!(action, DesktopAction::Float | DesktopAction::Lab | DesktopAction::Drag | DesktopAction::Hide | DesktopAction::Stop) {
+    if !state.status.floating
+        && !matches!(
+            action,
+            DesktopAction::Float
+                | DesktopAction::Lab
+                | DesktopAction::Drag
+                | DesktopAction::Hide
+                | DesktopAction::Stop
+        )
+    {
         return Err("This control requires the floating companion".into());
     }
     state.status.stopped = false;
     let result = (|| -> Result<(), String> {
         match action {
             DesktopAction::Float => {
-                window.set_ignore_cursor_events(false).map_err(|e| e.to_string())?;
+                window
+                    .set_ignore_cursor_events(false)
+                    .map_err(|e| e.to_string())?;
                 state.status.click_through = false;
                 if !state.status.floating {
-                    state.lab_bounds = Some((window.outer_position().map_err(|e| e.to_string())?, window.inner_size().map_err(|e| e.to_string())?));
+                    state.lab_bounds = Some((
+                        window.outer_position().map_err(|e| e.to_string())?,
+                        window.inner_size().map_err(|e| e.to_string())?,
+                    ));
                     window.unmaximize().map_err(|e| e.to_string())?;
-                    window.set_min_size(Some(LogicalSize::new(220.0, 272.0))).map_err(|e| e.to_string())?;
+                    window
+                        .set_min_size(Some(LogicalSize::new(220.0, 272.0)))
+                        .map_err(|e| e.to_string())?;
                     window.set_decorations(false).map_err(|e| e.to_string())?;
-                    if state.float_position.is_none() { window.center().map_err(|e| e.to_string())?; }
+                    if state.float_position.is_none() {
+                        window.center().map_err(|e| e.to_string())?;
+                    }
                     state.status.floating = true;
                     state.status.peeking = state.status.edge.is_some();
                     position_float(&window, &mut state, true, false)?;
                 }
-                window.set_always_on_top(state.status.pinned).map_err(|e| e.to_string())?;
+                window
+                    .set_always_on_top(state.status.pinned)
+                    .map_err(|e| e.to_string())?;
                 window.set_skip_taskbar(true).map_err(|e| e.to_string())?;
                 window.show().map_err(|e| e.to_string())?;
                 window.set_focus().map_err(|e| e.to_string())?;
             }
             DesktopAction::Lab => {
-                window.set_ignore_cursor_events(false).map_err(|e| e.to_string())?;
+                window
+                    .set_ignore_cursor_events(false)
+                    .map_err(|e| e.to_string())?;
                 state.status.click_through = false;
-                if state.status.floating { state.float_position = Some(window.outer_position().map_err(|e| e.to_string())?); }
+                if state.status.floating {
+                    state.float_position =
+                        Some(window.outer_position().map_err(|e| e.to_string())?);
+                }
                 window.set_always_on_top(false).map_err(|e| e.to_string())?;
                 window.set_skip_taskbar(false).map_err(|e| e.to_string())?;
                 window.set_decorations(false).map_err(|e| e.to_string())?;
-                window.set_min_size(Some(LogicalSize::new(640.0, 600.0))).map_err(|e| e.to_string())?;
+                window
+                    .set_min_size(Some(LogicalSize::new(640.0, 600.0)))
+                    .map_err(|e| e.to_string())?;
                 if let Some((position, size)) = state.lab_bounds {
                     window.set_size(size).map_err(|e| e.to_string())?;
                     window.set_position(position).map_err(|e| e.to_string())?;
@@ -200,19 +272,27 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
                 window.set_focus().map_err(|e| e.to_string())?;
             }
             DesktopAction::Drag => {
-                if !state.status.click_through { window.start_dragging().map_err(|e| e.to_string())?; }
+                if !state.status.click_through {
+                    window.start_dragging().map_err(|e| e.to_string())?;
+                }
             }
             DesktopAction::ClickThrough => {
-                window.set_ignore_cursor_events(true).map_err(|e| e.to_string())?;
+                window
+                    .set_ignore_cursor_events(true)
+                    .map_err(|e| e.to_string())?;
                 state.status.click_through = true;
             }
             DesktopAction::Hide => {
-                window.set_ignore_cursor_events(false).map_err(|e| e.to_string())?;
+                window
+                    .set_ignore_cursor_events(false)
+                    .map_err(|e| e.to_string())?;
                 state.status.click_through = false;
                 window.hide().map_err(|e| e.to_string())?;
             }
             DesktopAction::Stop => {
-                window.set_ignore_cursor_events(false).map_err(|e| e.to_string())?;
+                window
+                    .set_ignore_cursor_events(false)
+                    .map_err(|e| e.to_string())?;
                 state.status.click_through = false;
                 state.status.stopped = true;
                 state.status.edge = None;
@@ -225,10 +305,16 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
             }
             DesktopAction::TogglePin => {
                 state.status.pinned = !state.status.pinned;
-                window.set_always_on_top(state.status.pinned).map_err(|e| e.to_string())?;
+                window
+                    .set_always_on_top(state.status.pinned)
+                    .map_err(|e| e.to_string())?;
             }
             DesktopAction::SnapLeft | DesktopAction::SnapRight => {
-                state.status.edge = Some(if matches!(action, DesktopAction::SnapLeft) { Edge::Left } else { Edge::Right });
+                state.status.edge = Some(if matches!(action, DesktopAction::SnapLeft) {
+                    Edge::Left
+                } else {
+                    Edge::Right
+                });
                 state.status.peeking = true;
                 position_float(&window, &mut state, false, false)?;
             }
@@ -247,7 +333,12 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
                 let position = window.outer_position().map_err(|e| e.to_string())?;
                 let size = window.outer_size().map_err(|e| e.to_string())?;
                 let scale = window.scale_factor().map_err(|e| e.to_string())?;
-                state.status.edge = nearby_edge(work_area(&window)?, (size.width, size.height), (position.x, position.y), scale);
+                state.status.edge = nearby_edge(
+                    work_area(&window)?,
+                    (size.width, size.height),
+                    (position.x, position.y),
+                    scale,
+                );
                 state.status.peeking = state.status.edge.is_some();
                 state.float_position = Some(position);
                 position_float(&window, &mut state, false, false)?;
@@ -261,7 +352,10 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
                 position_float(&window, &mut state, true, true)?;
             }
         }
-        if !matches!(action, DesktopAction::Peek | DesktopAction::Reveal | DesktopAction::Drag) {
+        if !matches!(
+            action,
+            DesktopAction::Peek | DesktopAction::Reveal | DesktopAction::Drag
+        ) {
             save_settings(app, &state)?;
         }
         Ok(())
@@ -274,18 +368,30 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
 }
 
 #[tauri::command]
-pub fn desktop_action(window: WebviewWindow, action: DesktopAction) -> Result<DesktopStatus, String> {
-    if window.label() != "main" { return Err("Only the local viewer can control its companion window".into()); }
+pub fn desktop_action(
+    window: WebviewWindow,
+    action: DesktopAction,
+) -> Result<DesktopStatus, String> {
+    if window.label() != "main" {
+        return Err("Only the local viewer can control its companion window".into());
+    }
     perform(window.app_handle(), action)
 }
 
 #[tauri::command]
 pub fn desktop_move(window: WebviewWindow, dx: f64, dy: f64) -> Result<(), String> {
-    if window.label() != "main" || !dx.is_finite() || !dy.is_finite() || dx.abs() > 240.0 || dy.abs() > 240.0 {
+    if window.label() != "main"
+        || !dx.is_finite()
+        || !dy.is_finite()
+        || dx.abs() > 240.0
+        || dy.abs() > 240.0
+    {
         return Err("Invalid companion movement".into());
     }
     let state_handle = window.state::<Mutex<DesktopState>>();
-    let mut state = state_handle.lock().map_err(|_| "Desktop state is unavailable")?;
+    let mut state = state_handle
+        .lock()
+        .map_err(|_| "Desktop state is unavailable")?;
     if !state.status.floating || state.status.click_through {
         return Err("Only the interactive floating companion may move".into());
     }
@@ -294,18 +400,33 @@ pub fn desktop_move(window: WebviewWindow, dx: f64, dy: f64) -> Result<(), Strin
     let size = window.outer_size().map_err(|error| error.to_string())?;
     state.status.edge = None;
     state.status.peeking = false;
-    let desired = (position.x.saturating_add((dx * scale).round() as i32), position.y.saturating_add((dy * scale).round() as i32));
-    let (x, y) = bounded_position(work_area(&window)?, (size.width, size.height), desired, None, false);
-    window.set_position(PhysicalPosition::new(x, y)).map_err(|error| error.to_string())?;
+    let desired = (
+        position.x.saturating_add((dx * scale).round() as i32),
+        position.y.saturating_add((dy * scale).round() as i32),
+    );
+    let (x, y) = bounded_position(
+        work_area(&window)?,
+        (size.width, size.height),
+        desired,
+        None,
+        false,
+    );
+    window
+        .set_position(PhysicalPosition::new(x, y))
+        .map_err(|error| error.to_string())?;
     state.float_position = Some(PhysicalPosition::new(x, y));
     Ok(())
 }
 
 #[tauri::command]
 pub fn desktop_status(window: WebviewWindow) -> Result<DesktopStatus, String> {
-    if window.label() != "main" { return Err("Only the local viewer can read desktop state".into()); }
+    if window.label() != "main" {
+        return Err("Only the local viewer can read desktop state".into());
+    }
     let state_handle = window.state::<Mutex<DesktopState>>();
-    let state = state_handle.lock().map_err(|_| "Desktop state is unavailable")?;
+    let state = state_handle
+        .lock()
+        .map_err(|_| "Desktop state is unavailable")?;
     Ok(state.status)
 }
 

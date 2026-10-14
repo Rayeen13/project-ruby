@@ -34,8 +34,19 @@ fn desktop_smoke_report(
 fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
     if !std::env::args().any(|arg| arg == "--native-smoke-test")
         || ![
-            "menu", "float", "look", "click", "carry", "dizzy", "recovery",
-            "zoom", "zoom_view", "left", "right", "pin", "unpin",
+            "menu",
+            "float",
+            "look",
+            "click",
+            "carry",
+            "dizzy",
+            "recovery",
+            "zoom",
+            "zoom_view",
+            "left",
+            "right",
+            "pin",
+            "unpin",
         ]
         .contains(&phase.as_str())
     {
@@ -67,11 +78,18 @@ fn main() {
             )?;
             let hide = MenuItem::with_id(app, "hide", "Hide companion", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit Project Ruby", true, None::<&str>)?;
-            let pin = MenuItem::with_id(app, "pin", "Toggle pin above windows", true, None::<&str>)?;
+            let pin =
+                MenuItem::with_id(app, "pin", "Toggle pin above windows", true, None::<&str>)?;
             let left = MenuItem::with_id(app, "left", "Peek from left edge", true, None::<&str>)?;
-            let right = MenuItem::with_id(app, "right", "Peek from right edge", true, None::<&str>)?;
+            let right =
+                MenuItem::with_id(app, "right", "Peek from right edge", true, None::<&str>)?;
             let undock = MenuItem::with_id(app, "undock", "Leave screen edge", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&float, &lab, &pin, &left, &right, &undock, &stop, &hide, &quit])?;
+            let menu = Menu::with_items(
+                app,
+                &[
+                    &float, &lab, &pin, &left, &right, &undock, &stop, &hide, &quit,
+                ],
+            )?;
             let mut tray = TrayIconBuilder::with_id("ruby-tray")
                 .tooltip("Project Ruby — companion controls")
                 .menu(&menu)
