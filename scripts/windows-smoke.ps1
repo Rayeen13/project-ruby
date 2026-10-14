@@ -44,18 +44,28 @@ try {
           $cy = [int]($before.Top + ($before.Bottom - $before.Top) * 0.45)
           [RubyBounds]::SetCursorPos($cx,$cy) | Out-Null
           [RubyBounds]::mouse_event(2,0,0,0,[UIntPtr]::Zero)
+          $moved = $false
+          $trajectory = @()
           try {
             Start-Sleep -Milliseconds 650
             foreach ($delta in @(60,-60,60,-60,60)) {
               [RubyBounds]::SetCursorPos(($cx + $delta),$cy) | Out-Null
               Start-Sleep -Milliseconds 120
+              $sample = New-Object RubyBounds+Rect
+              [RubyBounds]::GetWindowRect($rubyHandle,[ref]$sample) | Out-Null
+              $trajectory += "($($sample.Left),$($sample.Top))"
+              $moved = $moved -or $sample.Left -ne $before.Left -or $sample.Top -ne $before.Top
             }
           } finally { [RubyBounds]::mouse_event(4,0,0,0,[UIntPtr]::Zero) }
           Start-Sleep -Milliseconds 150
           $after = New-Object RubyBounds+Rect
           [RubyBounds]::GetWindowRect($rubyHandle,[ref]$after) | Out-Null
-          if ($before.Left -eq $after.Left -and $before.Top -eq $after.Top) { throw 'Mesh carry did not move the actual native window' }
-          "Actual native carry: ($($before.Left),$($before.Top)) -> ($($after.Left),$($after.Top))" | Out-File ruby-native-carry.txt
+          "Actual native carry: ($($before.Left),$($before.Top)) -> $($trajectory -join ' -> ') -> ($($after.Left),$($after.Top)); movement observed: $moved" | Tee-Object -FilePath ruby-native-carry.txt
+          if (-not $moved) {
+            for ($reportTick=0; $reportTick -lt 180 -and -not (Test-Path ruby-native-smoke.txt); $reportTick++) { Start-Sleep -Milliseconds 100 }
+            if (Test-Path ruby-native-smoke.txt) { Get-Content ruby-native-smoke.txt }
+            throw 'Mesh carry did not move the actual native window'
+          }
         } elseif ($phase -in @('menu','float','dizzy') -and $rubyHandle -ne [IntPtr]::Zero) {
           $bounds = New-Object RubyBounds+Rect
           if (-not [RubyBounds]::GetWindowRect($rubyHandle,[ref]$bounds)) { throw 'Cannot capture native window bounds' }
