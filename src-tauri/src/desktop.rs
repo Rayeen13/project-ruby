@@ -1,4 +1,4 @@
-use crate::desktop_layout::{bounded_position, nearby_edge, Area, Edge};
+use crate::desktop_layout::{bounded_position, nearby_edge, screen_gaze, Area, Edge};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::{
@@ -477,12 +477,16 @@ pub fn start_pointer_tracking(app: AppHandle) {
         }
         if let (Ok(position), Ok(size)) = (window.outer_position(), window.inner_size()) {
             if size.width > 0 && size.height > 0 {
-                let pointer = Pointer {
-                    x: (((cursor.x - position.x) as f64 / size.width as f64) * 2.0 - 1.0)
-                        .clamp(-1.0, 1.0),
-                    y: (1.0 - ((cursor.y - position.y) as f64 / size.height as f64) * 2.0)
-                        .clamp(-1.0, 1.0),
+                let Ok(area) = work_area(&window) else {
+                    continue;
                 };
+                let (x, y) = screen_gaze(
+                    area,
+                    (size.width, size.height),
+                    (position.x, position.y),
+                    (cursor.x, cursor.y),
+                );
+                let pointer = Pointer { x, y };
                 let _ = window.emit("ruby-global-pointer", pointer);
             }
         }

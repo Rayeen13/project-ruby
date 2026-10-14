@@ -60,9 +60,45 @@ pub fn nearby_edge(area: Area, size: (u32, u32), position: (i32, i32), scale: f6
     }
 }
 
+pub fn screen_gaze(
+    area: Area,
+    size: (u32, u32),
+    position: (i32, i32),
+    cursor: (i32, i32),
+) -> (f64, f64) {
+    let cx = f64::from(position.0) + f64::from(size.0) / 2.0;
+    let cy = f64::from(position.1) + f64::from(size.1) / 2.0;
+    let horizontal = (cx - f64::from(area.x))
+        .abs()
+        .max((f64::from(area.x) + f64::from(area.width) - cx).abs())
+        .max(1.0);
+    let vertical = (cy - f64::from(area.y))
+        .abs()
+        .max((f64::from(area.y) + f64::from(area.height) - cy).abs())
+        .max(1.0);
+    (
+        ((f64::from(cursor.0) - cx) / horizontal).clamp(-1.0, 1.0),
+        ((cy - f64::from(cursor.1)) / vertical).clamp(-1.0, 1.0),
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn docked_gaze_changes_across_the_whole_screen() {
+        let area = Area {
+            x: 0,
+            y: 0,
+            width: 1920,
+            height: 1040,
+        };
+        let near = screen_gaze(area, (340, 420), (-142, 300), (100, 500));
+        let middle = screen_gaze(area, (340, 420), (-142, 300), (900, 500));
+        let far = screen_gaze(area, (340, 420), (-142, 300), (1800, 500));
+        assert!(near.0 < middle.0 && middle.0 < far.0 && far.0 < 1.0);
+    }
 
     #[test]
     fn docks_peeks_and_recovers_with_negative_monitor_origin() {
