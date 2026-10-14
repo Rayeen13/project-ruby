@@ -55,7 +55,9 @@
   stage.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:x,clientY:y,button:2}));
   menu.querySelector('[data-interaction="stop"]').click();assert(!document.querySelector('#animate').checked&&!document.querySelector('#follow').checked,'Menu stop disables movement and tracking');
   document.querySelector('#animate').checked=true;document.querySelector('#follow').checked=true;
+  document.querySelector('#follow').checked=false;
   await window.__TAURI__.core.invoke('desktop_action',{action:'float'});await wait(250);
+  assert(document.querySelector('#follow').checked,'Opening floating companion restores cursor tracking');
   assert(document.documentElement.classList.contains('floating'),'Native floating mode renders compact UI');
   assert(getComputedStyle(document.querySelector('#floating-toolbar')).display==='none','Floating companion has no permanent toolbar frame');
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'float'});await wait(2500);
@@ -87,10 +89,13 @@
    await action('snap_'+edge);await wait(250);
    assert((await status()).edge===edge&&(await status()).peeking,edge+': docks in peek mode');
    await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:edge});
-   for(let i=0;i<40&&(await status()).peeking;i++)await wait(100);
-   assert(!(await status()).peeking,edge+': actual hover reveals full mascot');
-   await action('peek');assert((await status()).peeking,edge+': peek restores edge view');
-   await action('reveal');
+   await wait(700);assert((await status()).peeking,edge+': actual hover keeps mascot docked');
+   document.documentElement.dispatchEvent(new PointerEvent('pointerleave'));await wait(200);assert((await status()).peeking,edge+': leaving keeps same peek position');
+   if(edge==='left'){
+    await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'gaze_far'});await wait(800);const far=Number(stage.dataset.headYaw),farPointer=JSON.parse(stage.dataset.globalPointer).x;
+    await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'gaze_near'});await wait(800);const near=Number(stage.dataset.headYaw),nearPointer=JSON.parse(stage.dataset.globalPointer).x;
+    assert(farPointer-nearPointer>.3&&far-near>.02,'Actual head gaze changes between screen positions while peeking');
+   }
   }
   await action('undock');assert(!(await status()).edge&&!(await status()).peeking,'Leave edge restores full body');
   await window.__TAURI__.core.invoke('desktop_action',{action:'click_through'});

@@ -60,6 +60,10 @@ try {
           [RubyBounds]::GetWindowRect($rubyHandle,[ref]$after) | Out-Null
           if ($after.Right-$after.Left -le $before.Right-$before.Left) { throw 'Mouse wheel did not enlarge native canvas' }
           "Wheel resize: $($before.Right-$before.Left)x$($before.Bottom-$before.Top) -> $($after.Right-$after.Left)x$($after.Bottom-$after.Top)" | Out-File ruby-native-zoom.txt
+        } elseif ($phase -in @('gaze_far','gaze_near')) {
+          $work = [System.Windows.Forms.Screen]::FromHandle($rubyHandle).WorkingArea
+          $gazeX = if ($phase -eq 'gaze_far') { $work.Right-80 } else { $work.Left+80 }
+          [RubyBounds]::SetCursorPos($gazeX,($work.Top+300)) | Out-Null
         } elseif ($phase -eq 'look') {
           [RubyBounds]::SetCursorPos(20,20) | Out-Null
         } elseif ($phase -eq 'click' -and $rubyHandle -ne [IntPtr]::Zero) {
