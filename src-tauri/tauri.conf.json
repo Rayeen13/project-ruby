@@ -27,7 +27,7 @@
       "capabilities": [
         "desktop-viewer"
       ],
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src ipc: http://ipc.localhost; object-src 'none'; frame-src 'none'; base-uri 'self'"
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src ipc: http://ipc.localhost http://127.0.0.1:8081; object-src 'none'; frame-src 'none'; base-uri 'self'"
     },
     "withGlobalTauri": true
   },
@@ -38,7 +38,7 @@
     ],
     "category": "Entertainment",
     "shortDescription": "Expressive desktop companion prototype",
-    "longDescription": "Project Ruby character lab: five robot bodies, gem profiles, jointed gestures and saved preferences. AI and OS automation are future work.",
+    "longDescription": "Project Ruby character lab: five robot bodies, gem profiles, jointed gestures and saved preferences. Experimental streamed conversation with a separately running local model server. Voice and OS automation are future work.",
     "licenseFile": "../LICENSE",
     "icon": [
       "icons/icon.png",

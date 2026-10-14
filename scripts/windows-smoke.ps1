@@ -104,7 +104,7 @@ try {
             if (Test-Path ruby-native-smoke.txt) { Get-Content ruby-native-smoke.txt }
             throw 'Mesh carry did not move the actual native window'
           }
-        } elseif ($phase -in @('menu','float','dizzy','zoom_view','left','right') -and $rubyHandle -ne [IntPtr]::Zero) {
+        } elseif ($phase -in @('menu','float','dizzy','zoom_view','left','right','chat') -and $rubyHandle -ne [IntPtr]::Zero) {
           $bounds = New-Object RubyBounds+Rect
           if (-not [RubyBounds]::GetWindowRect($rubyHandle,[ref]$bounds)) { throw 'Cannot capture native window bounds' }
           $clientOrigin = New-Object RubyBounds+Point
@@ -141,6 +141,8 @@ try {
   if (-not $rubyProcess.HasExited) { throw 'Native smoke test timed out' }
   $rubyProcess.WaitForExit()
   if (-not (Test-Path ruby-native-smoke.txt)) { throw 'Native app did not report smoke results' }
+  if (Test-Path ruby-native-smoke.txt) { Get-Content ruby-native-smoke.txt }
+  if ($rubyProcess.ExitCode -ne 0) { throw 'Native WebView smoke checks failed' }
   if (-not (Test-Path ruby-native-carry.txt)) { throw 'Missing real native carry evidence' }
   Get-Content ruby-native-smoke.txt
   if ($rubyProcess.ExitCode -ne 0) { throw 'Native WebView smoke checks failed' }

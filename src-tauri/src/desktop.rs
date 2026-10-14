@@ -290,6 +290,7 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
                 window.hide().map_err(|e| e.to_string())?;
             }
             DesktopAction::Stop => {
+                crate::local_ai::stop(app);
                 window
                     .set_ignore_cursor_events(false)
                     .map_err(|e| e.to_string())?;

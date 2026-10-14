@@ -2,6 +2,7 @@
 
 mod desktop;
 mod desktop_layout;
+mod local_ai;
 
 use desktop::{perform, set_shortcut_ready, DesktopAction, DesktopState, RECOVERY_SHORTCUT};
 use std::sync::Mutex;
@@ -43,6 +44,7 @@ fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
             "recovery",
             "zoom",
             "zoom_view",
+            "chat",
             "left",
             "right",
             "pin",
@@ -59,9 +61,13 @@ fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
 
 fn main() {
     tauri::Builder::default()
+        .manage(local_ai::AiState::default())
         .manage(Mutex::new(DesktopState::default()))
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
+            local_ai::local_ai_models,
+            local_ai::local_ai_chat,
+            local_ai::local_ai_cancel,
             desktop::desktop_action,
             desktop::desktop_status,
             desktop::desktop_move,
