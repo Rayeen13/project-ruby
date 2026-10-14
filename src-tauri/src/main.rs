@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod desktop;
+mod desktop_layout;
 
 use desktop::{perform, set_shortcut_ready, DesktopAction, DesktopState, RECOVERY_SHORTCUT};
 use std::sync::Mutex;
@@ -34,6 +35,7 @@ fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
     if !std::env::args().any(|arg| arg == "--native-smoke-test")
         || ![
             "menu", "float", "look", "click", "carry", "dizzy", "recovery",
+            "zoom", "zoom_view", "left", "right", "pin", "unpin",
         ]
         .contains(&phase.as_str())
     {
@@ -65,7 +67,11 @@ fn main() {
             )?;
             let hide = MenuItem::with_id(app, "hide", "Hide companion", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit Project Ruby", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&float, &lab, &stop, &hide, &quit])?;
+            let pin = MenuItem::with_id(app, "pin", "Toggle pin above windows", true, None::<&str>)?;
+            let left = MenuItem::with_id(app, "left", "Peek from left edge", true, None::<&str>)?;
+            let right = MenuItem::with_id(app, "right", "Peek from right edge", true, None::<&str>)?;
+            let undock = MenuItem::with_id(app, "undock", "Leave screen edge", true, None::<&str>)?;
+            let menu = Menu::with_items(app, &[&float, &lab, &pin, &left, &right, &undock, &stop, &hide, &quit])?;
             let mut tray = TrayIconBuilder::with_id("ruby-tray")
                 .tooltip("Project Ruby — companion controls")
                 .menu(&menu)
@@ -75,12 +81,19 @@ fn main() {
                         "lab" => DesktopAction::Lab,
                         "stop" => DesktopAction::Stop,
                         "hide" => DesktopAction::Hide,
+                        "pin" => DesktopAction::TogglePin,
+                        "left" => DesktopAction::SnapLeft,
+                        "right" => DesktopAction::SnapRight,
+                        "undock" => DesktopAction::Undock,
                         "quit" => {
                             app.exit(0);
                             return;
                         }
                         _ => return,
                     };
+                    if matches!(event.id.as_ref(), "pin" | "left" | "right" | "undock") {
+                        let _ = perform(app, DesktopAction::Float);
+                    }
                     if let Err(error) = perform(app, action) {
                         eprintln!("Project Ruby tray action failed: {error}");
                     }
@@ -102,6 +115,7 @@ fn main() {
             if let Err(error) = registered {
                 eprintln!("Recovery shortcut unavailable; click-through disabled: {error}");
             }
+            desktop::load_settings(app.handle());
             desktop::start_pointer_tracking(app.handle().clone());
             Ok(())
         })
@@ -111,6 +125,9 @@ fn main() {
                     eprintln!("Project Ruby could not open the floating companion: {error}");
                 }
                 if std::env::args().any(|arg| arg == "--native-smoke-test") {
+                    if std::env::args().any(|arg| arg == "--native-smoke-restart") {
+                        let _ = window.eval("window.__RUBY_SMOKE_RESTART__=true;");
+                    }
                     let _ = window.eval(include_str!("../../scripts/native-smoke.js"));
                 }
             }

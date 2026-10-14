@@ -4,6 +4,11 @@
  const assert=(value,message)=>{if(!value)throw new Error(message);checks.push(message);};
  try{
   for(let i=0;i<200&&!document.querySelector('#stage')?.dataset.ready;i++)await wait(100);
+  if(window.__RUBY_SMOKE_RESTART__){
+   const state=await window.__TAURI__.core.invoke('desktop_status');
+   assert(state.floating&&!state.pinned&&state.edge==='right'&&state.size>1,'Pin, dock and size survive native restart');
+   await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:true,details:checks.join('\n')});return;
+  }
   const stage=document.querySelector('#stage'),menu=document.querySelector('#model-menu'),select=document.querySelector('#model-select');
   assert(stage.dataset.ready==='true','Actual WebView renderer initialized');
   assert((await window.__TAURI__.core.invoke('desktop_status')).floating,'Executable opens directly as floating mascot');
@@ -67,6 +72,27 @@
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'dizzy'});await wait(2500);
   for(let i=0;i<50&&stage.dataset.dizzy==='true';i++)await wait(100);
   assert(stage.dataset.dizzy==='false','Dizzy reaction recovers automatically');
+  const status=()=>window.__TAURI__.core.invoke('desktop_status');
+  const action=action=>window.__TAURI__.core.invoke('desktop_action',{action});
+  await action('toggle_pin');assert(!(await status()).pinned,'Unpin disables always-on-top');
+  await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'unpin'});await wait(500);
+  await action('toggle_pin');assert((await status()).pinned,'Pin enables always-on-top without locking carry');
+  await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'pin'});await wait(500);
+  await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'zoom'});
+  for(let i=0;i<40&&(await status()).size<1.3;i++)await wait(100);
+  assert((await status()).size>1.3&&stage.clientHeight>420,'Real mouse wheel grows transparent canvas instead of clipping');
+  for(const id of ['classic','cyber','chibi','office','gamer']){select.value=id;select.dispatchEvent(new Event('change',{bubbles:true}));await wait(250);assert(Number(stage.dataset.cameraDistance)>=8.7,id+': floating camera retains fitted distance after zoom');}
+  await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'zoom_view'});await wait(1200);
+  for(const edge of ['left','right']){
+   await action('snap_'+edge);await wait(250);
+   assert((await status()).edge===edge&&(await status()).peeking,edge+': docks in peek mode');
+   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:edge});
+   for(let i=0;i<40&&(await status()).peeking;i++)await wait(100);
+   assert(!(await status()).peeking,edge+': actual hover reveals full mascot');
+   await action('peek');assert((await status()).peeking,edge+': peek restores edge view');
+   await action('reveal');
+  }
+  await action('undock');assert(!(await status()).edge&&!(await status()).peeking,'Leave edge restores full body');
   await window.__TAURI__.core.invoke('desktop_action',{action:'click_through'});
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'recovery'});
   for(let i=0;i<100;i++){if((await window.__TAURI__.core.invoke('desktop_status')).stopped)break;await wait(100);}
@@ -74,6 +100,7 @@
   assert(!document.querySelector('#animate').checked&&!document.querySelector('#follow').checked,'Real shortcut pauses animation and tracking');
   await window.__TAURI__.core.invoke('desktop_action',{action:'lab'});await wait(250);
   assert(!document.documentElement.classList.contains('floating'),'Native lab restores full controls');
+  await action('float');await action('toggle_pin');await action('snap_right');await action('zoom_in');
   await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:true,details:checks.join('\n')});
  }catch(error){await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:false,details:checks.join('\n')+'\nFAIL: '+error.message});}
 })();
