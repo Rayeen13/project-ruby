@@ -56,8 +56,9 @@
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'float'});await wait(2500);
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'look'});await wait(650);
   const globalPointer=JSON.parse(stage.dataset.globalPointer||'null');assert(globalPointer?.x<0&&globalPointer?.y>0,'Native gaze receives pointer outside the companion window');
+  document.querySelector('#interaction-feedback').textContent='';
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'click'});
-  let neverGrabbed=true,grounded=true;for(let i=0;i<50;i++){neverGrabbed&&=stage.dataset.grabbed!=='true';grounded&&=Math.abs(Number(stage.dataset.rootY))<.001;await wait(20);}assert(neverGrabbed,'Quick mouse tap never enters grab state');assert(grounded,'Quick mouse tap keeps robot grounded');
+  let neverGrabbed=true,grounded=true;for(let i=0;i<50;i++){neverGrabbed&&=stage.dataset.grabbed!=='true';grounded&&=Math.abs(Number(stage.dataset.rootY))<.001;await wait(20);}assert(neverGrabbed,'Quick mouse tap never enters grab state');assert(grounded,'Quick mouse tap keeps robot grounded');assert(document.querySelector('#interaction-feedback').textContent.length>0,'Real Windows click reaches robot touch handler');
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'carry'});
   for(let i=0;i<80&&stage.dataset.grabbed!=='true';i++)await wait(100);
   assert(stage.dataset.grabbed==='true','Real Windows mouse hold grabs the model');

@@ -5,6 +5,23 @@ Add-Type @'
 using System;
 using System.Runtime.InteropServices;
 public static class RubyBounds {
+  private delegate bool WindowCallback(IntPtr window, IntPtr parameter);
+  [DllImport("user32.dll")] private static extern bool EnumWindows(WindowCallback callback, IntPtr parameter);
+  [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
+  [DllImport("user32.dll")] private static extern bool IsWindowVisible(IntPtr window);
+  public static IntPtr FindCompanion(uint processId) {
+    IntPtr found = IntPtr.Zero;
+    EnumWindows((window, parameter) => {
+      uint owner; GetWindowThreadProcessId(window, out owner);
+      Rect bounds;
+      if (owner == processId && IsWindowVisible(window) && GetWindowRect(window, out bounds)
+          && bounds.Right - bounds.Left >= 280 && bounds.Bottom - bounds.Top >= 340) {
+        found = window; return false;
+      }
+      return true;
+    }, IntPtr.Zero);
+    return found;
+  }
   [StructLayout(LayoutKind.Sequential)] public struct Rect { public int Left, Top, Right, Bottom; }
   [DllImport("user32.dll")] public static extern int GetWindowLong(IntPtr window, int index);
   [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
@@ -19,7 +36,8 @@ try {
   for ($tick = 0; $tick -lt 1200; $tick++) {
     $rubyProcess.Refresh()
     if ($rubyProcess.HasExited) { break }
-    if ($rubyHandle -eq [IntPtr]::Zero) { $rubyHandle = $rubyProcess.MainWindowHandle }
+    $rubyHandle = [RubyBounds]::FindCompanion([uint32]$rubyProcess.Id)
+    if ($rubyHandle -eq [IntPtr]::Zero) { Start-Sleep -Milliseconds 100; continue }
     if (Test-Path ruby-native-phase.txt) {
       $phase = (Get-Content ruby-native-phase.txt -Raw).Trim()
       if (-not $seen.ContainsKey($phase)) {
