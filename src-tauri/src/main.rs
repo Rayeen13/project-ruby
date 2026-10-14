@@ -47,6 +47,8 @@ fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
             "right",
             "pin",
             "unpin",
+            "gaze_far",
+            "gaze_near",
         ]
         .contains(&phase.as_str())
     {
