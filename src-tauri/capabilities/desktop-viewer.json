@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "desktop-viewer",
-  "description": "Local viewer may control only its own companion window and receive host status; no filesystem, shell or OS input commands.",
+  "description": "Companion may control its own window and chat with one fixed loopback AI server; no filesystem, shell, arbitrary URLs or OS input commands.",
   "windows": [
     "main"
   ],
@@ -15,6 +15,9 @@
     "allow-desktop-smoke-report",
     "allow-desktop-smoke-checkpoint",
     "core:event:allow-listen",
-    "core:event:allow-unlisten"
+    "core:event:allow-unlisten",
+    "allow-local-ai-models",
+    "allow-local-ai-chat",
+    "allow-local-ai-cancel"
   ]
 }

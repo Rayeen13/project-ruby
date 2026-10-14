@@ -1,0 +1,245 @@
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
+use tokio::sync::Notify;
+
+const BASE: &str = "http://127.0.0.1:8081";
+
+#[derive(Default)]
+pub struct AiState(Mutex<Option<(u64, Arc<Notify>)>>);
+
+#[derive(Deserialize, Serialize)]
+pub struct ChatMessage {
+    role: String,
+    content: String,
+}
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct Delta {
+    request_id: u64,
+    text: String,
+    done: bool,
+}
+
+fn client(seconds: u64) -> Result<reqwest::Client, String> {
+    reqwest::Client::builder()
+        .no_proxy()
+        .redirect(reqwest::redirect::Policy::none())
+        .timeout(Duration::from_secs(seconds))
+        .build()
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub async fn local_ai_models() -> Result<Vec<String>, String> {
+    let mut response = client(10)?
+        .get(format!("{BASE}/v1/models"))
+        .send()
+        .await
+        .map_err(|_| "Local AI is unavailable. Start the separate model server.".to_string())?;
+    if !response.status().is_success() {
+        return Err(format!("Local AI is not ready ({})", response.status()));
+    }
+    let mut bytes = Vec::new();
+    while let Some(chunk) = response.chunk().await.map_err(|error| error.to_string())? {
+        bytes.extend_from_slice(&chunk);
+        if bytes.len() > 65536 {
+            return Err("Model list exceeds its size limit".into());
+        }
+    }
+    let data: Value = serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
+    let models: Vec<String> = data["data"]
+        .as_array()
+        .ok_or("Invalid local model list")?
+        .iter()
+        .filter_map(|item| item["id"].as_str())
+        .filter(|id| !id.is_empty() && id.len() <= 300)
+        .take(100)
+        .map(str::to_owned)
+        .collect();
+    if models.is_empty() {
+        return Err("No model is loaded in the local server".into());
+    }
+    Ok(models)
+}
+
+fn parse_line(line: &[u8]) -> Result<(Option<String>, bool), String> {
+    let line = std::str::from_utf8(line).map_err(|_| "Invalid UTF-8 in model stream")?;
+    let Some(payload) = line.strip_prefix("data:") else {
+        return Ok((None, false));
+    };
+    let payload = payload.trim();
+    if payload == "[DONE]" {
+        return Ok((None, true));
+    }
+    if payload.is_empty() {
+        return Ok((None, false));
+    }
+    let event: Value = serde_json::from_str(payload).map_err(|_| "Unreadable model stream")?;
+    if event.get("error").is_some() {
+        return Err("Local model reported an error".into());
+    }
+    let choice = &event["choices"][0];
+    Ok((
+        choice["delta"]["content"].as_str().map(str::to_owned),
+        choice["finish_reason"].is_string(),
+    ))
+}
+
+async fn stream_reply(
+    window: &WebviewWindow,
+    request_id: u64,
+    messages: Vec<ChatMessage>,
+    model: String,
+) -> Result<(), String> {
+    let mut response = client(120)?
+        .post(format!("{BASE}/v1/chat/completions"))
+        .json(&json!({"messages": messages, "model": model, "stream": true, "max_tokens": 192, "temperature": 0.65}))
+        .send()
+        .await
+        .map_err(|error| format!("Local AI request failed: {error}"))?;
+    if !response.status().is_success() {
+        return Err(format!("Local AI request failed ({})", response.status()));
+    }
+    if !response
+        .headers()
+        .get("content-type")
+        .and_then(|value| value.to_str().ok())
+        .is_some_and(|value| value.contains("text/event-stream"))
+    {
+        return Err("The local server did not return a text stream".into());
+    }
+    let mut buffer = Vec::new();
+    let mut finished = false;
+    let mut total = 0;
+    while let Some(chunk) = response.chunk().await.map_err(|error| error.to_string())? {
+        buffer.extend_from_slice(&chunk);
+        while let Some(end) = buffer.iter().position(|byte| *byte == b'\n') {
+            let (text, done) = parse_line(&buffer[..end])?;
+            let terminal = buffer[..end].starts_with(b"data: [DONE]");
+            buffer.drain(..=end);
+            finished |= done;
+            if let Some(text) = text {
+                total += text.len();
+                if total > 32000 {
+                    return Err("Reply exceeds the compact chat limit".into());
+                }
+                window
+                    .emit(
+                        "ruby-chat-chunk",
+                        Delta {
+                            request_id,
+                            text,
+                            done: false,
+                        },
+                    )
+                    .map_err(|error| error.to_string())?;
+            }
+            if terminal {
+                return Ok(());
+            }
+        }
+        if buffer.len() > 65536 {
+            return Err("Model event exceeds its size limit".into());
+        }
+    }
+    if !finished {
+        return Err("Connection ended before the reply finished".into());
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn local_ai_chat(
+    window: WebviewWindow,
+    state: State<'_, AiState>,
+    request_id: u64,
+    messages: Vec<ChatMessage>,
+    model: String,
+) -> Result<(), String> {
+    if model.is_empty() || model.len() > 300 || messages.is_empty() || messages.len() > 30 {
+        return Err("Invalid compact chat request".into());
+    }
+    if messages.iter().any(|message| {
+        !["system", "user", "assistant"].contains(&message.role.as_str())
+    }) || messages
+        .iter()
+        .map(|message| message.content.len())
+        .sum::<usize>()
+        > 12000
+    {
+        return Err("Conversation exceeds its context limit".into());
+    }
+    let cancel = Arc::new(Notify::new());
+    {
+        let mut active = state.inner().0.lock().map_err(|_| "AI state is unavailable")?;
+        if active.is_some() {
+            return Err("A local reply is already running".into());
+        }
+        *active = Some((request_id, cancel.clone()));
+    }
+    // Dropping the request/response future closes the HTTP stream even during prefill.
+    let result = tokio::select! {
+        _ = cancel.notified() => Err("Reply stopped".to_string()),
+        result = stream_reply(&window, request_id, messages, model) => result,
+    };
+    let mut active = state.inner().0.lock().map_err(|_| "AI state is unavailable")?;
+    if active.as_ref().is_some_and(|(id, _)| *id == request_id) {
+        *active = None;
+    }
+    if result.is_ok() {
+        window
+            .emit(
+                "ruby-chat-chunk",
+                Delta {
+                    request_id,
+                    text: String::new(),
+                    done: true,
+                },
+            )
+            .map_err(|error| error.to_string())?;
+    }
+    result
+}
+
+pub fn stop(app: &AppHandle) {
+    let state = app.state::<AiState>();
+    let Ok(mut active) = state.inner().0.lock() else {
+        return;
+    };
+    if let Some((_, cancel)) = active.take() {
+        cancel.notify_one();
+    }
+}
+
+#[tauri::command]
+pub fn local_ai_cancel(state: State<'_, AiState>, request_id: u64) -> Result<(), String> {
+    let mut active = state.inner().0.lock().map_err(|_| "AI state is unavailable")?;
+    if active.as_ref().is_some_and(|(id, _)| *id == request_id) {
+        if let Some((_, cancel)) = active.take() {
+            cancel.notify_one();
+        }
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_line;
+
+    #[test]
+    fn parses_unicode_delta_finish_and_rejects_invalid_stream() {
+        assert_eq!(parse_line(b": heartbeat").unwrap(), (None, false));
+        assert_eq!(parse_line(b"data: [DONE]\r").unwrap(), (None, true));
+        let line = r#"data: {"choices":[{"delta":{"content":"Hi 💎"},"finish_reason":null}]}"#;
+        assert_eq!(
+            parse_line(line.as_bytes()).unwrap(),
+            (Some("Hi 💎".into()), false)
+        );
+        assert!(parse_line(b"data: {broken}").is_err());
+        assert!(parse_line(b"data: {\"error\":\"offline\"}").is_err());
+    }
+}

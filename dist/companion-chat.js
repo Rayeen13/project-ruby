@@ -1,8 +1,9 @@
+import {NativeChatProvider} from './native-chat-provider.js';
 import {LocalChatProvider} from './chat-provider.js';
 import {Conversation} from './conversation.js';
 export function mountCompanionChat({document,storage,identity,onState=()=>{},onOpen=()=>{},onExpand=()=>{}}){
  const el=id=>document.getElementById(id),panel=el('chat-panel'),log=el('chat-log'),input=el('chat-input'),model=el('chat-model');
- const provider=new LocalChatProvider();let connecting=null;
+ const provider=globalThis.__TAURI__?new NativeChatProvider(globalThis.__TAURI__):new LocalChatProvider();let connecting=null;
  const chat=new Conversation({provider,storage,identity,onChange:render});
  function render(){
   const nearBottom=log.scrollHeight-log.scrollTop-log.clientHeight<45;

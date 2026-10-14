@@ -1,6 +1,6 @@
 # Gem conversation — experimental
 
-The shared browser/desktop chat connects to a separately running OpenAI-compatible llama.cpp server at `http://127.0.0.1:8081`. It is local-only; no cloud keys, account or paid API are required. Body selection and AI model selection are independent. Connect lists models actually loaded by the server; it does not install or switch the server's underlying weights.
+The shared chat connects to a separately running OpenAI-compatible llama.cpp server at `http://127.0.0.1:8081`. Windows routes model listing and streamed requests through restricted native commands, with cancellation closing the native HTTP request. The browser adapter uses fetch and remains subject to local-network permissions. It is local-only; no cloud keys, account or paid API are required. Body selection and AI model selection are independent. Connect lists models actually loaded by the server; it does not install or switch the server's underlying weights.
 
 ## Windows candidate setup
 

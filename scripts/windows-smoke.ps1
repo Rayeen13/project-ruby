@@ -141,6 +141,8 @@ try {
   if (-not $rubyProcess.HasExited) { throw 'Native smoke test timed out' }
   $rubyProcess.WaitForExit()
   if (-not (Test-Path ruby-native-smoke.txt)) { throw 'Native app did not report smoke results' }
+  if (Test-Path ruby-native-smoke.txt) { Get-Content ruby-native-smoke.txt }
+  if ($rubyProcess.ExitCode -ne 0) { throw 'Native WebView smoke checks failed' }
   if (-not (Test-Path ruby-native-carry.txt)) { throw 'Missing real native carry evidence' }
   Get-Content ruby-native-smoke.txt
   if ($rubyProcess.ExitCode -ne 0) { throw 'Native WebView smoke checks failed' }
