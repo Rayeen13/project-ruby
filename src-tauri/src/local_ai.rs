@@ -163,19 +163,24 @@ pub async fn local_ai_chat(
     if model.is_empty() || model.len() > 300 || messages.is_empty() || messages.len() > 30 {
         return Err("Invalid compact chat request".into());
     }
-    if messages.iter().any(|message| {
-        !["system", "user", "assistant"].contains(&message.role.as_str())
-    }) || messages
+    if messages
         .iter()
-        .map(|message| message.content.len())
-        .sum::<usize>()
-        > 12000
+        .any(|message| !["system", "user", "assistant"].contains(&message.role.as_str()))
+        || messages
+            .iter()
+            .map(|message| message.content.len())
+            .sum::<usize>()
+            > 12000
     {
         return Err("Conversation exceeds its context limit".into());
     }
     let cancel = Arc::new(Notify::new());
     {
-        let mut active = state.inner().0.lock().map_err(|_| "AI state is unavailable")?;
+        let mut active = state
+            .inner()
+            .0
+            .lock()
+            .map_err(|_| "AI state is unavailable")?;
         if active.is_some() {
             return Err("A local reply is already running".into());
         }
@@ -186,7 +191,11 @@ pub async fn local_ai_chat(
         _ = cancel.notified() => Err("Reply stopped".to_string()),
         result = stream_reply(&window, request_id, messages, model) => result,
     };
-    let mut active = state.inner().0.lock().map_err(|_| "AI state is unavailable")?;
+    let mut active = state
+        .inner()
+        .0
+        .lock()
+        .map_err(|_| "AI state is unavailable")?;
     if active.as_ref().is_some_and(|(id, _)| *id == request_id) {
         *active = None;
     }
@@ -217,7 +226,11 @@ pub fn stop(app: &AppHandle) {
 
 #[tauri::command]
 pub fn local_ai_cancel(state: State<'_, AiState>, request_id: u64) -> Result<(), String> {
-    let mut active = state.inner().0.lock().map_err(|_| "AI state is unavailable")?;
+    let mut active = state
+        .inner()
+        .0
+        .lock()
+        .map_err(|_| "AI state is unavailable")?;
     if active.as_ref().is_some_and(|(id, _)| *id == request_id) {
         if let Some((_, cancel)) = active.take() {
             cancel.notify_one();

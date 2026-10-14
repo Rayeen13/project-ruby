@@ -18,7 +18,7 @@
   assert(!document.querySelector('#chat-panel').hidden,'Mascot opens attached conversation');
   document.querySelector('#chat-clear').click();document.querySelector('#chat-connect').click();
   for(let i=0;i<150&&!document.querySelector('#chat-model').value;i++)await wait(100);
-  assert(document.querySelector('#chat-model').value,'Actual WebView connects to local CPU model through CSP/CORS');
+  assert(document.querySelector('#chat-model').value,'Actual WebView connects to CPU model through restricted native AI bridge');
   document.querySelector('#chat-input').value='Hi Ruby. Say hello briefly.';
   document.querySelector('#chat-form').dispatchEvent(new Event('submit',{cancelable:true}));
   for(let i=0;i<300&&document.querySelector('#chat-panel').dataset.state!=='idle';i++)await wait(100);
