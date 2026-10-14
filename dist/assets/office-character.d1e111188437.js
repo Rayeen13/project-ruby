@@ -1,5 +1,5 @@
 import * as T from '../vendor/three.module.js';
-import {RubyCharacter} from './character.3f8bdd4c4178.js';
+import {RubyCharacter} from './character.d1e111188437.js';
 // A separate body implementation; shared geometry helpers and animation contract.
 export class OfficeCharacter extends RubyCharacter {
  build(){

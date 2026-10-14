@@ -1,5 +1,5 @@
 import * as T from '../vendor/three.module.js';
-import {GEM_PROFILES} from './character.3f8bdd4c4178.js';
+import {GEM_PROFILES} from './character.d1e111188437.js';
 // Character implementation owns geometry, appearance and animation only.
 export class ClassicCharacter {
  constructor({createCanvas=()=>document.createElement('canvas')}={}){this.createCanvas=createCanvas;this.root=new T.Group();this.head=new T.Group();this.root.add(this.head);this.head.position.y=1.72;this.mood='idle';this.accent=new T.MeshStandardMaterial({color:0xef6b79,roughness:.55});this.shell=new T.MeshStandardMaterial({color:0x343d4c,roughness:.48});this.dark=new T.MeshStandardMaterial({color:0x080d17,roughness:.25});this.white=new T.MeshStandardMaterial({color:0xabb7c2,roughness:.55});this.faceTex=this.makeFace();this.build();}

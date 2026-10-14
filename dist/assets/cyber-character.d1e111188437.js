@@ -1,6 +1,6 @@
 import * as T from '../vendor/three.module.js';
-import {applyWavePose, mountSideArms, setHandPose} from './wave-pose.3f8bdd4c4178.js';
-import {GEM_PROFILES} from './character.3f8bdd4c4178.js';
+import {applyWavePose, mountSideArms, setHandPose} from './wave-pose.d1e111188437.js';
+import {GEM_PROFILES} from './character.d1e111188437.js';
 // Replaceable character: geometry and behaviour are independent of stage/UI.
 export class CyberCharacter {
  constructor({createCanvas=()=>document.createElement('canvas')}={}){this.createCanvas=createCanvas;

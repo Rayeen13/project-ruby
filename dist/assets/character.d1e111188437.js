@@ -1,5 +1,5 @@
 import * as T from '../vendor/three.module.js';
-import {applyWavePose, mountSideArms, setHandPose} from './wave-pose.3f8bdd4c4178.js';
+import {applyWavePose, mountSideArms, setHandPose} from './wave-pose.d1e111188437.js';
 export const GEM_PROFILES = Object.freeze([
  {id:'ruby',name:'Ruby',gem:'Ruby',color:'#ff5278'},
  {id:'saph',name:'Saph',gem:'Sapphire',color:'#529dff'},

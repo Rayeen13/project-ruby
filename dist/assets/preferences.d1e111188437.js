@@ -1,4 +1,4 @@
-import {PERSONALITIES,DEFAULT_PERSONALITIES} from './personalities.3f8bdd4c4178.js';
+import {PERSONALITIES,DEFAULT_PERSONALITIES} from './personalities.d1e111188437.js';
 export const DEFAULT_PREFERENCES=Object.freeze({
  version:1,model:'gamer',profile:'ruby',mood:'idle',follow:true,animate:true,
  handSide:1,gestures:Object.freeze({right:'relaxed',left:'relaxed'}),

@@ -1,4 +1,4 @@
-import {PERSONALITIES,personalityFor} from './personalities.3f8bdd4c4178.js';
+import {PERSONALITIES,personalityFor} from './personalities.d1e111188437.js';
 
 function portrait(id){
  const shell=id==='chibi'?'#e9edf4':id==='office'?'#c8d1df':'#344154';

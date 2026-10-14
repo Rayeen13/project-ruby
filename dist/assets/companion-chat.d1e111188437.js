@@ -1,5 +1,5 @@
-import {LocalChatProvider} from './chat-provider.3f8bdd4c4178.js';
-import {Conversation} from './conversation.3f8bdd4c4178.js';
+import {LocalChatProvider} from './chat-provider.d1e111188437.js';
+import {Conversation} from './conversation.d1e111188437.js';
 export function mountCompanionChat({document,storage,identity,onState=()=>{},onOpen=()=>{},onExpand=()=>{}}){
  const el=id=>document.getElementById(id),panel=el('chat-panel'),log=el('chat-log'),input=el('chat-input'),model=el('chat-model');
  const provider=new LocalChatProvider();let connecting=null;
@@ -31,7 +31,7 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
  panel.addEventListener('keydown',event=>{if(event.key==='Escape'){event.stopPropagation();panel.hidden=true;el('chat-launcher').focus();}});
  el('chat-expand').onclick=async()=>{await onExpand();panel.classList.toggle('expanded');el('chat-expand').textContent=panel.classList.contains('expanded')?'Compact':'Expand';input.focus();};
  el('chat-connect').onclick=connect;el('chat-stop').onclick=()=>chat.stop();el('chat-retry').onclick=()=>chat.retry(model.value);
- el('chat-form').onsubmit=async event=>{event.preventDefault();const text=input.value;if(!text.trim()||chat.active)return;input.value='';await chat.send(text,model.value);input.focus({preventScroll:true});};
+ el('chat-form').onsubmit=async event=>{event.preventDefault();const text=input.value;if(!text.trim()||chat.active)return;if(!model.value){el('chat-status').textContent='Connect a local model before sending.';el('chat-setup').open=true;return;}input.value='';await chat.send(text,model.value);input.focus({preventScroll:true});};
  el('chat-clear').onclick=()=>{chat.clear();input.value='';};
  el('chat-export').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({version:1,messages:chat.messages},null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='ruby-conversation.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
  // No automatic network connection; the user chooses Connect once the server is running.

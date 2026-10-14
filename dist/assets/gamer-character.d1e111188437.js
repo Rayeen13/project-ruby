@@ -1,6 +1,6 @@
 import * as T from '../vendor/three.module.js';
-import {applyWavePose,setHandPose} from './wave-pose.3f8bdd4c4178.js';
-import {OfficeCharacter} from './office-character.3f8bdd4c4178.js';
+import {applyWavePose,setHandPose} from './wave-pose.d1e111188437.js';
+import {OfficeCharacter} from './office-character.d1e111188437.js';
 // Gamer is a separate catalog model; accessories remain attached to the rig.
 export class GamerCharacter extends OfficeCharacter {
  build(){

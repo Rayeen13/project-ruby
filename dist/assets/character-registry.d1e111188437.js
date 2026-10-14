@@ -1,9 +1,9 @@
-import {characterCapabilities} from './character-capabilities.3f8bdd4c4178.js';
-import {RubyCharacter} from './character.3f8bdd4c4178.js';
-import {ClassicCharacter} from './classic-character.3f8bdd4c4178.js';
-import {CyberCharacter} from './cyber-character.3f8bdd4c4178.js';
-import {OfficeCharacter} from './office-character.3f8bdd4c4178.js';
-import {GamerCharacter} from './gamer-character.3f8bdd4c4178.js';
+import {characterCapabilities} from './character-capabilities.d1e111188437.js';
+import {RubyCharacter} from './character.d1e111188437.js';
+import {ClassicCharacter} from './classic-character.d1e111188437.js';
+import {CyberCharacter} from './cyber-character.d1e111188437.js';
+import {OfficeCharacter} from './office-character.d1e111188437.js';
+import {GamerCharacter} from './gamer-character.d1e111188437.js';
 // Visual model registry: separate from gem profiles and any future AI provider selector.
 export const CHARACTER_MODELS=Object.freeze([
  {id:'classic',name:'Classic EMO-style',category:'Originals',revision:'001',capabilities:characterCapabilities(),description:'The original compact robot.',create:options=>new ClassicCharacter(options)},
