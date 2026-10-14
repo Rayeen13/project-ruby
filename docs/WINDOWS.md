@@ -18,7 +18,7 @@ Preferences belong to this native application's WebView storage and are separate
 
 The installed app opens as a floating companion. From the lab, choose **Float companion** at the top of its controls. The same character becomes a compact transparent, window pinned above other apps by default. **Move** is a pointer drag handle; **Lab** returns to the full controls; **Hide** hides to the tray. The tray offers Float companion, Open character lab, Stop / restore interaction, Hide companion and Quit. Closing the window hides it to the tray; choose Quit there to exit fully.
 
-**Click-through** lets mouse input pass through the whole floating window. Restore interaction with **Ctrl+Alt+Shift+R**, or the tray's **Stop / restore interaction** item. The shortcut restores/shows and recenters the window and pauses animation, gaze tracking, dance, turning and greetings. This is a viewer stop, not an OS automation cancellation system. Resume using Animate and Eyes + head tracking in the lab. If the shortcut cannot register (for example, another app owns it), click-through is disabled and the lab reports the conflict.
+**Click-through** lets mouse input pass through the whole floating window. Restore interaction with **Ctrl+Alt+Shift+R**, or the tray's **Stop / restore interaction** item. The shortcut restores/shows and recenters the window and pauses animation, gaze tracking, dance, turning and greetings. The shortcut also cancels an active chat request. OS task execution is not connected. Resume using Animate and Eyes + head tracking in the lab. If the shortcut cannot register (for example, another app owns it), click-through is disabled and the lab reports the conflict.
 
 Lab bounds are retained during the process. Floating position, size, pin and dock edge are saved across restarts; click-through is never restored automatically. Every launch starts with the interactive floating mascot; gem/model/gesture preferences remain saved. No autostart or desktop input control is enabled. Browser demos expose no native window controls.
 
@@ -65,3 +65,15 @@ Choose **Peek from left/right** in the model menu or tray. Ruby docks partly bey
 Windows tests use real wheel input, validate the native topmost flag, capture enlarged and left/right peek views, test stable hover while docked, and restart the process to verify saved pin/dock/size. Smoke-test settings use a separate file from normal desktop settings. Mixed-DPI and physical multi-monitor device acceptance remains pending.
 
 Opening the floating companion or choosing Wake up resumes cursor tracking. Stop still pauses tracking immediately. Global gaze uses screen-wide distances so a docked companion responds to different cursor positions instead of saturating at the window edge.
+
+## Experimental typed conversation
+
+Choose **Talk** on the floating mascot or its right-click menu. Start the separate local model server with Python 3.11 or newer:
+
+```powershell
+py start-local-ai.py
+```
+
+The preview ZIP includes this launcher. In a repository checkout use `py scripts/start-local-ai.py`. First setup downloads the checksum-pinned 491 MB Qwen candidate and the CPU runtime to `%LOCALAPPDATA%/ProjectRuby/experimental-ai`, retaining licence notices and the publisher chat template. Subsequent starts reuse verified cached downloads offline. Then choose **Connect** in Ruby. Keep the server terminal open; Ctrl+C unloads the model. The installer itself contains no model, Python interpreter or inference server.
+
+Chat history stays in the local WebView storage; Clear chat removes it and Export chat saves a copy. Stop cancels generation; incomplete replies do not enter subsequent model context. Full history is display/export only: the small model receives a bounded recent conversation. Search, speech and desktop tasks remain future work.

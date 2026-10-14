@@ -6,6 +6,7 @@
   for(let i=0;i<200&&!document.querySelector('#stage')?.dataset.ready;i++)await wait(100);
   if(window.__RUBY_SMOKE_RESTART__){
    const state=await window.__TAURI__.core.invoke('desktop_status');
+   assert(JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.length>0,'Conversation survives native app restart');
    assert(state.floating&&!state.pinned&&state.edge==='right'&&state.size>1,'Pin, dock and size survive native restart');
    await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:true,details:checks.join('\n')});return;
   }
@@ -13,6 +14,22 @@
   assert(stage.dataset.ready==='true','Actual WebView renderer initialized');
   assert((await window.__TAURI__.core.invoke('desktop_status')).floating,'Executable opens directly as floating mascot');
   await window.__TAURI__.core.invoke('desktop_action',{action:'lab'});await wait(350);
+  document.querySelector('#chat-launcher').click();await wait(150);
+  assert(!document.querySelector('#chat-panel').hidden,'Mascot opens attached conversation');
+  document.querySelector('#chat-clear').click();document.querySelector('#chat-connect').click();
+  for(let i=0;i<150&&!document.querySelector('#chat-model').value;i++)await wait(100);
+  assert(document.querySelector('#chat-model').value,'Actual WebView connects to local CPU model through CSP/CORS');
+  document.querySelector('#chat-input').value='Hi Ruby. Say hello briefly.';
+  document.querySelector('#chat-form').dispatchEvent(new Event('submit',{cancelable:true}));
+  for(let i=0;i<300&&document.querySelector('#chat-panel').dataset.state!=='idle';i++)await wait(100);
+  assert(document.querySelector('#chat-panel').dataset.state==='idle'&&document.querySelector('#chat-log .assistant p')?.textContent.length>0,'Actual WebView renders a completed real AI reply');
+  assert(JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.at(-1).status==='complete','WebView persists completed conversation');
+  await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'chat'});await wait(400);
+  document.querySelector('#chat-input').value='Explain computers in detail.';document.querySelector('#chat-form').dispatchEvent(new Event('submit',{cancelable:true}));
+  for(let i=0;i<200&&document.querySelector('#chat-panel').dataset.state==='thinking';i++)await wait(50);
+  assert(!document.querySelector('#chat-stop').hidden,'WebView exposes Stop during real generation');document.querySelector('#chat-stop').click();
+  assert(document.querySelector('#chat-panel').dataset.state==='idle'&&!document.querySelector('#chat-retry').hidden,'WebView stops and offers Retry without losing partial reply');
+  document.querySelector('#chat-close').click();
   document.querySelector('#reset-preferences').click();await wait(300);
   assert(document.querySelectorAll('#model-gallery [data-model]').length===5,'Gallery lists all five accepted bodies');
   document.querySelector('[data-category="Professional"]').click();

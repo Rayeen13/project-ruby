@@ -1,6 +1,6 @@
 # Project Ruby
 
-A desktop-companion prototype with five procedural 3D robot bodies, gem colour profiles, cursor tracking and expressive animation. Built with Three.js and browser JavaScript; a first Windows desktop shell is available as a build preview; conversational AI and OS automation are future work.
+A desktop-companion prototype with five procedural 3D robot bodies, gem colour profiles, cursor tracking and expressive animation. Built with Three.js and browser JavaScript; a first Windows desktop shell is available as a build preview; experimental streamed local AI chat is available with a separately running model server. Voice and OS automation are future work.
 
 ## Run locally
 
@@ -30,7 +30,7 @@ STL files and notes are in dist/prints. They are static figurines; review suppor
 
 ## Roadmap and architecture
 
-See [ROADMAP.md](ROADMAP.md) for the milestones from the visual MVP through local conversation, desktop actions, voice, mobile hosts, the companion world and creator studio. Capability contracts, gesture previews, persistent settings and animation transitions are implemented. The current slice is the Windows floating companion shell; Model evaluation follows measured performance and verified commercial-use weight licensing without mandatory model royalties.
+See [ROADMAP.md](ROADMAP.md) for the milestones from the visual MVP through local conversation, desktop actions, voice, mobile hosts, the companion world and creator studio. Capability contracts, gesture previews, persistent settings and animation transitions are implemented. The current slice adds mascot conversation to the Windows floating shell; Model evaluation follows measured performance and verified commercial-use weight licensing without mandatory model royalties.
 
 See [HAND_RIG.md](HAND_RIG.md) for jointed hands and gestures. Four finger chains and an opposing thumb support open, relaxed, point, fist and grip poses; object pickup physics is future work.
 
@@ -61,3 +61,9 @@ See [docs/OFFLINE_MODELS.md](docs/OFFLINE_MODELS.md) for the commercial-use weig
 ### Companion collection and carry reactions
 
 Browse the five bodies by category, choose gem colour and a saved personality for each body, then hold/drag the mesh to carry it. A deliberate shake produces spiral eyes and orbiting stars, with automatic recovery. Floating Windows mode is frameless and toolbar-free; right-click the companion or use its tray for desktop controls. Background or Alt-drag still orbits the lab view. See [the interaction guide](docs/COMPANION_INTERACTIONS.md). Chat and voice are not connected by this visual interaction update.
+
+## Local conversation
+
+Choose **Talk** beside the mascot or in its right-click menu. Start a local llama.cpp server, press **Connect**, select its loaded AI model, and send a message. Replies stream into the attached panel; Stop cancels the request and Retry repeats an interrupted turn. Expand opens a larger history view (in the desktop lab). Gem identity and the selected body personality enter the system prompt.
+
+See [docs/CONVERSATION.md](docs/CONVERSATION.md) for the pinned experimental Windows setup, browser restrictions, context limits and data controls. No model is bundled or silently downloaded. Chat is not connected to internet search, microphone capture or desktop task execution.

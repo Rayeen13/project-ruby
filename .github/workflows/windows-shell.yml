@@ -36,7 +36,9 @@ jobs:
       - run: npm run check:assets
       - name: Exercise actual Windows WebView and native window
         shell: pwsh
-        run: ./scripts/windows-smoke.ps1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/start-local-ai.py --verify
       - name: Retain failed native evidence
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -55,8 +57,9 @@ jobs:
           Copy-Item dist/vendor/THREE-LICENSE.txt desktop-artifact/
           Copy-Item docs/WINDOWS.md desktop-artifact/README.md
           Copy-Item src-tauri/Cargo.lock desktop-artifact/
-          Copy-Item ruby-native-smoke.txt desktop-artifact/
-          Copy-Item ruby-native-menu.png,ruby-native-float.png,ruby-native-dizzy.png desktop-artifact/
+          Copy-Item ruby-native-smoke.txt,ruby-native-chat.txt desktop-artifact/
+          Copy-Item scripts/start-local-ai.py desktop-artifact/
+          Copy-Item ruby-native-menu.png,ruby-native-float.png,ruby-native-dizzy.png,ruby-native-chat.png desktop-artifact/
           Copy-Item ruby-native-carry.txt,ruby-native-pin.txt,ruby-native-zoom.txt,ruby-native-frame.txt desktop-artifact/
           Copy-Item ruby-native-left.png,ruby-native-right.png,ruby-native-zoom_view.png desktop-artifact/
           Get-ChildItem desktop-artifact/*.exe | Get-FileHash -Algorithm SHA256 | Format-List | Out-File desktop-artifact/SHA256.txt

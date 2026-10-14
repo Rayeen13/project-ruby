@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {LocalChatProvider} from '../dist/chat-provider.js';
+import {Conversation} from '../dist/conversation.js';
+const provider=new LocalChatProvider(),models=await provider.models(AbortSignal.timeout(10000));
+let changes=0;const data=new Map(),storage={getItem:k=>data.get(k),setItem:(k,v)=>data.set(k,v)};
+const chat=new Conversation({provider,storage,identity:()=>({name:'Ruby',body:'Office',personality:{prompt:'Be concise and practical.'}}),onChange:()=>changes++});
+assert(await chat.send('Hi, my name is Riyan. Say hello in one sentence.',models[0]));
+assert(changes>3,'Actual model must stream multiple chunks');
+assert(await chat.send('What is my name?',models[0]));assert.match(chat.messages.at(-1).content,/Riyan/i);
+const pending=chat.send('Write a long explanation of how computers work.',models[0]);
+while(chat.state==='thinking')await new Promise(r=>setTimeout(r,10));
+chat.stop();await pending;assert.equal(chat.messages.at(-1).status,'cancelled');
+const restored=new Conversation({provider,storage,identity:chat.identity});assert.equal(restored.messages.at(-1).status,'cancelled');
+assert(await chat.retry(models[0]),'Server must accept a new request after cancellation');
+fs.writeFileSync('ruby-native-chat.txt',JSON.stringify({model:models[0],changes,checks:['streamed real model','name carried in context','cancelled generation','history restored','real retry after stop'],greeting:chat.messages[1].content,recall:chat.messages[3].content},null,2));
+console.log('Live CPU chat: streaming, contextual recall, cancellation, persistence and retry passed.');

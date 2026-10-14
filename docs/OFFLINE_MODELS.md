@@ -1,6 +1,6 @@
 # Offline model evaluation — 13 October 2026
 
-No default model is approved. The app remains an interactive companion viewer while the model gate is evaluated. Current eligibility requires commercial use and selling Ruby without a mandatory model royalty; MIT is no longer mandatory. The inference runtime cannot change the weight licence. Preserve the exact upstream copyright/licence and separately inspect tokenizer and converted model provenance before redistributing a pack.
+No default model is approved. The app now includes an experimental local-server conversation adapter; a separately downloaded candidate can be tested without approving a bundled default. Current eligibility requires commercial use and selling Ruby without a mandatory model royalty; MIT is no longer mandatory. The inference runtime cannot change the weight licence. Preserve the exact upstream copyright/licence and separately inspect tokenizer and converted model provenance before redistributing a pack.
 
 ## Initial shortlist under the earlier MIT-only rule
 

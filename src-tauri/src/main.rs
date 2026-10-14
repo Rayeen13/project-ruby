@@ -43,6 +43,7 @@ fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
             "recovery",
             "zoom",
             "zoom_view",
+            "chat",
             "left",
             "right",
             "pin",
