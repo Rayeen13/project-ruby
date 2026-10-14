@@ -88,7 +88,12 @@ mod tests {
 
     #[test]
     fn docked_gaze_changes_across_the_whole_screen() {
-        let area = Area { x: 0, y: 0, width: 1920, height: 1040 };
+        let area = Area {
+            x: 0,
+            y: 0,
+            width: 1920,
+            height: 1040,
+        };
         let near = screen_gaze(area, (340, 420), (-142, 300), (100, 500));
         let middle = screen_gaze(area, (340, 420), (-142, 300), (900, 500));
         let far = screen_gaze(area, (340, 420), (-142, 300), (1800, 500));

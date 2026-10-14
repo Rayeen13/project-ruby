@@ -477,7 +477,9 @@ pub fn start_pointer_tracking(app: AppHandle) {
         }
         if let (Ok(position), Ok(size)) = (window.outer_position(), window.inner_size()) {
             if size.width > 0 && size.height > 0 {
-                let Ok(area) = work_area(&window) else { continue };
+                let Ok(area) = work_area(&window) else {
+                    continue;
+                };
                 let (x, y) = screen_gaze(
                     area,
                     (size.width, size.height),
