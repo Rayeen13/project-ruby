@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "desktop-viewer",
-  "description": "Companion may control its own window and chat with one fixed loopback AI server; no filesystem, shell, arbitrary URLs or OS input commands.",
+  "description": "Companion window, chat on fixed loopback endpoint, and a managed checksum-pinned AI pack; no arbitrary URLs, executable paths, shell or OS input commands.",
   "windows": [
     "main"
   ],
@@ -18,6 +18,9 @@
     "core:event:allow-unlisten",
     "allow-local-ai-models",
     "allow-local-ai-chat",
-    "allow-local-ai-cancel"
+    "allow-local-ai-cancel",
+    "allow-ai-pack-status",
+    "allow-ai-pack-run",
+    "allow-ai-pack-stop"
   ]
 }

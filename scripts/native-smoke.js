@@ -8,6 +8,12 @@
    const state=await window.__TAURI__.core.invoke('desktop_status');
    assert(JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.length>0,'Conversation survives native app restart');
    assert(state.floating&&!state.pinned&&state.edge==='right'&&state.size>1,'Pin, dock and size survive native restart');
+   const pack=await window.__TAURI__.core.invoke('ai_pack_status');assert(pack.installed,'Downloaded AI survives application restart');
+   document.querySelector('#chat-launcher').click();
+   for(let i=0;i<100&&document.querySelector('#ai-pack-start').hidden;i++)await wait(50);
+   document.querySelector('#ai-pack-start').click();
+   for(let i=0;i<300&&!document.querySelector('#chat-model').value;i++)await wait(100);
+   assert(document.querySelector('#chat-model').value,'Installed AI restarts through offline-only path without downloading');
    await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:true,details:checks.join('\n')});return;
   }
   const stage=document.querySelector('#stage'),menu=document.querySelector('#model-menu'),select=document.querySelector('#model-select');
@@ -16,7 +22,19 @@
   await window.__TAURI__.core.invoke('desktop_action',{action:'lab'});await wait(350);
   document.querySelector('#chat-launcher').click();await wait(150);
   assert(!document.querySelector('#chat-panel').hidden,'Mascot opens attached conversation');
-  document.querySelector('#chat-clear').click();document.querySelector('#chat-connect').click();
+  assert(document.querySelector('[data-chat-open]'),'Windows lab has an explicit Conversation entry point');
+  document.querySelector('#chat-clear').click();
+  let progressed=false;const unlistenPack=await window.__TAURI__.event.listen('ruby-ai-pack',event=>{if(event.payload.phase==='downloading'&&event.payload.downloaded>0)progressed=true;});
+  document.querySelector('#ai-pack-download').click();
+  for(let i=0;i<1200&&!progressed;i++)await wait(50);
+  assert(progressed,'In-app model downloader reports real transferred bytes');
+  document.querySelector('#ai-pack-stop').click();
+  for(let i=0;i<200&&document.querySelector('#ai-pack-download').disabled;i++)await wait(50);
+  assert(!document.querySelector('#ai-pack-download').disabled,'Cancelling setup releases downloader and permits retry');
+  document.querySelector('#ai-pack-download').click();
+  for(let i=0;i<1500&&!document.querySelector('#chat-model').value;i++)await wait(100);
+  assert(document.querySelector('#ai-pack-section').dataset.phase==='ready','Windows app downloads, verifies, extracts and starts its own AI without Python');
+  unlistenPack();
   for(let i=0;i<150&&!document.querySelector('#chat-model').value;i++)await wait(100);
   assert(document.querySelector('#chat-model').value,'Actual WebView connects to CPU model through restricted native AI bridge');
   document.querySelector('#chat-input').value='Hi Ruby. Say hello briefly.';
@@ -37,6 +55,11 @@
   for(let i=0;i<200&&document.querySelector('#chat-panel').dataset.state==='thinking';i++)await wait(50);
   assert(!document.querySelector('#chat-stop').hidden,'WebView exposes Stop during real generation');document.querySelector('#chat-stop').click();
   assert(document.querySelector('#chat-panel').dataset.state==='idle'&&!document.querySelector('#chat-retry').hidden,'WebView stops and offers Retry without losing partial reply');
+  document.querySelector('#chat-retry').click();
+  for(let i=0;i<300&&document.querySelector('#chat-panel').dataset.state!=='idle';i++)await wait(100);
+  assert(document.querySelector('#chat-panel').dataset.state==='idle'&&JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.at(-1).status==='complete','Managed AI accepts Retry after cancellation');
+  document.querySelector('#ai-pack-stop').click();await wait(300);
+  assert((await window.__TAURI__.core.invoke('ai_pack_status')).phase==='stopped','Stop AI unloads the owned model process');
   document.querySelector('#chat-close').click();
   document.querySelector('#reset-preferences').click();await wait(300);
   assert(document.querySelectorAll('#model-gallery [data-model]').length===5,'Gallery lists all five accepted bodies');

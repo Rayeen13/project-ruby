@@ -5,7 +5,15 @@ use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
 use tokio::sync::Notify;
 
-const BASE: &str = "http://127.0.0.1:8081";
+fn endpoint(engine: Option<&str>) -> Result<&'static str, String> {
+    match engine.unwrap_or("ruby") {
+        "ruby" => Ok("http://127.0.0.1:8081"),
+        "ollama" => Ok("http://127.0.0.1:11434"),
+        "lmstudio" => Ok("http://127.0.0.1:1234"),
+        "colibri" | "vllm" | "moeinfinity" => Ok("http://127.0.0.1:8000"),
+        _ => Err("Unsupported AI engine".into()),
+    }
+}
 
 #[derive(Default)]
 pub struct AiState(Mutex<Option<(u64, Arc<Notify>)>>);
@@ -34,9 +42,10 @@ fn client(seconds: u64) -> Result<reqwest::Client, String> {
 }
 
 #[tauri::command]
-pub async fn local_ai_models() -> Result<Vec<String>, String> {
+pub async fn local_ai_models(engine: Option<String>) -> Result<Vec<String>, String> {
+    let base = endpoint(engine.as_deref())?;
     let mut response = client(10)?
-        .get(format!("{BASE}/v1/models"))
+        .get(format!("{base}/v1/models"))
         .send()
         .await
         .map_err(|_| "Local AI is unavailable. Start the separate model server.".to_string())?;
@@ -91,12 +100,13 @@ fn parse_line(line: &[u8]) -> Result<(Option<String>, bool), String> {
 
 async fn stream_reply(
     window: &WebviewWindow,
+    base: &str,
     request_id: u64,
     messages: Vec<ChatMessage>,
     model: String,
 ) -> Result<(), String> {
     let mut response = client(120)?
-        .post(format!("{BASE}/v1/chat/completions"))
+        .post(format!("{base}/v1/chat/completions"))
         .json(&json!({"messages": messages, "model": model, "stream": true, "max_tokens": 192, "temperature": 0.65}))
         .send()
         .await
@@ -159,7 +169,9 @@ pub async fn local_ai_chat(
     request_id: u64,
     messages: Vec<ChatMessage>,
     model: String,
+    engine: Option<String>,
 ) -> Result<(), String> {
+    let base = endpoint(engine.as_deref())?;
     if model.is_empty() || model.len() > 300 || messages.is_empty() || messages.len() > 30 {
         return Err("Invalid compact chat request".into());
     }
@@ -189,7 +201,7 @@ pub async fn local_ai_chat(
     // Dropping the request/response future closes the HTTP stream even during prefill.
     let result = tokio::select! {
         _ = cancel.notified() => Err("Reply stopped".to_string()),
-        result = stream_reply(&window, request_id, messages, model) => result,
+        result = stream_reply(&window, base, request_id, messages, model) => result,
     };
     let mut active = state
         .inner()
@@ -241,7 +253,15 @@ pub fn local_ai_cancel(state: State<'_, AiState>, request_id: u64) -> Result<(),
 
 #[cfg(test)]
 mod tests {
-    use super::parse_line;
+    use super::{endpoint, parse_line};
+
+    #[test]
+    fn engines_are_restricted_to_known_loopback_endpoints() {
+        assert_eq!(endpoint(Some("ollama")).unwrap(), "http://127.0.0.1:11434");
+        assert_eq!(endpoint(Some("lmstudio")).unwrap(), "http://127.0.0.1:1234");
+        assert!(endpoint(Some("https://example.com")).is_err());
+        assert!(endpoint(Some("file:///secret")).is_err());
+    }
 
     #[test]
     fn parses_unicode_delta_finish_and_rejects_invalid_stream() {

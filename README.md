@@ -1,6 +1,6 @@
 # Project Ruby
 
-A desktop-companion prototype with five procedural 3D robot bodies, gem colour profiles, cursor tracking and expressive animation. Built with Three.js and browser JavaScript; a first Windows desktop shell is available as a build preview; experimental streamed local AI chat is available with a separately running model server. Voice and OS automation are future work.
+A desktop-companion prototype with five procedural 3D robot bodies, gem colour profiles, cursor tracking and expressive animation. Built with Three.js and browser JavaScript; a first Windows desktop shell is available as a build preview; Windows v0.3 can download, verify and run its own compact local AI inside the app, with optional existing-server connections. Voice and OS automation are future work.
 
 ## Run locally
 
@@ -64,6 +64,8 @@ Browse the five bodies by category, choose gem colour and a saved personality fo
 
 ## Local conversation
 
-Choose **Talk** beside the mascot or in its right-click menu. Start a local llama.cpp server, press **Connect**, select its loaded AI model, and send a message. Replies stream into the attached panel; Stop cancels the request and Retry repeats an interrupted turn. Expand opens a larger history view (in the desktop lab). Gem identity and the selected body personality enter the system prompt.
+Windows v0.3: open **Conversation** from the tray, **Open conversation / set up AI** in the lab, or **Talk** beside the mascot. Choose **Download AI** for the one-time ~511 MB managed pack. Ruby verifies and starts the model; Stop / unload AI releases its process. Later starts work with the verified local cache. No Python or terminal is needed. Chat supports streaming, Stop/Retry, saved history and gem/body personalities.
 
-See [docs/CONVERSATION.md](docs/CONVERSATION.md) for the pinned experimental Windows setup, browser restrictions, context limits and data controls. No model is bundled or silently downloaded. Chat is not connected to internet search, microphone capture or desktop task execution.
+The AI engine selector also connects to existing local Ollama, LM Studio, Colibri, vLLM and MoE-Infinity OpenAI-compatible servers. These optional connections do not install their frameworks or large models. The website remains a browser demo connecting to an already running local server, subject to browser local-network restrictions.
+
+See [docs/AI_ENGINES.md](docs/AI_ENGINES.md) for the runtime review, precise integration boundaries and setup. Voice, sourced internet search and PC task execution remain future work.
