@@ -17,7 +17,7 @@ The engine selector offers these fixed loopback presets, using `/v1/models` and 
 | Engine | Ruby integration | Evidence and limits |
 | --- | --- | --- |
 | llama.cpp | Managed Windows download/start/stop; default compact pack | Real CPU candidate benchmark and packaged Windows chat tests. CPU baseline; GPU/iGPU backend comparison remains open. |
-| Ollama | Optional local API connection, port 11434 | Official OpenAI-compatible models/chat endpoints. Install/pull models in Ollama. Ollama's separate cloud models are not approved as Ruby offline models. |
+| Ollama | Optional local API connection, port 11434 | Official OpenAI-compatible models/chat endpoints. Install/pull models in Ollama. Model processing, including any cloud routing configured in Ollama, is controlled by that external engine. Such models are not Ruby offline models. |
 | LM Studio | Optional local API connection, port 1234 | Official local OpenAI-compatible server. Start it in the Developer tab and load a model. No bundling/redistribution of LM Studio. |
 | Colibri | Optional advanced local API connection, port 8000 | Official `coli serve` supports models/chat/SSE. Its starter currently requires at least 22 GB disk for its smallest supported model. Not the compact default; no Ruby hardware benchmark yet. |
 | vLLM | Optional advanced local API connection, port 8000 | Official OpenAI-compatible serving. GPU documentation requires Linux; Windows needs WSL/community alternatives. Not installed by Ruby or validated on the user's laptop. |

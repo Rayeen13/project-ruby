@@ -22,7 +22,7 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
   panel.dataset.state=chat.state;el('chat-status').textContent=chat.error||({idle:'Ready',thinking:'Thinking…',replying:'Replying…',error:'Connection error'}[chat.state]);
   el('chat-send').disabled=!!chat.active||!model.value;el('chat-stop').hidden=!chat.active;el('chat-retry').hidden=!!chat.active||!['error','cancelled'].includes(chat.messages.at(-1)?.status);
   engineSelect.disabled=!!chat.active||packBusy;model.disabled=!!chat.active;el('chat-connect').disabled=!!chat.active||!!connecting;
-  el('chat-save-status').textContent=chat.saved?'History saved on this device · local AI only':'History is temporary: device storage is unavailable';
+  el('chat-save-status').textContent=chat.saved?'History saved on this device · '+engineFor(engineSelect.value).name:'History is temporary: device storage is unavailable';
   el('chat-launcher').textContent=chat.active?'◈ '+(chat.state==='thinking'?'Thinking…':'Replying…'):'◈ Talk';onState(chat.state);
  }
  async function connect(){

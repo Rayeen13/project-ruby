@@ -49,7 +49,9 @@ pub struct PackState(Mutex<Inner>);
 fn root(app: &AppHandle) -> Result<PathBuf, String> {
     if !std::env::args().any(|arg| arg == "--native-smoke-test") {
         if let Some(local) = std::env::var_os("LOCALAPPDATA") {
-            return Ok(PathBuf::from(local).join("ProjectRuby").join("experimental-ai"));
+            return Ok(PathBuf::from(local)
+                .join("ProjectRuby")
+                .join("experimental-ai"));
         }
     }
     app.path()
@@ -62,7 +64,8 @@ fn publish(app: &AppHandle, phase: &str, downloaded: u64, total: u64, detail: &s
     let state = app.state::<PackState>();
     if let Ok(mut inner) = state.inner().0.lock() {
         inner.status.phase = phase.into();
-        inner.status.installed = root(app).is_ok_and(|directory| directory.join("installed").is_file());
+        inner.status.installed =
+            root(app).is_ok_and(|directory| directory.join("installed").is_file());
         inner.status.downloaded = downloaded;
         inner.status.total = total;
         inner.status.detail = detail.into();
@@ -107,7 +110,11 @@ async fn download(
             return Ok(());
         }
     }
-    let mut response = client.get(url).send().await.map_err(|error| error.to_string())?;
+    let mut response = client
+        .get(url)
+        .send()
+        .await
+        .map_err(|error| error.to_string())?;
     if !response.status().is_success() {
         return Err(format!("Download failed ({})", response.status()));
     }
@@ -128,7 +135,13 @@ async fn download(
         file.write_all(&chunk).map_err(|error| error.to_string())?;
         digest.update(&chunk);
         if update.elapsed() > Duration::from_millis(180) {
-            publish(app, "downloading", received, total, path.file_name().unwrap().to_str().unwrap_or("AI pack"));
+            publish(
+                app,
+                "downloading",
+                received,
+                total,
+                path.file_name().unwrap().to_str().unwrap_or("AI pack"),
+            );
             update = Instant::now();
         }
     }
@@ -158,27 +171,47 @@ async fn prepare(app: &AppHandle, directory: &Path, fetch: bool) -> Result<(), S
         let upstream = "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/resolve/7ae557604adf67be50417f59c2c2f167def9a775";
         for (name, url) in [
             ("Qwen-LICENSE", format!("{upstream}/LICENSE")),
-            ("tokenizer_config.json", format!("{upstream}/tokenizer_config.json")),
-            ("llama-LICENSE", "https://raw.githubusercontent.com/ggml-org/llama.cpp/b11433/LICENSE".into()),
+            (
+                "tokenizer_config.json",
+                format!("{upstream}/tokenizer_config.json"),
+            ),
+            (
+                "llama-LICENSE",
+                "https://raw.githubusercontent.com/ggml-org/llama.cpp/b11433/LICENSE".into(),
+            ),
         ] {
             download(app, &client, &url, &directory.join(name), None, 2_000_000).await?;
         }
     }
-    publish(app, "verifying", 0, 0, "Verifying model, runtime and publisher template…");
+    publish(
+        app,
+        "verifying",
+        0,
+        0,
+        "Verifying model, runtime and publisher template…",
+    );
     if !checksum(&model, MODEL_SHA)? || !checksum(&archive, RUNTIME_SHA)? {
         return Err("Verified AI files are missing or corrupt. Choose Download / repair.".into());
     }
-    let config: serde_json::Value = serde_json::from_slice(&fs::read(directory.join("tokenizer_config.json")).map_err(|error| error.to_string())?).map_err(|error| error.to_string())?;
-    let template = config["chat_template"].as_str().ok_or("Publisher chat template is missing")?;
+    let config: serde_json::Value = serde_json::from_slice(
+        &fs::read(directory.join("tokenizer_config.json")).map_err(|error| error.to_string())?,
+    )
+    .map_err(|error| error.to_string())?;
+    let template = config["chat_template"]
+        .as_str()
+        .ok_or("Publisher chat template is missing")?;
     if format!("{:x}", Sha256::digest(template.as_bytes())) != TEMPLATE_SHA {
-        return Err("Publisher template failed verification. Remove the corrupt tokenizer_config.json in the AI cache and repair.".into());
+        return Err("Publisher template failed verification. Choose Download / repair to restore its verified copy.".into());
     }
-    let license = fs::read_to_string(directory.join("Qwen-LICENSE")).map_err(|error| error.to_string())?;
+    let license =
+        fs::read_to_string(directory.join("Qwen-LICENSE")).map_err(|error| error.to_string())?;
     if !license.contains("Apache License") {
         return Err("Publisher licence notice is missing".into());
     }
-    fs::write(directory.join("chat-template.jinja"), template).map_err(|error| error.to_string())?;
-    let mut zip = zip::ZipArchive::new(File::open(archive).map_err(|error| error.to_string())?).map_err(|error| error.to_string())?;
+    fs::write(directory.join("chat-template.jinja"), template)
+        .map_err(|error| error.to_string())?;
+    let mut zip = zip::ZipArchive::new(File::open(archive).map_err(|error| error.to_string())?)
+        .map_err(|error| error.to_string())?;
     for index in 0..zip.len() {
         let entry = zip.by_index(index).map_err(|error| error.to_string())?;
         if entry.enclosed_name().is_none() || entry.size() > 100_000_000 {
@@ -186,8 +219,10 @@ async fn prepare(app: &AppHandle, directory: &Path, fetch: bool) -> Result<(), S
         }
     }
     // Always restore executable bytes from the verified archive before starting.
-    zip.extract(directory.join("runtime")).map_err(|error| error.to_string())?;
-    fs::write(directory.join("installed"), b"qwen-0.5b-b11433-v1").map_err(|error| error.to_string())?;
+    zip.extract(directory.join("runtime"))
+        .map_err(|error| error.to_string())?;
+    fs::write(directory.join("installed"), b"qwen-0.5b-b11433-v1")
+        .map_err(|error| error.to_string())?;
     Ok(())
 }
 
@@ -207,31 +242,85 @@ fn executable(directory: &Path) -> Option<PathBuf> {
 }
 
 async fn start(app: &AppHandle, directory: &Path) -> Result<(), String> {
-    let client = reqwest::Client::builder().no_proxy().timeout(Duration::from_secs(2)).build().map_err(|error| error.to_string())?;
-    if client.get("http://127.0.0.1:8081/health").send().await.is_ok() {
+    let client = reqwest::Client::builder()
+        .no_proxy()
+        .timeout(Duration::from_secs(2))
+        .build()
+        .map_err(|error| error.to_string())?;
+    if client
+        .get("http://127.0.0.1:8081/health")
+        .send()
+        .await
+        .is_ok()
+    {
         return Err("Another model server is using port 8081. Choose Connect to use it, or close it before starting Ruby's AI.".into());
     }
     publish(app, "starting", 0, 0, "Loading your local AI…");
     let exe = executable(&directory.join("runtime")).ok_or("CPU runtime is missing")?;
     let log = File::create(directory.join("server.log")).map_err(|error| error.to_string())?;
     let mut command = Command::new(exe);
-    command.arg("-m").arg(directory.join(MODEL)).args(["-c", "2048", "-t", "2", "-ngl", "0", "--host", "127.0.0.1", "--port", "8081", "--alias", "Qwen2.5-0.5B-Ruby", "--jinja", "--chat-template-file"]).arg(directory.join("chat-template.jinja")).stdin(Stdio::null()).stdout(log.try_clone().map_err(|error| error.to_string())?).stderr(log);
+    command
+        .arg("-m")
+        .arg(directory.join(MODEL))
+        .args([
+            "-c",
+            "2048",
+            "-t",
+            "2",
+            "-ngl",
+            "0",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "8081",
+            "--alias",
+            "Qwen2.5-0.5B-Ruby",
+            "--jinja",
+            "--chat-template-file",
+        ])
+        .arg(directory.join("chat-template.jinja"))
+        .stdin(Stdio::null())
+        .stdout(log.try_clone().map_err(|error| error.to_string())?)
+        .stderr(log);
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
         command.creation_flags(0x08000000);
     }
     let child = command.spawn().map_err(|error| error.to_string())?;
-    app.state::<PackState>().inner().0.lock().map_err(|_| "AI manager is unavailable")?.child = Some(child);
+    app.state::<PackState>()
+        .inner()
+        .0
+        .lock()
+        .map_err(|_| "AI manager is unavailable")?
+        .child = Some(child);
     for _ in 0..150 {
         {
             let state = app.state::<PackState>();
-            let mut inner = state.inner().0.lock().map_err(|_| "AI manager is unavailable")?;
-            if inner.child.as_mut().and_then(|child| child.try_wait().ok()).flatten().is_some() {
-                return Err("Local AI exited while loading. Choose Download / repair or try another CPU.".into());
+            let mut inner = state
+                .inner()
+                .0
+                .lock()
+                .map_err(|_| "AI manager is unavailable")?;
+            if inner
+                .child
+                .as_mut()
+                .and_then(|child| child.try_wait().ok())
+                .flatten()
+                .is_some()
+            {
+                return Err(
+                    "Local AI exited while loading. Choose Download / repair or try another CPU."
+                        .into(),
+                );
             }
         }
-        if client.get("http://127.0.0.1:8081/health").send().await.is_ok_and(|response| response.status().is_success()) {
+        if client
+            .get("http://127.0.0.1:8081/health")
+            .send()
+            .await
+            .is_ok_and(|response| response.status().is_success())
+        {
             return Ok(());
         }
         tokio::time::sleep(Duration::from_millis(200)).await;
@@ -252,7 +341,11 @@ pub fn shutdown(app: &AppHandle) {
 
 #[tauri::command]
 pub fn ai_pack_status(app: AppHandle, state: State<'_, PackState>) -> Result<PackStatus, String> {
-    let mut inner = state.inner().0.lock().map_err(|_| "AI manager is unavailable")?;
+    let mut inner = state
+        .inner()
+        .0
+        .lock()
+        .map_err(|_| "AI manager is unavailable")?;
     let directory = root(&app)?;
     inner.status.installed = directory.join("installed").is_file()
         || (directory.join(MODEL).is_file()
@@ -263,7 +356,11 @@ pub fn ai_pack_status(app: AppHandle, state: State<'_, PackState>) -> Result<Pac
         inner.status.detail = "Local AI is installed. Press Start AI to use it offline.".into();
     }
     if let Some(child) = inner.child.as_mut() {
-        if child.try_wait().map_err(|error| error.to_string())?.is_some() {
+        if child
+            .try_wait()
+            .map_err(|error| error.to_string())?
+            .is_some()
+        {
             inner.child = None;
             inner.status.phase = "stopped".into();
         }
@@ -272,11 +369,21 @@ pub fn ai_pack_status(app: AppHandle, state: State<'_, PackState>) -> Result<Pac
 }
 
 #[tauri::command]
-pub async fn ai_pack_run(app: AppHandle, state: State<'_, PackState>, download: bool) -> Result<(), String> {
+pub async fn ai_pack_run(
+    app: AppHandle,
+    state: State<'_, PackState>,
+    download: bool,
+) -> Result<(), String> {
     let directory = root(&app)?;
     let cancel = {
-        let mut inner = state.inner().0.lock().map_err(|_| "AI manager is unavailable")?;
-        if inner.child.is_some() || ["downloading", "verifying", "starting"].contains(&inner.status.phase.as_str()) {
+        let mut inner = state
+            .inner()
+            .0
+            .lock()
+            .map_err(|_| "AI manager is unavailable")?;
+        if inner.child.is_some()
+            || ["downloading", "verifying", "starting"].contains(&inner.status.phase.as_str())
+        {
             return Err("Local AI is already running or being prepared".into());
         }
         inner.status.phase = "verifying".into();
@@ -291,7 +398,13 @@ pub async fn ai_pack_run(app: AppHandle, state: State<'_, PackState>, download: 
         } => result,
     };
     match &result {
-        Ok(()) => publish(&app, "ready", 0, 0, "Local AI is ready. Your conversations can work offline."),
+        Ok(()) => publish(
+            &app,
+            "ready",
+            0,
+            0,
+            "Local AI is ready. Your conversations can work offline.",
+        ),
         Err(error) => {
             shutdown(&app);
             publish(&app, "error", 0, 0, error);
@@ -304,7 +417,13 @@ pub async fn ai_pack_run(app: AppHandle, state: State<'_, PackState>, download: 
 pub fn ai_pack_stop(app: AppHandle) {
     crate::local_ai::stop(&app);
     shutdown(&app);
-    publish(&app, "stopped", 0, 0, "Local AI stopped and unloaded. Your conversation history is kept.");
+    publish(
+        &app,
+        "stopped",
+        0,
+        0,
+        "Local AI stopped and unloaded. Your conversation history is kept.",
+    );
 }
 
 #[cfg(test)]
@@ -315,9 +434,17 @@ mod tests {
     fn detects_corrupt_cached_model_bytes() {
         let path = std::env::temp_dir().join(format!("ruby-hash-{}.bin", std::process::id()));
         std::fs::write(&path, b"abc").unwrap();
-        assert!(checksum(&path, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad").unwrap());
+        assert!(checksum(
+            &path,
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        )
+        .unwrap());
         std::fs::write(&path, b"corrupt").unwrap();
-        assert!(!checksum(&path, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad").unwrap());
+        assert!(!checksum(
+            &path,
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        )
+        .unwrap());
         std::fs::remove_file(path).unwrap();
     }
 }
