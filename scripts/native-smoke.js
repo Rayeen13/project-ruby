@@ -84,7 +84,8 @@
   assert(document.querySelector('#identity-summary').textContent.includes('female'),'Ruby identity includes gender');
   const results=await window.__TAURI__.core.invoke('internet_search',{query:'NASA Artemis program'});
   assert(results.length>0&&results.every(s=>s.url.startsWith('https://')),'Native internet search returns bounded real HTTPS sources');
-  document.querySelector('[data-settings-tab="voice"]').click();document.querySelector('#voice-download').click();
+  document.querySelector('[data-settings-tab="voice"]').click();
+  if(!(await window.__TAURI__.core.invoke('voice_pack_status')).installed)document.querySelector('#voice-download').click();
   for(let i=0;i<6000&&document.querySelector('#voice-download').disabled;i++)await wait(100);
   assert((await window.__TAURI__.core.invoke('voice_pack_status')).installed,'VoiceM downloads and verifies inside the Windows app');
   const wav=await window.__TAURI__.core.invoke('voice_synthesize',{text:'Hello, I am Ruby. Your companion is ready.',gender:'female',pace:1});
