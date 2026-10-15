@@ -11,7 +11,7 @@ Hakko's official quick-start documents a large full-body preview beside selectab
 
 ## Implemented controls
 
-- Choose any of the five existing bodies from category-filtered companion cards; the large live 3D preview updates. Gem colour remains independent.
+- Choose any of the six bodies from category-filtered companion cards; the large live 3D preview updates. Gem colour remains independent.
 - Each body has its own saved personality: Classic calm, Cyber curious, Chibi playful, Office focused, Gamer playful. Change the preset per body. Reactions and idle rhythm use these presets. The prompt strings are a future chat-provider seam; there is no connected AI conversation or voice here yet.
 - Tap the model for head/body/hand reactions. Right-click the visible mesh, or touch long-press without moving, for its action bubble.
 - Hold the left mouse button on the mesh for 420 ms, or drag it, to carry it. Touch-drag carries it too. Background drag or Alt-drag still rotates the camera; scroll/pinch zooms.
@@ -38,4 +38,10 @@ Windows regression checks include an actual 300 ms mouse click with continuous n
 
 ## Edge companion slice — 14 October
 
-Floating zoom resizes the transparent native canvas rather than clipping the character inside a fixed rectangle. A shared camera-fit module bounds the current geometry across all five accepted bodies. Right-click desktop controls expose size, left/right peek, undock and pin-above-windows actions. Pinning keeps Ruby above other windows and remains compatible with carrying; it is not a position lock. Hover keeps the body docked; an inward head tilt gives the peek pose, and gaze remains responsive across the screen. Native placement, size, edge and pin are saved separately from character preferences. Conversation and voice remain on their existing roadmap.
+Floating zoom resizes the transparent native canvas rather than clipping the character inside a fixed rectangle. A shared camera-fit module bounds the current geometry across all six bodies. Right-click desktop controls expose size, left/right peek, undock and pin-above-windows actions. Pinning keeps Ruby above other windows and remains compatible with carrying; it is not a position lock. Hover keeps the body docked; an inward head tilt gives the peek pose, and gaze remains responsive across the screen. Native placement, size, edge and pin are saved separately from character preferences. Typed conversation and downloadable speech are available; microphone input remains on the roadmap.
+
+## v0.4.1 context controls and cast
+
+Talk and Settings appear as shimmering actions at the top right of the mesh context menu. They are hidden with the menu, including in floating mode. Shift+F10 or the Context Menu key opens actions when the Companion is focused; touch users can long-press. Reduced-motion preference disables the shimmer.
+
+Jasper is a male gaming identity, Jet a male office identity, and Opal an original female android with a sarcastic default personality. The five accepted robots retain their geometry. Voice selection follows Companion gender, with remembered per-Companion overrides. Setup presets and VoiceM preview are in Settings.

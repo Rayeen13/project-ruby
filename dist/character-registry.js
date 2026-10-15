@@ -1,3 +1,4 @@
+import {OpalCharacter} from './opal-character.js';
 import {characterCapabilities} from './character-capabilities.js';
 import {RubyCharacter} from './character.js';
 import {ClassicCharacter} from './classic-character.js';
@@ -11,6 +12,8 @@ export const CHARACTER_MODELS=Object.freeze([
  {id:'chibi',name:'Chibi',category:'Playful',revision:'003',capabilities:characterCapabilities({hands:true}),description:'Rounded pearl shell, big eyes and playful expressions.',create:options=>new RubyCharacter(options)},
  {id:'office',name:'Office',category:'Professional',revision:'004',capabilities:characterCapabilities({hands:true}),description:'Compact desk robot with a rounded rectangular head, short limbs and subtle gem accents.',create:options=>new OfficeCharacter(options)},
  {id:'gamer',name:'Gamer',category:'Gaming',revision:'005',capabilities:characterCapabilities({hands:true,heldProp:{side:-1,kind:'controller',gesture:'grip'}}),description:'Anime-inspired gamer with headphone listening screens and a controller held in the waving right hand.',create:options=>new GamerCharacter(options)}
+,
+ {id:'opal',name:'Opal · original android',category:'Anime originals',revision:'006',capabilities:characterCapabilities({hands:true}),description:'Original toon-shaded android with a violet bob, gem clasp and flight jacket. Dry wit, warm intentions.',create:options=>new OpalCharacter(options)}
 ].map(spec=>Object.freeze({...spec,canWave:spec.capabilities.wave})));
 export class CharacterSelection {
  constructor(scene,options={}){this.scene=scene;this.options=options;this.cache=new Map();this.profileId='ruby';this.mood='idle';this.select('gamer');}

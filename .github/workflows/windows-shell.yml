@@ -1,10 +1,10 @@
 name: Windows desktop build
 on:
   pull_request:
-    paths: ['src-tauri/**', 'scripts/native-smoke.js', 'scripts/windows-smoke.ps1', 'dist/**', 'package.json', 'package-lock.json', '.github/workflows/windows-shell.yml']
+    paths: ['src-tauri/**', 'scripts/native-smoke.js', 'scripts/windows-smoke.ps1', 'scripts/windows-voice-smoke.ps1', 'dist/**', 'package.json', 'package-lock.json', '.github/workflows/windows-shell.yml']
   push:
     branches: [main, 'release/**']
-    paths: ['src-tauri/**', 'scripts/native-smoke.js', 'scripts/windows-smoke.ps1', 'dist/**', 'package.json', 'package-lock.json', '.github/workflows/windows-shell.yml']
+    paths: ['src-tauri/**', 'scripts/native-smoke.js', 'scripts/windows-smoke.ps1', 'scripts/windows-voice-smoke.ps1', 'dist/**', 'package.json', 'package-lock.json', '.github/workflows/windows-shell.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -38,13 +38,35 @@ jobs:
       - run: cargo test --release --manifest-path src-tauri/Cargo.toml --bin project-ruby
       - run: npm run desktop:build -- --bundles nsis
       - run: npm run check:assets
+      - name: Restore verified VoiceM download cache
+        id: voice-cache
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: ~/AppData/Local/io.github.rayeen13.projectruby/kokoro-smoke-v1
+          key: windows-ruby-kokoro-v1-int8-sherpa-1.12.15
+      - name: Verify native Kokoro download and synthesis independently
+        shell: pwsh
+        run: ./scripts/windows-voice-smoke.ps1
       - name: Exercise actual Windows WebView and native window
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: ./scripts/windows-smoke.ps1
+      - name: Check completed VoiceM cache
+        id: voice-cache-ready
+        if: always()
+        shell: pwsh
+        run: |
+          $marker = Join-Path $env:LOCALAPPDATA 'io.github.rayeen13.projectruby/kokoro-smoke-v1/installed-kokoro-v1'
+          if (Test-Path $marker) { 'ready=true' | Out-File $env:GITHUB_OUTPUT -Append }
+      - name: Save completed VoiceM assets
+        if: always() && steps.voice-cache-ready.outputs.ready == 'true' && steps.voice-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: ~/AppData/Local/io.github.rayeen13.projectruby/kokoro-smoke-v1
+          key: windows-ruby-kokoro-v1-int8-sherpa-1.12.15
       - name: Retain failed native evidence
-        if: failure()
+        if: failure() || cancelled()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: ruby-native-failure-evidence
@@ -63,7 +85,8 @@ jobs:
           Copy-Item docs/WINDOWS.md desktop-artifact/README.md
           Copy-Item src-tauri/Cargo.lock desktop-artifact/
           Copy-Item ruby-native-smoke.txt desktop-artifact/
-          Copy-Item ruby-native-menu.png,ruby-native-float.png,ruby-native-dizzy.png,ruby-native-chat.png,ruby-native-chat_lab.png desktop-artifact/
+          Copy-Item ruby-native-female.wav,ruby-native-male.wav,ruby-native-voice.txt desktop-artifact/
+          Copy-Item ruby-native-menu.png,ruby-native-float.png,ruby-native-dizzy.png,ruby-native-chat.png,ruby-native-chat_lab.png,ruby-native-setup.png,ruby-native-opal.png desktop-artifact/
           Copy-Item ruby-native-carry.txt,ruby-native-pin.txt,ruby-native-zoom.txt,ruby-native-frame.txt desktop-artifact/
           Copy-Item ruby-native-left.png,ruby-native-right.png,ruby-native-zoom_view.png desktop-artifact/
           Get-ChildItem desktop-artifact/*.exe | Get-FileHash -Algorithm SHA256 | Format-List | Out-File desktop-artifact/SHA256.txt

@@ -1,14 +1,14 @@
 # Windows v0.4 quick start
 
-Quit the previous tray instance before installing. Studio now has a native Windows title bar; the floating Companion remains frameless. Open **Settings → LLM → Download AI** (or Start AI for an existing download), then close Settings and choose Talk. LLM selection no longer occupies chat. Both chat and Settings leave a reserved Companion viewport visible.
+Quit the previous tray instance before installing. Studio now has a native Windows title bar; the floating Companion remains frameless. Right-click the Companion for **Talk** and **Settings**. Use **Settings → Setup → Recommended** for LLM + VoiceM together, or open **Settings → LLM → Download AI** (or Start AI for an existing download), then close Settings and choose Talk. LLM selection no longer occupies chat. Both chat and Settings leave a reserved Companion viewport visible.
 
-**Settings → VoiceM → Download VoiceM** installs the ~100 MB English pack. Preview the matched voice, optionally enable spoken replies and use Stop voice to interrupt. **Settings → Companion** shows age/gender, content tone and owner notes. **Settings → Internet** enables sourced answers or opens a question in Google AI Mode in your browser. Online services can fail; no account or Gemini API key is bundled.
+**Settings → VoiceM → Download VoiceM** installs the ~316 MB Kokoro English pack. Preview the matched voice, optionally enable spoken replies and use Stop voice to interrupt. **Settings → Companion** shows age/gender, content tone and owner notes. **Settings → Internet** enables sourced answers or opens a question in Google AI Mode in your browser. Online services can fail; no account or Gemini API key is bundled.
 
 Right-click the Companion for actions, preset size selection and a corner ×. Wheel zoom uses those same four sizes. Body switches refit the native canvas. Close Studio hides to tray; Quit exits fully.
 
 # Project Ruby Windows shell preview
 
-The native shell runs the existing character lab in a Tauri/WebView2 window. It includes the five bodies, gem profiles, expressions, gesture controls, smooth greeting and local preferences. The packaged viewer assets are local; the viewer needs no account or server to start.
+The native shell runs the existing character lab in a Tauri/WebView2 window. It includes the five robot bodies and original Opal android, gem profiles, expressions, gesture controls, smooth greeting and local preferences. The packaged viewer assets are local; the viewer needs no account or server to start.
 
 It is a desktop shell preview, not a complete AI assistant. Floating mode and tray controls are implemented as a Windows build preview. Local conversation, sourced search, owner notes and downloadable VoiceM speech are implemented. Screen understanding, microphone input and OS input actions remain later steps. Native commands are bounded to companion controls, approved downloads, local model endpoints, search and HTTPS browser links.
 
@@ -74,12 +74,14 @@ Windows tests use real wheel input, validate the native topmost flag, capture en
 
 Opening the floating companion or choosing Wake up resumes cursor tracking. Stop still pauses tracking immediately. Global gaze uses screen-wide distances so a docked companion responds to different cursor positions instead of saturating at the window edge.
 
-## Conversation and offline AI — v0.4.0
+## Conversation and offline AI — v0.4.1
 
-Use the tray's **Open conversation**, the lab's **Open conversation / set up AI**, the floating **Talk** button or the robot's right-click menu. The header/lab identifies this build as v0.4.0. Close the previous installed/portable instance before testing a different executable.
+Use the tray's **Open conversation**, the lab's **Open conversation / set up AI**, the right-click menu’s shimmering **Talk** control or the robot's right-click menu. The header/lab identifies this build as v0.4.1. Close the previous installed/portable instance before testing a different executable.
 
 Choose **Ruby offline AI → Download AI** for the one-time ~511 MB model/runtime download. Progress and Cancel are built in. Ruby verifies the pinned Qwen GGUF, runtime archive and publisher template, retains licences, starts a private loopback process and connects chat. There is no Python or manual server requirement. **Start AI** reuses verified installed assets offline; **Stop / unload AI** releases the process without deleting history. Quit also stops Ruby's owned model process; Hide keeps it available.
 
 Saved files use `%LOCALAPPDATA%/ProjectRuby/experimental-ai`, including compatible files from the previous experimental launcher. Optional existing-server presets are available for users who already run another engine. See [AI_ENGINES.md](AI_ENGINES.md). No default large MoE or training stack is downloaded.
 
 Full history is local display/export storage; the compact model sees bounded recent context. Sourced search and VoiceM speech are implemented; microphone input and PC task execution remain future work. Model quality, Hindi and individual laptop/iGPU performance need further acceptance work.
+
+Setup presets: Recommended downloads defaults; Lite omits voices; Custom selects the engine, loaded LLM and matching voice; Pro connects your own stronger local LLM. Pro is not a paid plan. About 827 MB default download, with approximately 1.5 GB free disk space recommended for archives/extraction. Female and male voice choices are filtered per Companion. Existing chat and owner notes are retained.

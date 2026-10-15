@@ -1,3 +1,10 @@
+## Current follow-up · Setup and voice quality
+
+- v0.4.1: natural identity prompts, hidden-until-requested floating controls, Recommended/Custom/Pro/Lite setup, matched Kokoro VoiceM choices, Jasper and Jet male identities, original sarcastic Opal android.
+- Release gate: actual Windows download/cancel/cache reuse, real-model self-introduction, female/male audio generation and preview, matching voice filters, all six body interactions and regression checks.
+- Next quality gate: audition voices on Riyan’s RTX 2050 laptop, compare stronger compact LLMs on natural conversation, measure first-audio latency, and refine Opal’s art with real screenshots. Functional WAV generation alone is not a voice-quality approval.
+- November: microphone input, ASR, interruption and multilingual VoiceM remain required. Setup must keep size, hardware and individual model licences visible. Companion = character mesh; LLM = intelligence; VoiceM = voice model.
+
 # Project Ruby roadmap
 
 ## Goal and current milestone

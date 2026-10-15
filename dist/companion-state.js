@@ -1,9 +1,9 @@
 // Portable character state: independent of meshes, LLM runtimes and VoiceM providers.
 export const COMPANION_KEY='project-ruby.companion.v1';
-const GEM_IDENTITIES={ruby:{gender:'female',age:24},saph:{gender:'male',age:25},emme:{gender:'female',age:26},amy:{gender:'female',age:24}};
+const GEM_IDENTITIES={ruby:{gender:'female',age:24},saph:{gender:'male',age:25},emme:{gender:'female',age:26},amy:{gender:'female',age:24},jasper:{gender:'male',age:27},jet:{gender:'male',age:28},opal:{gender:'female',age:25}};
 export const clean=value=>String(value??'').replace(/[\u0000-\u001f]/g,' ').trim().slice(0,180);
 export class CompanionState{
- constructor(storage){this.storage=storage;let value;try{value=JSON.parse(storage?.getItem(COMPANION_KEY)||'null');}catch{}this.data={version:1,content:value?.content==='uncensored'?'uncensored':'censored',remember:value?.remember!==false,speak:value?.speak===true,voice:['auto','female','male','system'].includes(value?.voice)?value.voice:'auto',memories:Array.isArray(value?.memories)?value.memories.filter(x=>typeof x==='string').map(clean).filter(Boolean).slice(-12):[],feeling:clean(value?.feeling),emotion:['idle','happy','listen','sleep'].includes(value?.emotion)?value.emotion:'idle'};this.saved=true;}
+ constructor(storage){this.storage=storage;let value;try{value=JSON.parse(storage?.getItem(COMPANION_KEY)||'null');}catch{}this.data={version:1,content:value?.content==='uncensored'?'uncensored':'censored',remember:value?.remember!==false,speak:value?.speak===true,voice:'auto',voiceChoices:value?.voiceChoices&&typeof value.voiceChoices==='object'&&!Array.isArray(value.voiceChoices)?{...value.voiceChoices}:{},memories:Array.isArray(value?.memories)?value.memories.filter(x=>typeof x==='string').map(clean).filter(Boolean).slice(-12):[],feeling:clean(value?.feeling),emotion:['idle','happy','listen','sleep'].includes(value?.emotion)?value.emotion:'idle'};this.saved=true;}
  save(){try{this.storage.setItem(COMPANION_KEY,JSON.stringify(this.data));this.saved=true;}catch{this.saved=false;}return this.saved;}
  identity(base){const spec=GEM_IDENTITIES[base.profile]||{gender:'male',age:25};return {...base,...spec,age:base.bodyId==='chibi'?8:spec.age,content:this.data.content,memories:this.data.remember?[...this.data.memories]:[],ownerFeeling:this.data.remember?this.data.feeling:'',emotion:this.data.emotion};}
  remember(text){text=clean(text);if(!text)return;this.data.memories=[...this.data.memories.filter(x=>x!==text),text].slice(-12);this.save();}
@@ -11,4 +11,4 @@ export class CompanionState{
  forget(){this.data.memories=[];this.data.feeling='';this.data.emotion='idle';this.save();}
  export(){return {schema:'project-ruby.companion',...this.data};}
 }
-export function parseExpression(text){const match=text.match(/^\s*\[(happy|curious|listening|sleepy|neutral)\]\s*/i);return {text:match?text.slice(match[0].length):text,mood:match?({happy:'happy',curious:'idle',listening:'listen',sleepy:'sleep',neutral:'idle'}[match[1].toLowerCase()]):null};}
+export function parseExpression(text){const match=text.match(/^\s*\[(happy|curious|listening|sleepy|neutral)\]\s*/i);return {text:(match?text.slice(match[0].length):text).replace(/\[(happy|curious|listening|sleepy|neutral|female|male|Project Ruby)\]/gi,'$1'),mood:match?({happy:'happy',curious:'idle',listening:'listen',sleepy:'sleep',neutral:'idle'}[match[1].toLowerCase()]):null};}

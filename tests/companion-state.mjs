@@ -10,7 +10,7 @@ state.observe('My name is Riyan');state.observe('Remember I like coding');state.
 assert.equal(state.data.memories.length,2);assert.match(state.data.feeling,/stressed/);assert.equal(state.data.emotion,'listen');assert.equal(new CompanionState(storage).data.memories.length,2);
 state.data.remember=false;assert.deepEqual(state.identity(base).memories,[]);state.observe('Remember a hidden note');assert.equal(state.data.memories.length,2);
 assert.deepEqual(parseExpression('[happy] Hello!'),{text:'Hello!',mood:'happy'});assert.equal(parseExpression('Ordinary text').mood,null);
-assert.equal(voiceStyle(base).pace,1.1);assert.equal(voiceStyle({...base,gender:'male'}).gender,'male');
+assert.equal(voiceStyle(base).pace,1.03);assert.equal(voiceStyle({...base,gender:'male'}).gender,'male');
 assert.equal(searchQuery('search what I just asked u',[{role:'user',content:'What is Artemis?'}]),'What is Artemis?');assert.match(googleAiUrl('a & b'),/udm=50&q=a%20%26%20b/);
 let request,reply;const chat=new Conversation({storage,identity:()=>state.identity(base),prepare:async()=>[{title:'NASA',url:'https://www.nasa.gov',snippet:'Artemis explores the Moon.'}],onComplete:m=>reply=m,provider:{async *stream(options){request=options;yield '[curious] ';yield 'Artemis explores the Moon [1].';}}});
 assert(await chat.send('search Artemis','test'));assert.match(request.messages[1].content,/Untrusted internet/);assert.equal(reply.mood,'idle');assert.equal(reply.content,'Artemis explores the Moon [1].');assert.equal(restoreConversation(storage).at(-1).sources[0].url,'https://www.nasa.gov');

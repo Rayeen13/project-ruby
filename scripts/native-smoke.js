@@ -1,6 +1,8 @@
 (async()=>{
  const checks=[];
  const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+ const trace=()=>window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'trace',detail:JSON.stringify({at:new Date().toISOString(),last:checks.at(-1),chat:document.querySelector('#chat-panel')?.dataset.state,chatStatus:document.querySelector('#chat-status')?.textContent,ai:document.querySelector('#ai-pack-status')?.textContent,voice:document.querySelector('#voice-status')?.textContent,setup:document.querySelector('#setup-status')?.textContent,ready:document.querySelector('#stage')?.dataset.ready})}).catch(()=>{});
+ void trace();setInterval(trace,2000);
  const assert=(value,message)=>{if(!value)throw new Error(message);checks.push(message);};
  try{
   for(let i=0;i<200&&!document.querySelector('#stage')?.dataset.ready;i++)await wait(100);
@@ -9,7 +11,7 @@
    assert(JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.length>0,'Conversation survives native app restart');
    assert(state.floating&&!state.pinned&&state.edge==='right'&&state.size>1,'Pin, dock and size survive native restart');
    const pack=await window.__TAURI__.core.invoke('ai_pack_status');assert(pack.installed,'Downloaded AI survives application restart');
-   document.querySelector('#settings-launcher').click();await wait(150);
+   document.querySelector('#settings-launcher').click();await wait(150);document.querySelector('[data-settings-tab="llm"]').click();
    for(let i=0;i<100&&document.querySelector('#ai-pack-start').hidden;i++)await wait(50);
    document.querySelector('#ai-pack-start').click();
    for(let i=0;i<300&&!document.querySelector('#chat-model').value;i++)await wait(100);
@@ -25,6 +27,7 @@
   assert(!document.querySelector('#chat-panel').contains(document.querySelector('#chat-model')),'LLM selector is inside Settings, outside chat');
   document.querySelector('#chat-settings').click();await wait(250);
   assert(!document.querySelector('#settings-panel').hidden,'Chat gear opens separate Settings');
+  document.querySelector('[data-settings-tab="llm"]').click();
   assert(document.querySelector('[data-chat-open]'),'Windows lab has an explicit Conversation entry point');
   document.querySelector('#chat-clear').click();
   let progressed=false;const unlistenPack=await window.__TAURI__.event.listen('ruby-ai-pack',event=>{if(event.payload.phase==='downloading'&&event.payload.downloaded>0)progressed=true;});
@@ -41,15 +44,17 @@
   for(let i=0;i<150&&!document.querySelector('#chat-model').value;i++)await wait(100);
   assert(document.querySelector('#chat-model').value,'Actual WebView connects to CPU model through restricted native AI bridge');
   document.querySelector('#settings-close').click();await wait(150);document.querySelector('#chat-launcher').click();await wait(250);
-  document.querySelector('#chat-input').value='Hi Ruby. Say hello briefly.';
+  document.querySelector('#chat-input').value='introduce ur self';
   document.querySelector('#chat-form').dispatchEvent(new Event('submit',{cancelable:true}));
   for(let i=0;i<300&&document.querySelector('#chat-panel').dataset.state!=='idle';i++)await wait(100);
   assert(document.querySelector('#chat-panel').dataset.state==='idle'&&document.querySelector('#chat-log .assistant p')?.textContent.length>0,'Actual WebView renders a completed real AI reply');
   assert(JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.at(-1).status==='complete','WebView persists completed conversation');
   document.querySelector('#chat-input').value='Search NASA Artemis program';document.querySelector('#chat-form').dispatchEvent(new Event('submit',{cancelable:true}));
-  for(let i=0;i<450&&document.querySelector('#chat-panel').dataset.state!=='idle';i++)await wait(100);
-  assert(document.querySelector('#chat-panel').dataset.state==='idle'&&document.querySelector('#chat-log .chat-sources a'),'Real local LLM answers an internet query with visible retrieved source links');
+  for(let i=0;i<1250&&['thinking','replying'].includes(document.querySelector('#chat-panel').dataset.state);i++)await wait(100);
+  assert(document.querySelector('#chat-panel').dataset.state==='idle'&&document.querySelector('#chat-log .chat-sources a'),'Real local LLM answers an internet query with visible retrieved source links · '+document.querySelector('#chat-status').textContent);
   await window.__TAURI__.core.invoke('desktop_action',{action:'float'});await wait(300);
+  const introduction=JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.find(m=>m.role==='assistant'&&m.status==='complete')?.content||'';
+  assert(/Ruby/i.test(introduction)&&!/(?:\[(?:curious|sleepy|neutral|female)\])|(?:neutral.*neutral)/i.test(introduction),'Real model introduces Ruby naturally without leaked labels: '+introduction);
   const panel=document.querySelector('#chat-panel');
   for(let i=0;i<8;i++)await window.__TAURI__.core.invoke('desktop_action',{action:'zoom_out'});await wait(250);
   const panelBounds=panel.getBoundingClientRect(),inputBounds=document.querySelector('#chat-input').getBoundingClientRect();
@@ -66,8 +71,8 @@
   assert(!document.querySelector('#chat-stop').hidden,'WebView exposes Stop during real generation');document.querySelector('#chat-stop').click();
   assert(document.querySelector('#chat-panel').dataset.state==='idle'&&!document.querySelector('#chat-retry').hidden,'WebView stops and offers Retry without losing partial reply');
   document.querySelector('#chat-retry').click();
-  for(let i=0;i<300&&document.querySelector('#chat-panel').dataset.state!=='idle';i++)await wait(100);
-  assert(document.querySelector('#chat-panel').dataset.state==='idle'&&JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.at(-1).status==='complete','Managed AI accepts Retry after cancellation');
+  for(let i=0;i<1250&&['thinking','replying'].includes(document.querySelector('#chat-panel').dataset.state);i++)await wait(100);
+  assert(document.querySelector('#chat-panel').dataset.state==='idle'&&JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.at(-1).status==='complete','Managed AI accepts Retry after cancellation · '+document.querySelector('#chat-status').textContent);
   document.querySelector('#chat-settings').click();await wait(250);
   document.querySelector('[data-settings-tab="companion"]').click();
   const sizeSlider=document.querySelector('[data-settings-page="companion"] [data-companion-size]'),studioWidth=innerWidth;
@@ -79,23 +84,31 @@
   assert(document.querySelector('#identity-summary').textContent.includes('female'),'Ruby identity includes gender');
   const results=await window.__TAURI__.core.invoke('internet_search',{query:'NASA Artemis program'});
   assert(results.length>0&&results.every(s=>s.url.startsWith('https://')),'Native internet search returns bounded real HTTPS sources');
-  document.querySelector('[data-settings-tab="voice"]').click();document.querySelector('#voice-download').click();
-  for(let i=0;i<1800&&document.querySelector('#voice-download').disabled;i++)await wait(100);
+  document.querySelector('[data-settings-tab="voice"]').click();
+  if(!(await window.__TAURI__.core.invoke('voice_pack_status')).installed)document.querySelector('#voice-download').click();
+  for(let i=0;i<6000&&document.querySelector('#voice-download').disabled;i++)await wait(100);
   assert((await window.__TAURI__.core.invoke('voice_pack_status')).installed,'VoiceM downloads and verifies inside the Windows app');
   const wav=await window.__TAURI__.core.invoke('voice_synthesize',{text:'Hello, I am Ruby. Your companion is ready.',gender:'female',pace:1});
   assert(wav.length>1000&&String.fromCharCode(...wav.slice(0,4))==='RIFF','Downloaded female VoiceM produces real WAV speech');
   const male=await window.__TAURI__.core.invoke('voice_synthesize',{text:'Hello, I am Saph.',gender:'male',pace:.96});
   assert(male.length>1000,'Downloaded male VoiceM produces real speech');
+  const voiceSelect=document.querySelector('#voice-select');assert([...voiceSelect.options].every(o=>o.value==='auto'||/^(af_|bf_)/.test(o.value)),'Female Companion only offers female VoiceM');
+  document.querySelector('[data-profile="jasper"]').click();await wait(150);assert([...voiceSelect.options].every(o=>o.value==='auto'||/^(am_|bm_)/.test(o.value)),'Male Companion only offers male VoiceM');
+  document.querySelector('[data-profile="ruby"]').click();await wait(150);
   document.querySelector('#voice-preview').click();for(let i=0;i<200&&stage.dataset.speaking!=='true';i++)await wait(100);
   assert(stage.dataset.speaking==='true','VoiceM preview starts actual audio playback');document.querySelector('#voice-stop').click();
   assert(stage.dataset.speaking==='false','Stop voice ends playback');
+  document.querySelector('[data-settings-tab="setup"]').click();await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'setup'});document.querySelector('#setup-run').click();
+  for(let i=0;i<300&&document.querySelector('#setup-run').disabled;i++)await wait(100);
+  assert(document.querySelector('#setup-status').textContent.startsWith('Ready'),'Recommended setup reuses installed LLM and VoiceM without starting duplicate processes');
+  assert(JSON.parse(localStorage.getItem('project-ruby.setup.v1')).preset==='recommended','Completed setup choices persist');
   document.querySelector('[data-settings-tab="llm"]').click();
   document.querySelector('#ai-pack-stop').click();await wait(300);
   assert((await window.__TAURI__.core.invoke('ai_pack_status')).phase==='stopped','Stop AI unloads the owned model process');
   document.querySelector('#settings-close').click();await wait(150);
   document.querySelector('#reset-preferences').click();await wait(300);
   document.querySelector('#physics-drop').click();await wait(1500);assert(stage.dataset.grounded==='true','Rigid Companion drops and lands on the Studio platform');
-  assert(document.querySelectorAll('#model-gallery [data-model]').length===5,'Gallery lists all five accepted bodies');
+  assert(document.querySelectorAll('#model-gallery [data-model]').length===6,'Gallery preserves five robots and adds the original Opal android');
   document.querySelector('[data-category="Professional"]').click();
   assert([...document.querySelectorAll('#model-gallery [data-model]')].filter(card=>!card.hidden).length===1,'Category filter shows matching bodies');
   document.querySelector('[data-model="office"]').click();
@@ -116,6 +129,7 @@
    stage.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:x,clientY:y,button:2}));
    assert(!menu.hidden,id+': mesh right-click opens bubble');
    assert(menu.querySelector('.menu-dismiss')&&!menu.textContent.includes('Close menu'),id+': interaction menu has a corner close control');
+   assert(menu.contains(document.querySelector('#chat-launcher'))&&menu.contains(document.querySelector('#settings-launcher')),id+': launchers only appear inside right-click menu');
    assert(menu.querySelector('[data-interaction="wave"]').disabled===(id==='classic'),id+': wave respects hands');
    menu.querySelector('[data-interaction="sleep"]').click();await wait(100);
    assert(menu.hidden&&document.querySelector('#status').textContent.includes('Sleepy'),id+': sleep action works');
@@ -123,6 +137,7 @@
    menu.querySelector('[data-interaction="wake"]').click();
    assert(document.querySelector('#status').textContent.includes('Curious'),id+': wake action works');
   }
+  document.querySelector('[data-profile="opal"]').click();await wait(300);await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'opal'});document.querySelector('[data-profile="ruby"]').click();select.value='gamer';select.dispatchEvent(new Event('change'));await wait(200);
   const r=stage.getBoundingClientRect(),x=r.left+r.width*.5,y=r.top+r.height*.45;
   stage.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerId:71,altKey:true,clientX:x,clientY:y}));
   window.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerId:71,clientX:x+40,clientY:y}));
@@ -141,7 +156,7 @@
   await window.__TAURI__.core.invoke('desktop_action',{action:'float'});await wait(250);
   assert(document.querySelector('#follow').checked,'Opening floating companion restores cursor tracking');
   assert(document.documentElement.classList.contains('floating'),'Native floating mode renders compact UI');
-  assert(getComputedStyle(document.querySelector('#floating-toolbar')).display==='none','Floating companion has no permanent toolbar frame');
+  assert(getComputedStyle(document.querySelector('#floating-toolbar')).display==='none'&&document.querySelector('#chat-launcher').getClientRects().length===0&&document.querySelector('#settings-launcher').getClientRects().length===0,'Floating companion has no permanent toolbar frame');
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'float'});await wait(2500);
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'look'});await wait(650);
   const globalPointer=JSON.parse(stage.dataset.globalPointer||'null');assert(globalPointer?.x<0&&globalPointer?.y>0,'Native gaze receives pointer outside the companion window');
@@ -189,5 +204,5 @@
   assert(!document.documentElement.classList.contains('floating'),'Native lab restores full controls');
   await action('float');await action('toggle_pin');await action('snap_right');await action('zoom_in');
   await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:true,details:checks.join('\n')});
- }catch(error){await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:false,details:checks.join('\n')+'\nFAIL: '+error.message});}
+ }catch(error){await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:false,details:checks.join('\n')+'\nFAIL: '+String(error.message||error)+'\nDiagnostics: '+JSON.stringify({chatState:document.querySelector('#chat-panel')?.dataset.state,status:document.querySelector('#chat-status')?.textContent,voice:document.querySelector('#voice-status')?.textContent,setup:document.querySelector('#setup-status')?.textContent,lastMessages:JSON.parse(localStorage.getItem('project-ruby.conversation.v1')||'null')?.messages?.slice(-2)})});}
 })();

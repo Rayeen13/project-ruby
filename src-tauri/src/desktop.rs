@@ -599,6 +599,7 @@ pub fn desktop_body(window: WebviewWindow, body: String) -> Result<(), String> {
         "chibi" => (320.0, 430.0),
         "office" => (310.0, 395.0),
         "gamer" => (360.0, 450.0),
+        "opal" => (320.0, 450.0),
         _ => return Err("Unknown Companion body".into()),
     };
     let state_handle = window.state::<Mutex<DesktopState>>();
