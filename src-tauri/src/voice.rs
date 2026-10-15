@@ -70,7 +70,11 @@ fn unicode_executable(original: &Path) -> Result<PathBuf, String> {
         }
     }
     fs::copy(original, &executable).map_err(|e| e.to_string())?;
-    let path: Vec<u16> = executable.as_os_str().encode_wide().chain(Some(0)).collect();
+    let path: Vec<u16> = executable
+        .as_os_str()
+        .encode_wide()
+        .chain(Some(0))
+        .collect();
     let manifest = include_bytes!("voice-utf8.manifest");
     // Only a Ruby-owned copy is modified. Keep every existing resource.
     unsafe {
