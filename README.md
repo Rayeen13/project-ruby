@@ -1,3 +1,9 @@
+## Focused fixes · v0.4.2
+
+Opal is now an original maid android with full swept hair, a frilled headband, apron, ceramic face seams and temple hardware. Speech starts with a short opening phrase, prepares only one phrase ahead and plays every phrase in order from sample zero. Stop waits for native cancellation before another request starts; long replies are no longer silently limited to 1,500 spoken characters. First-audio latency still depends on the CPU and Kokoro cold start.
+
+Personality now includes twelve selectable “-dere” archetypes alongside the original presets. Default speaker and pace follow the selected personality; an explicit VoiceM override is preserved. VoiceM preview accepts supported square-bracket or parenthesis delivery cues. Kokoro uses approximate interjections, pace and visual expressions; authentic emotional acting, laughter and groans require a future expressive VoiceM provider. Directions are not passed to Kokoro as spoken dialogue, and the compact LLM is not forced to generate tags.
+
 ## Setup and voice refresh · v0.4.1
 
 Right-click the Companion to reveal shimmering Talk and Settings controls. The floating desktop stays clear until you ask for an action. Keyboard users can focus the Companion and press Shift+F10.

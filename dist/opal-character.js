@@ -4,28 +4,43 @@ import {RubyCharacter} from './character.js';
 export class OpalCharacter extends RubyCharacter {
  build(){
   this.head.position.y=1.9;
-  this.skin=new T.MeshToonMaterial({color:0xf4d8ce});
+  this.skin=new T.MeshToonMaterial({color:0xe0e5ef});
   this.hair=new T.MeshToonMaterial({color:0x313449});
   this.coat=new T.MeshToonMaterial({color:0xe5e7f0});
   this.shell.color.set(0x323c52);this.armor.color.set(0xe5e7f0);
-  // Rounded face, asymmetric silver-violet bob and a gem hair clasp.
-  this.sphere(this.head,1,this.hair,[0,.03,-.09],[.54,.61,.43]);
+  // Full, overlapping bob and swept fringe; every lock is a closed solid.
+  this.sphere(this.head,1,this.hair,[0,.04,-.075],[.54,.61,.44]);
   this.sphere(this.head,1,this.skin,[0,-.025,.10],[.435,.52,.35]);
+  const streak=new T.MeshToonMaterial({color:0x969bc9});
   for(const side of [-1,1]){
-   this.sphere(this.head,1,this.hair,[side*.43,-.1,-.01],[.115,.51,.31]);
-   this.sphere(this.head,.09,this.skin,[side*.43,-.04,.12],[.65,1,.7]);
+   const bob=this.sphere(this.head,1,this.hair,[side*.43,-.075,-.015],[.12,.52,.32]);bob.rotation.z=-side*.09;
+   const ear=this.mesh(this.head,new T.CylinderGeometry(.105,.105,.045,24),this.shell,[side*.56,-.07,.015]);ear.rotation.z=Math.PI/2;
+   const port=this.mesh(this.head,new T.TorusGeometry(.065,.012,8,24),this.accent,[side*.587,-.07,.015]);port.rotation.y=Math.PI/2;
+   this.bar(this.head,[side*.37,-.18,.324],[side*.30,-.32,.335],.009,this.shell);
+   this.bar(this.head,[side*.30,-.32,.335],[side*.23,-.35,.35],.006,this.accent);
   }
-  for(let i=0;i<6;i++){
-   const lock=this.mesh(this.head,new T.ConeGeometry(.14,.46,4),i===1?this.coat:this.hair,[-.35+i*.135,.25,.33]);lock.rotation.z=Math.PI+.15;lock.scale.z=.4;
+  for(const [x,y,rz] of [[-.31,.32,-.28],[-.145,.35,-.35],[.035,.36,-.38],[.225,.36,-.30]]){
+   const lock=this.sphere(this.head,1,this.hair,[x,y,.335],[.155,.265,.165]);lock.rotation.z=rz;
+  }
+  const highlight=this.sphere(this.head,1,streak,[-.25,.37,.477],[.025,.17,.018]);highlight.rotation.z=-.32;
+  // Maid headband sits over the full hair volume; frills are closed solids for export.
+  for(let i=0;i<9;i++){
+   const a=.18+(Math.PI-.36)*i/8;
+   const frill=this.sphere(this.head,1,this.coat,[Math.cos(a)*.46,.24+Math.sin(a)*.40,.12],[.065,.078,.045]);frill.rotation.z=a-Math.PI/2;
   }
   const clasp=this.mesh(this.head,new T.OctahedronGeometry(.095),this.accent,[.46,.15,.25]);clasp.scale.z=.4;
   const face=this.mesh(this.head,new T.PlaneGeometry(.77,.45),new T.MeshBasicMaterial({map:this.faceTex,transparent:true,depthWrite:false}),[0,-.055,.448]);face.castShadow=false;
-  // Short flight jacket, angular tunic and ankle boots, with a fully solid core for printing.
+  this.mesh(this.body,new T.CylinderGeometry(.12,.13,.20,20),this.dark,[0,1.43,0]);
+  this.mesh(this.body,new T.TorusGeometry(.125,.018,8,24),this.accent,[0,1.40,0]).rotation.x=Math.PI/2;
+  // Original android maid uniform: dark dress, white bib/apron and mechanical boots.
   this.sphere(this.body,1,this.dark,[0,1.04,0],[.30,.39,.23]);
-  this.box(this.body,.65,.43,.43,.10,this.coat,[0,1.13,0]);
-  this.box(this.body,.07,.38,.04,.01,this.dark,[0,1.13,.24]);
+  this.box(this.body,.65,.43,.43,.10,this.dark,[0,1.13,0]);
+  this.box(this.body,.38,.33,.06,.06,this.coat,[0,1.10,.24]);
+  for(const side of [-1,1]){const collar=this.box(this.body,.13,.16,.045,.025,this.coat,[side*.09,1.33,.245]);collar.rotation.z=side*.4;}
+  this.box(this.body,.16,.06,.045,.02,this.dark,[0,1.25,.30]);
   this.mesh(this.body,new T.OctahedronGeometry(.07),this.accent,[0,1.25,.28]);
-  this.mesh(this.body,new T.CylinderGeometry(.29,.39,.32,8),this.dark,[0,.76,0]);
+  this.mesh(this.body,new T.CylinderGeometry(.29,.39,.32,12),this.dark,[0,.76,0]);
+  this.box(this.body,.43,.28,.07,.06,this.coat,[0,.78,.36]);
   this.arms=[];this.feet=[];
   for(const side of [-1,1]){
    const arm=new T.Group(),forearm=new T.Group(),hand=new T.Group();this.body.add(arm);arm.add(forearm);forearm.add(hand);this.arms.push({arm,forearm,hand,side});

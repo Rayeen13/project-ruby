@@ -1,5 +1,7 @@
 ## Current follow-up · Setup and voice quality
 
+- v0.4.2 focus: Opal hair/head correction, ordered short-phrase speech, sample-zero playback and cancellation isolation. Target-laptop audition remains required.
+
 - v0.4.1: natural identity prompts, hidden-until-requested floating controls, Recommended/Custom/Pro/Lite setup, matched Kokoro VoiceM choices, Jasper and Jet male identities, original sarcastic Opal android.
 - v0.4.1 release gate passed on Windows: download/cancel/cache reuse, real-model self-introduction, female/male synthesis and actual preview/Stop, matching voice filters, platform collision, context-menu controls, native carrying, global gaze, pin/peek and restart persistence. Shared Node 22/24 checks pass on Windows/Linux. The public website now uses the same rendering budget as the tested Windows build.
 - Next quality gate: audition voices on the owner’s RTX 2050 laptop, compare stronger compact LLMs on natural conversation, measure first-audio latency, and refine Opal’s art with real screenshots. Functional WAV generation alone is not a voice-quality approval.

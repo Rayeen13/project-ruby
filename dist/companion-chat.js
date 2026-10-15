@@ -39,7 +39,7 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
  el('content-mode').onchange=()=>{state.data.content=el('content-mode').value;state.save();renderMemory();};el('memory-enabled').onchange=()=>{state.data.remember=el('memory-enabled').checked;state.save();renderMemory();};
  el('memory-form').onsubmit=event=>{event.preventDefault();state.remember(el('memory-input').value);el('memory-input').value='';renderMemory();};el('memory-clear').onclick=()=>{state.forget();renderMemory();};el('memory-export').onclick=()=>downloadJson('ruby-companion.json',state.export());
  el('google-ai-open').onclick=()=>{const query=input.value.trim()||lastQuery||[...chat.messages].reverse().find(m=>m.role==='user')?.content||'';if(!query){el('chat-status').textContent='Write a question first.';return;}void openLink(googleAiUrl(query)).catch(error=>{el('chat-status').textContent=String(error);});};
- voice=mountVoice({document,state,identity,onSpeaking:value=>{onState(value?'speaking':chat.state);document.querySelector('#stage').dataset.speaking=String(value);}});
+ voice=mountVoice({document,state,identity,onCue:cue=>onExpression(cue.mood),onSpeaking:value=>{onState(value?'speaking':chat.state);document.querySelector('#stage').dataset.speaking=String(value);}});
  renderMemory();
  function render(){
   const nearBottom=log.scrollHeight-log.scrollTop-log.clientHeight<45;
@@ -72,7 +72,7 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
  engineSelect.onchange=()=>{chat.stop();voice.stop();model.replaceChildren();const engine=engineFor(engineSelect.value);if(globalThis.__TAURI__)provider.engine=engine.id;else provider.base=engine.base;el('chat-engine-note').textContent=engineNote(engine);el('ai-pack-section').hidden=!globalThis.__TAURI__||engine.id!=='ruby';chat.error='';chat.state='idle';render();};
  el('chat-engine-note').textContent=engineNote(engineFor(engineSelect.value));
  el('chat-connect').onclick=connect;el('chat-stop').onclick=()=>{chat.stop();voice.stop();};el('chat-retry').onclick=()=>chat.retry(model.value);
- el('chat-form').onsubmit=async event=>{event.preventDefault();const text=input.value;if(!text.trim()||chat.active)return;if(!model.value){await settings();el('chat-status').textContent='Connect an LLM in Settings.';return;}voice.stop();input.value='';await chat.send(text,model.value);input.focus({preventScroll:true});};
+ el('chat-form').onsubmit=async event=>{event.preventDefault();const text=input.value;if(!text.trim()||chat.active)return;if(!model.value){await settings();el('chat-status').textContent='Connect an LLM in Settings.';return;}voice.unlock();voice.stop();input.value='';await chat.send(text,model.value);input.focus({preventScroll:true});};
  el('chat-clear').onclick=()=>{voice.stop();chat.clear();input.value='';};
  el('chat-export').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({version:1,messages:chat.messages},null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='ruby-conversation.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
  mountAiPack({tauri:globalThis.__TAURI__,document,onReady:connect,onBusy:value=>{packBusy=value;engineSelect.disabled=value||!!chat.active;},onStop:()=>{chat.stop();model.replaceChildren();render();}});
