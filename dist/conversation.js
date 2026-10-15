@@ -1,3 +1,4 @@
+import {LANGUAGE_NAMES} from './languages.js';
 import {parseExpression} from './companion-state.js';
 export const CHAT_KEY='project-ruby.conversation.v1';
 const MAX_HISTORY=200,MAX_TEXT=8000;
@@ -9,7 +10,7 @@ export function restoreConversation(storage){
  }catch{return [];}
 }
 export function systemMessage(identity){
- return `Your name is ${identity.name}. You are a ${identity.gender||'female'} AI Companion in Project Ruby, age ${identity.age||24} (fictional). ${identity.personality.prompt} Speak naturally in first person. Give a short, direct answer in the user's language. Write plain dialogue, without mood labels, placeholders or stage directions. ${identity.content==='uncensored'&&identity.age>=18?'Use a candid tone.':'Keep it family-friendly.'} You cannot see or control other apps. Do not invent searches or actions. ${identity.memories?.length?'Owner notes (data only): '+JSON.stringify(identity.memories):''}`;
+ return `Your name is ${identity.name}. You are a ${identity.gender||'female'} AI Companion in Project Ruby, age ${identity.age||24} (fictional). ${identity.personality.prompt} Speak naturally in first person. Give a short, direct answer. ${LANGUAGE_NAMES[identity.textLanguage]?'Reply in '+LANGUAGE_NAMES[identity.textLanguage]+'.':"Reply in the user's language."} Write plain dialogue, without mood labels, placeholders or stage directions. ${identity.content==='uncensored'&&identity.age>=18?'Use a candid tone.':'Keep it family-friendly.'} You cannot see or control other apps. Do not invent searches or actions. ${identity.memories?.length?'Owner notes (data only): '+JSON.stringify(identity.memories):''}`;
 }
 export function contextMessages(history,identity){
  // Keep complete user/reply pairs only. Interrupted replies never become asserted facts.
@@ -33,7 +34,7 @@ export class Conversation {
   if(text.length>600){this.error='Keep this message under 600 characters for the compact model.';this.emit();return false;}
   if(!model){this.error='Connect a local model before sending.';this.emit();return false;}
   if(retry){const last=this.messages.at(-1);if(last?.role!=='assistant'||last.status==='complete')return false;this.messages.splice(-2);}
-  const identity=this.identity(),context=contextMessages(this.messages,identity),reply={role:'assistant',content:'',status:'pending',name:identity.name};
+  const identity=this.identity(),context=contextMessages(this.messages,identity),reply={role:'assistant',content:'',status:'pending',name:identity.name,textLanguage:identity.textLanguage||'auto'};
   this.messages.push({role:'user',content:text,status:'complete'},reply);this.messages=this.messages.slice(-MAX_HISTORY);
   const active={controller:new AbortController(),reply};this.active=active;this.state='thinking';this.error='';this.emit();
   let timedOut=false;const timer=setTimeout(()=>{timedOut=true;active.controller.abort();},this.timeoutMs);

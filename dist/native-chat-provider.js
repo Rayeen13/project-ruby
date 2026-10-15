@@ -6,12 +6,13 @@ export class NativeChatProvider {
  async *stream({messages,model,signal}){
   if(signal.aborted)throw new DOMException('Stopped','AbortError');
   const requestId=++sequence,queue=[];let done=false,failure=null,wake=()=>{};
+  let invocation=Promise.resolve();
   const unlisten=await this.tauri.event.listen('ruby-chat-chunk',event=>{if(event.payload?.requestId===requestId&&!signal.aborted){if(event.payload.done)done=true;else if(typeof event.payload.text==='string')queue.push(event.payload.text);wake();}});
   const cancel=()=>this.tauri.core.invoke('local_ai_cancel',{requestId}).catch(()=>{});
   const abort=()=>{done=true;wake();void cancel();};signal.addEventListener('abort',abort,{once:true});
   try{
    if(signal.aborted)throw new DOMException('Stopped','AbortError');
-   void this.tauri.core.invoke('local_ai_chat',{requestId,messages,model,engine:this.engine}).then(()=>{},error=>{failure=new Error(String(error));done=true;wake();});
+   invocation=this.tauri.core.invoke('local_ai_chat',{requestId,messages,model,engine:this.engine}).then(()=>{},error=>{failure=new Error(String(error));done=true;wake();});
    while(!done||queue.length){
     if(signal.aborted)throw new DOMException('Stopped','AbortError');
     if(queue.length){yield queue.shift();continue;}
@@ -19,6 +20,6 @@ export class NativeChatProvider {
    }
    if(signal.aborted)throw new DOMException('Stopped','AbortError');
    if(failure)throw failure;
-  }finally{signal.removeEventListener('abort',abort);await cancel();unlisten();}
+  }finally{signal.removeEventListener('abort',abort);await cancel();await invocation;unlisten();}
  }
 }

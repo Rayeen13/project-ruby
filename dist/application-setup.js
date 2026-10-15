@@ -1,4 +1,5 @@
-import {voicesFor,selectedVoice} from './voice-catalogue.js';
+import {voicePackFor} from './languages.js';
+import {voicesFor,selectedVoice,voiceChoiceKey} from './voice-catalogue.js';
 export const SETUP_KEY='project-ruby.setup.v1';
 export const SETUP_PRESETS=Object.freeze([
  {id:'recommended',name:'Recommended',tag:'Ready to chat',detail:'Compact offline LLM + Kokoro voices. About 827 MB to download on Windows; installed files are reused.'},
@@ -32,13 +33,13 @@ export function mountApplicationSetup({document,storage,tauri,state,identity,eng
    }
    if(cancelled)return;
    if(preset!=='lite'){
-    if(!tauri)throw new Error('LLM connected. Matched Kokoro VoiceM requires the Windows app.');
-    status('Preparing Kokoro VoiceM · verified installed files are reused…');const voiceStatus=await tauri.core.invoke('voice_pack_status');if(cancelled)return;if(!voiceStatus.installed)await tauri.core.invoke('voice_pack_download');if(cancelled)return;
-    if(['custom','pro'].includes(preset))state.data.voiceChoices[identity().profile]=chosenVoice;
+    if(!tauri)throw new Error('LLM connected. Matched VoiceM requires the Windows app.');
+    status('Preparing selected VoiceM · verified installed files are reused…');const voiceStatus=await tauri.core.invoke('voice_pack_status',{pack:voicePackFor(identity())});if(cancelled)return;if(!voiceStatus.installed)await tauri.core.invoke('voice_pack_download',{pack:voicePackFor(identity()),acceptLicense:state.data.supertonicTerms});if(cancelled)return;
+    if(['custom','pro'].includes(preset))state.data.voiceChoices[voiceChoiceKey(identity())]=chosenVoice;
    }
    if(cancelled)return;state.data.speak=preset!=='lite';state.save();el('voice-enabled').checked=state.data.speak;refreshVoice();
    try{storage?.setItem(SETUP_KEY,JSON.stringify({version:1,preset,engine:engineSelect.value,model:modelSelect.value,completedAt:new Date().toISOString()}));}catch{}
-   status('Ready · '+identity().name+' can chat'+(state.data.speak?' and speak offline. Preview her or his voice in VoiceM settings.':'. Add a VoiceM whenever you like.'));el('setup-open-chat').hidden=false;
+   status('Ready · '+identity().name+' can chat'+(state.data.speak?' and speak offline. Preview the voice in Voice & language settings.':'. Add a VoiceM whenever you like.'));el('setup-open-chat').hidden=false;
   }catch(error){status(cancelled?'Setup stopped. Completed downloads are kept; Set up retries missing components.':String(error.message||error));}
   finally{el('setup-progress').hidden=true;if(cancelled)status('Setup stopped. Completed downloads are kept; Set up retries missing components.');busy=false;onBusy(false);el('setup-run').disabled=false;el('setup-cancel').hidden=true;el('setup-presets').inert=false;el('setup-custom').inert=false;}
  };

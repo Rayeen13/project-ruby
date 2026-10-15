@@ -12,8 +12,18 @@ concurrency:
   group: desktop-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  format:
+    name: Native formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
   windows:
     name: Windows x64 installer
+    needs: format
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -44,7 +54,7 @@ jobs:
         with:
           path: ~/AppData/Local/io.github.rayeen13.projectruby/kokoro-smoke-v1
           key: windows-ruby-kokoro-v1-int8-sherpa-1.12.15
-      - name: Verify native Kokoro download and synthesis independently
+      - name: Verify offline English, Chinese and Japanese synthesis independently
         shell: pwsh
         run: ./scripts/windows-voice-smoke.ps1
       - name: Exercise actual Windows WebView and native window
@@ -85,8 +95,9 @@ jobs:
           Copy-Item docs/WINDOWS.md desktop-artifact/README.md
           Copy-Item src-tauri/Cargo.lock desktop-artifact/
           Copy-Item ruby-native-smoke.txt desktop-artifact/
-          Copy-Item ruby-native-female.wav,ruby-native-male.wav,ruby-native-voice.txt desktop-artifact/
-          Copy-Item ruby-native-menu.png,ruby-native-float.png,ruby-native-dizzy.png,ruby-native-chat.png,ruby-native-chat_lab.png,ruby-native-setup.png,ruby-native-opal.png desktop-artifact/
+          Copy-Item ruby-native-*.wav,ruby-native-voice.txt desktop-artifact/
+          Copy-Item docs/licenses/SUPERTONIC3-OPENRAIL-M.txt desktop-artifact/
+          Copy-Item ruby-native-menu.png,ruby-native-float.png,ruby-native-dizzy.png,ruby-native-chat.png,ruby-native-chat_lab.png,ruby-native-setup.png,ruby-native-opal.png,ruby-native-languages.png desktop-artifact/
           Copy-Item ruby-native-carry.txt,ruby-native-pin.txt,ruby-native-zoom.txt,ruby-native-frame.txt desktop-artifact/
           Copy-Item ruby-native-left.png,ruby-native-right.png,ruby-native-zoom_view.png desktop-artifact/
           Get-ChildItem desktop-artifact/*.exe | Get-FileHash -Algorithm SHA256 | Format-List | Out-File desktop-artifact/SHA256.txt

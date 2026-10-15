@@ -1,5 +1,8 @@
 ## Current follow-up · Setup and voice quality
 
+- v0.4.3: independent text/voice languages, local LangM reuse or selected local model, shared English/Chinese Kokoro and optional original Japanese/English Supertonic 3 collection. Downloads are pinned and verified; model terms travel with the pack. Language correctness, voice audition and first-audio timing remain acceptance gates.
+- Terminology: Companion = 3D character; LLM = conversation model; VoiceM = speech model; LangM = translation model. Keep inference local by default and avoid additional LangM downloads when the selected LLM can translate.
+
 - v0.4.2 focus: Opal hair/head correction, ordered short-phrase speech, sample-zero playback and cancellation isolation. Target-laptop audition remains required.
 
 - v0.4.1: natural identity prompts, hidden-until-requested floating controls, Recommended/Custom/Pro/Lite setup, matched Kokoro VoiceM choices, Jasper and Jet male identities, original sarcastic Opal android.
@@ -13,7 +16,7 @@
 
 Project Ruby is an ADICE (Artificial Digital Intelligent Companion Entity) companion product. Its first release combines an expressive robot, conversation, and explicitly enabled desktop actions. Project Kurumi continues as a separate character/research project; shared components can be extracted when both projects need them.
 
-Terminology: **Companion = 3D mesh character**, **LLM = intelligence model**, **VoiceM = voice synthesis model**. Keep these terms in UI, plugin contracts and documentation.
+Terminology: **Companion = 3D mesh character**, **LLM = intelligence model**, **VoiceM = voice synthesis model**, **LangM = local translation model**. Keep these terms in UI, plugin contracts and documentation.
 
 The current milestone is **Companion Studio v0.4.1**: five preserved robot bodies plus the original Opal android, gem identities, expressions, personality, persistent owner notes, independent chat/Settings, managed local LLM download, sourced internet lookup and downloadable English VoiceM with preview/speech. Windows Studio uses native window chrome; floating Companion remains frameless with body-specific bounds and preset sizes. Google AI Mode is a browser shortcut, not a hidden answer API. Content preference is prompt-level, not a guarantee of LLM compliance. Microphone input, screen vision, desktop input control, native mobile widgets and world physics remain open. Windows CI exercises actual WebView/process behavior; physical-device acceptance remains required.
 

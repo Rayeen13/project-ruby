@@ -14,7 +14,7 @@ const cues={
 };
 const aliases={soft:'softly',whispers:'whisper',whispering:'whisper',sighs:'sigh',sighing:'sigh',chuckles:'chuckle',chuckling:'chuckle',laughs:'laugh',laughing:'laugh',groans:'groan',groaning:'groan',gasps:'gasp',gasping:'gasp',cheerfully:'happy',deadpan:'sarcastic',pauses:'pause'};
 export function speechCue(value){let id=value.toLowerCase().trim().replace(/\s+/g,' ');id=aliases[id]||id;return cues[id]?{id,...cues[id]}:null;}
-export function speechPlan(text){
+export function speechPlan(text,{first=100,rest=220}={}){
  const segments=[];let buffer='',cue=null;
  const flush=()=>{if(buffer.trim()){segments.push({text:buffer,cue});buffer='';}};
  for(const part of String(text).split(/(\[[^\]\n]{1,48}\]|\([^()\n]{1,48}\))/g)){
@@ -22,6 +22,6 @@ export function speechPlan(text){
   if(next){flush();cue=next;if(cue.vocal)buffer+=cue.vocal;}else buffer+=part;
  }
  flush();const plan=[];
- for(const segment of segments)for(const text of speechChunks(segment.text,{first:plan.length?220:100,rest:220}))plan.push({text,cue:segment.cue});
+ for(const segment of segments)for(const text of speechChunks(segment.text,{first:plan.length?rest:first,rest}))plan.push({text,cue:segment.cue});
  return plan;
 }

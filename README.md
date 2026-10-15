@@ -1,3 +1,13 @@
+## Offline language choices · v0.4.3
+
+**LangM** is the local translation model, separate from the LLM (conversation) and VoiceM (speech). Settings → Voice & language lets you choose text and spoken languages independently, including English text with Japanese voice-over. LangM translates only each spoken phrase and leaves displayed chat untouched. It reuses the selected local LLM by default, with no extra model download or cloud API; advanced settings can select another model in a local engine. A multilingual model is required for useful translation. The compact default may translate poorly or fail language validation; it is not a professional translation guarantee.
+
+English/Chinese speech uses the shared Kokoro pack. The original character collection uses Supertonic 3 for Japanese or English (about 154 MB including its pinned Windows CPU runtime). Choose a language/collection, accept its model terms where required, download once and preview. Japanese presets are original style presets, not copies of anime characters or actors. Voice previews use native-language sample lines without needing LangM; custom lines and cross-language replies use LangM when necessary. Voice choices are saved per Companion, language and pack.
+
+Supertonic 3 weights and preset styles use OpenRAIL-M, which permits commercial use subject to its distribution and use conditions. The app shows those terms before download and retains the full model licence with installed files. The runtime is Sherpa-ONNX v1.13.8; component notices remain separate. Sources: [publisher model card](https://huggingface.co/Supertone/supertonic-3), [model terms](https://huggingface.co/Supertone/supertonic-3/blob/main/LICENSE), [pinned runtime](https://github.com/k2-fsa/sherpa-onnx/tree/v1.13.8). Chinese Kokoro support follows [Sherpa documentation](https://k2-fsa.github.io/sherpa/onnx/tts/all/Chinese-English/kokoro-multi-lang-v1_0.html).
+
+Everything in this flow runs locally after explicit component downloads. Speech work is bounded to two CPU threads and one phrase of prefetch. Cross-language speech adds translation latency; matching languages skips LangM. Hardware performance and subjective voice quality still need device testing. Optional internet search remains explicitly opt-in.
+
 ## Focused fixes · v0.4.2
 
 Opal is now an original maid android with full swept hair, a frilled headband, apron, ceramic face seams and temple hardware. Speech starts with a short opening phrase, prepares only one phrase ahead and plays every phrase in order from sample zero. Stop waits for native cancellation before another request starts; long replies are no longer silently limited to 1,500 spoken characters. First-audio latency still depends on the CPU and Kokoro cold start.
@@ -10,7 +20,7 @@ Right-click the Companion to reveal shimmering Talk and Settings controls. The f
 
 Settings → Setup offers Recommended (offline LLM + Kokoro VoiceM), Custom (choose your engine, loaded model and matched voice), Pro (your stronger existing local LLM + Kokoro), and Lite (text-only). Pro is a configuration preset, not a paid tier. Downloads are explicit, cancellable and checksum verified; verified complete files are reused. Recommended downloads about 827 MB on Windows. Allow approximately 1.5 GB free disk space for downloaded archives and extracted files; optional LLMs can need considerably more. The installer itself remains small.
 
-Kokoro replaces the VCTK default. Heart, Bella, Sarah and Emma are female choices; Michael, Fenrir, Puck and George are male choices. Defaults and overrides follow the selected Companion; cross-gender voice requests are rejected by the native host. All eight voices share one approximately 316 MB pack. English synthesis is supported in this release. Preview lets you audition the voice; quality and speed depend on hardware and text. No pitch-shifted device voice is silently substituted on the website.
+Kokoro replaces the VCTK default. Heart, Bella, Sarah and Emma are female choices; Michael, Fenrir, Puck and George are male choices. Defaults and overrides follow the selected Companion; cross-gender voice requests are rejected by the native host. All eight voices share one approximately 316 MB pack. English and Chinese synthesis share this pack. Preview lets you audition the voice; quality and speed depend on hardware and text. No pitch-shifted device voice is silently substituted on the website.
 
 The gem cast adds Jasper (male, gaming), Jet (male, office) and Opal (female, dry wit). Opal has an original procedural toon android body; the five accepted robot bodies remain unchanged. Identity, body, personality, LLM and VoiceM remain separate modules. Existing owner memories and conversations are preserved. Older malformed replies are excluded from LLM context.
 
@@ -34,7 +44,7 @@ Open http://localhost:8080. Run `npm test` for animation clearance checks.
 
 ## Companion Studio · v0.4
 
-**Companion** means the 3D character; **LLM** means the language model; **VoiceM** means the speech model. These are independent modules. Changing an LLM does not change a Companion's identity or owner notes.
+**Companion** means the 3D character; **LLM** means the language model; **VoiceM** means the speech model; **LangM** means the local translation model. These are independent modules. Changing an LLM does not change a Companion's identity or owner notes.
 
 Studio uses a native Windows title bar and an orbital vector interface. The desktop Companion remains transparent and frameless. Conversation and Settings reserve separate space beside the visible Companion. LLM downloads, engine/model choices, content style, memory and VoiceM live in Settings. The mesh interaction menu has a top-right ×. Studio has gravity and a static support collider for each rigid Companion body, plus a drop test. Floating wheel zoom selects Small, Medium, Large or Extra large; the host uses body-specific bounds.
 
@@ -106,4 +116,4 @@ Windows v0.4.1: open **Conversation** from the tray or Studio, or right-click th
 
 The AI engine selector also connects to existing local Ollama, LM Studio, Colibri, vLLM and MoE-Infinity OpenAI-compatible servers. These optional connections do not install their frameworks or large models. The website remains a browser demo connecting to an already running local server, subject to browser local-network restrictions.
 
-See [docs/AI_ENGINES.md](docs/AI_ENGINES.md) for the runtime review, precise integration boundaries and setup. English VoiceM speech and sourced internet search are implemented. Microphone input, interruption, multilingual speech and PC task execution remain future work.
+See [docs/AI_ENGINES.md](docs/AI_ENGINES.md) for the runtime review, precise integration boundaries and setup. English, Japanese and Chinese VoiceM speech, local LangM and sourced internet search are implemented. Microphone input, full-duplex interruption and PC task execution remain future work.

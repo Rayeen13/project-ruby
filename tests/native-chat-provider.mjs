@@ -3,7 +3,7 @@ import {NativeChatProvider} from '../dist/native-chat-provider.js';
 let listener,request,resolveRequest,unlistened=false,cancelled=[];
 const tauri={event:{async listen(name,callback){assert.equal(name,'ruby-chat-chunk');listener=callback;return ()=>{unlistened=true;};}},core:{async invoke(command,args){
  if(command==='local_ai_models')return ['qwen-local'];
- if(command==='local_ai_cancel'){cancelled.push(args.requestId);return;}
+ if(command==='local_ai_cancel'){cancelled.push(args.requestId);resolveRequest?.();return;}
  request=args;await new Promise(resolve=>{resolveRequest=resolve;});
 }}};
 const provider=new NativeChatProvider(tauri);assert.deepEqual(await provider.models(),['qwen-local']);
