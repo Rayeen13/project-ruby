@@ -14,7 +14,7 @@ Voice sources: [Kokoro publisher](https://huggingface.co/hexgrad/Kokoro-82M), [p
 
 # Project Ruby
 
-A desktop-companion prototype with five procedural 3D robot bodies, gem colour profiles, cursor tracking and expressive animation. Built with Three.js and browser JavaScript; a first Windows desktop shell is available as a build preview; Windows v0.4 downloads and runs local LLM and VoiceM packs, with optional existing-server connections, sourced internet answers and independent Companion/chat/Settings views. Microphone input and OS automation are future work.
+A desktop-companion prototype with five procedural 3D robot bodies and an original Opal android, gem colour profiles, cursor tracking and expressive animation. Built with Three.js and browser JavaScript; a first Windows desktop shell is available as a build preview; Windows v0.4 downloads and runs local LLM and VoiceM packs, with optional existing-server connections, sourced internet answers and independent Companion/chat/Settings views. Microphone input and OS automation are future work.
 
 ## Run locally
 
@@ -36,7 +36,7 @@ Ruby, Emme and Amy are female characters; Saph is male. Adult profiles have fict
 
 Online mode uses bounded search excerpts and source links (Windows: Bing RSS; browser: Wikipedia API, subject to network/CORS availability). Explicit search commands support follow-up queries. Queries go to the search service; stored owner notes and full history do not. Google AI Mode opens the question in your browser; Ruby does not scrape or import its answers. Search failures are shown explicitly. A compact LLM can still misunderstand evidence; check the sources.
 
-VoiceM Settings offers a one-time verified ~100 MB English Piper/VCTK pack, male/female preview, automatic gem matching, body/personality pace, optional spoken replies and Stop. It runs locally on CPU as a separate process. Device speech is an optional fallback where an offline voice exists. No microphone input or voice cloning is included. Content modes choose family-friendly or candid tone; they cannot disable an LLM's own restrictions.
+VoiceM Settings offers a one-time verified ~316 MB Kokoro/Sherpa pack, matched female/male previews, per-Companion choices, personality pace, optional spoken replies and Stop. It runs locally on CPU as a separate process. Matched speech requires the Windows pack; the website does not substitute an unverified device voice. No microphone input or voice cloning is included. Content modes choose family-friendly or candid tone; they cannot disable an LLM's own restrictions.
 
 See [docs/COMPANION_STUDIO.md](docs/COMPANION_STUDIO.md) for architecture, voice attribution, references and validation limits.
 
@@ -88,7 +88,7 @@ See [docs/OFFLINE_MODELS.md](docs/OFFLINE_MODELS.md) for the commercial-use weig
 
 ### Companion collection and carry reactions
 
-Browse the five bodies by category, choose gem colour and a saved personality for each body, then hold/drag the mesh to carry it. A deliberate shake produces spiral eyes and orbiting stars, with automatic recovery. Floating Windows mode is frameless and toolbar-free; right-click the companion or use its tray for desktop controls. Background or Alt-drag still orbits the lab view. See [the interaction guide](docs/COMPANION_INTERACTIONS.md). Chat and voice are not connected by this visual interaction update.
+Browse the six bodies by category, choose gem colour and a saved personality for each body, then hold/drag the mesh to carry it. A deliberate shake produces spiral eyes and orbiting stars, with automatic recovery. Floating Windows mode is frameless and toolbar-free; right-click the companion or use its tray for desktop controls. Background or Alt-drag still orbits the lab view. See [the interaction guide](docs/COMPANION_INTERACTIONS.md). Typed chat and downloadable VoiceM speech are connected through independent provider modules.
 
 ## Local conversation
 
