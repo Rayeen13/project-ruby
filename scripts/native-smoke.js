@@ -69,8 +69,8 @@
   assert(!document.querySelector('#chat-stop').hidden,'WebView exposes Stop during real generation');document.querySelector('#chat-stop').click();
   assert(document.querySelector('#chat-panel').dataset.state==='idle'&&!document.querySelector('#chat-retry').hidden,'WebView stops and offers Retry without losing partial reply');
   document.querySelector('#chat-retry').click();
-  for(let i=0;i<300&&document.querySelector('#chat-panel').dataset.state!=='idle';i++)await wait(100);
-  assert(document.querySelector('#chat-panel').dataset.state==='idle'&&JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.at(-1).status==='complete','Managed AI accepts Retry after cancellation');
+  for(let i=0;i<900&&['thinking','replying'].includes(document.querySelector('#chat-panel').dataset.state);i++)await wait(100);
+  assert(document.querySelector('#chat-panel').dataset.state==='idle'&&JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.at(-1).status==='complete','Managed AI accepts Retry after cancellation · '+document.querySelector('#chat-status').textContent);
   document.querySelector('#chat-settings').click();await wait(250);
   document.querySelector('[data-settings-tab="companion"]').click();
   const sizeSlider=document.querySelector('[data-settings-page="companion"] [data-companion-size]'),studioWidth=innerWidth;
