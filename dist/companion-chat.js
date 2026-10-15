@@ -1,4 +1,4 @@
-import {mountApplicationSetup} from './application-setup.js';
+import {SETUP_KEY,mountApplicationSetup} from './application-setup.js';
 import {CompanionState,parseExpression} from './companion-state.js';
 import {searchInternet,searchQuery,googleAiUrl} from './internet-provider.js';
 import {mountVoice} from './voice-provider.js';
@@ -14,6 +14,8 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
  const engineNote=engine=>!globalThis.__TAURI__&&engine.id==='ruby'?'Download offline AI inside the Windows app → Settings → LLM → Download AI. This website connects to the running server on your device.':engine.note;
  const engineSelect=el('chat-engine');
  for(const engine of AI_ENGINES){const option=document.createElement('option');option.value=engine.id;option.textContent=engine.name;engineSelect.append(option);}
+ let savedSetup;try{savedSetup=JSON.parse(storage?.getItem(SETUP_KEY)||'null');}catch{}
+ if(AI_ENGINES.some(e=>e.id===savedSetup?.engine)){engineSelect.value=savedSetup.engine;if(globalThis.__TAURI__)provider.engine=engineSelect.value;else provider.base=engineFor(engineSelect.value).base;}
  const chat=new Conversation({provider,storage,identity,onChange:render,prepare:async(text,{signal,history})=>{
   state.observe(text);onExpression(state.data.emotion);renderMemory();
   if(!el('internet-enabled').checked&&!/^(?:please\s+)?(?:search|look up)\b/i.test(text))return;
@@ -57,7 +59,7 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
  }
  async function connect(){
   if(connecting||chat.active)return;connecting=new AbortController();const controller=connecting,timer=setTimeout(()=>controller.abort(),10000);el('chat-connect').disabled=true;el('chat-status').textContent='Checking local AI…';
-  try{const models=await provider.models(controller.signal);model.replaceChildren();for(const id of models){const option=document.createElement('option');option.value=id;option.textContent=id;model.append(option);}chat.error='';chat.state='idle';el('chat-setup').open=false;}
+  try{const models=await provider.models(controller.signal);model.replaceChildren();for(const id of models){const option=document.createElement('option');option.value=id;option.textContent=id;model.append(option);}if(savedSetup?.engine===engineSelect.value&&models.includes(savedSetup.model))model.value=savedSetup.model;chat.error='';chat.state='idle';el('chat-setup').open=false;}
   catch{model.replaceChildren();chat.error=engineSelect.value!=='ruby'?engineFor(engineSelect.value).note+' This server is not reachable yet.':globalThis.__TAURI__?'Local AI is not running. Use Settings → LLM → Download AI or Start AI.':'The website connects to AI already running on your device. Install/start AI inside the Windows app first; your browser may ask for local-network access or block this connection.';chat.state='error';el('chat-setup').open=true;}
   finally{clearTimeout(timer);connecting=null;render();}
  }
@@ -68,7 +70,7 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
  panel.addEventListener('keydown',event=>{if(event.key==='Escape'){event.stopPropagation();void close();}});
  el('chat-expand').onclick=async()=>{await onExpand();panel.classList.toggle('expanded');el('chat-expand').textContent=panel.classList.contains('expanded')?'Compact':'Expand';input.focus({preventScroll:true});};
  engineSelect.onchange=()=>{chat.stop();voice.stop();model.replaceChildren();const engine=engineFor(engineSelect.value);if(globalThis.__TAURI__)provider.engine=engine.id;else provider.base=engine.base;el('chat-engine-note').textContent=engineNote(engine);el('ai-pack-section').hidden=!globalThis.__TAURI__||engine.id!=='ruby';chat.error='';chat.state='idle';render();};
- el('chat-engine-note').textContent=engineNote(AI_ENGINES[0]);
+ el('chat-engine-note').textContent=engineNote(engineFor(engineSelect.value));
  el('chat-connect').onclick=connect;el('chat-stop').onclick=()=>{chat.stop();voice.stop();};el('chat-retry').onclick=()=>chat.retry(model.value);
  el('chat-form').onsubmit=async event=>{event.preventDefault();const text=input.value;if(!text.trim()||chat.active)return;if(!model.value){await settings();el('chat-status').textContent='Connect an LLM in Settings.';return;}voice.stop();input.value='';await chat.send(text,model.value);input.focus({preventScroll:true});};
  el('chat-clear').onclick=()=>{voice.stop();chat.clear();input.value='';};

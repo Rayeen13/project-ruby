@@ -49,6 +49,8 @@ async fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
             "zoom_view",
             "chat",
             "chat_lab",
+            "setup",
+            "opal",
             "left",
             "right",
             "pin",
@@ -61,7 +63,7 @@ async fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
         return Err("Smoke checkpoints are disabled outside the test launch".into());
     }
     std::fs::write("ruby-native-phase.txt", &phase).map_err(|error| error.to_string())?;
-    if phase == "chat" || phase == "chat_lab" {
+    if matches!(phase.as_str(), "chat" | "chat_lab" | "setup" | "opal") {
         tokio::time::sleep(std::time::Duration::from_secs(2)).await;
     }
     Ok(())

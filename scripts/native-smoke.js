@@ -95,6 +95,10 @@
   document.querySelector('#voice-preview').click();for(let i=0;i<200&&stage.dataset.speaking!=='true';i++)await wait(100);
   assert(stage.dataset.speaking==='true','VoiceM preview starts actual audio playback');document.querySelector('#voice-stop').click();
   assert(stage.dataset.speaking==='false','Stop voice ends playback');
+  document.querySelector('[data-settings-tab="setup"]').click();await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'setup'});document.querySelector('#setup-run').click();
+  for(let i=0;i<300&&document.querySelector('#setup-run').disabled;i++)await wait(100);
+  assert(document.querySelector('#setup-status').textContent.startsWith('Ready'),'Recommended setup reuses installed LLM and VoiceM without starting duplicate processes');
+  assert(JSON.parse(localStorage.getItem('project-ruby.setup.v1')).preset==='recommended','Completed setup choices persist');
   document.querySelector('[data-settings-tab="llm"]').click();
   document.querySelector('#ai-pack-stop').click();await wait(300);
   assert((await window.__TAURI__.core.invoke('ai_pack_status')).phase==='stopped','Stop AI unloads the owned model process');
@@ -130,6 +134,7 @@
    menu.querySelector('[data-interaction="wake"]').click();
    assert(document.querySelector('#status').textContent.includes('Curious'),id+': wake action works');
   }
+  document.querySelector('[data-profile="opal"]').click();await wait(300);await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'opal'});document.querySelector('[data-profile="ruby"]').click();select.value='gamer';select.dispatchEvent(new Event('change'));await wait(200);
   const r=stage.getBoundingClientRect(),x=r.left+r.width*.5,y=r.top+r.height*.45;
   stage.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0,pointerId:71,altKey:true,clientX:x,clientY:y}));
   window.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerId:71,clientX:x+40,clientY:y}));

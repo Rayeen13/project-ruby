@@ -75,7 +75,9 @@ pub fn voice_pack_status(
 ) -> Result<VoiceStatus, String> {
     let dir = root(&app)?;
     Ok(VoiceStatus {
-        installed: dir.join("installed-kokoro-v1").exists() && find_file(&dir.join("model"), MODEL).is_some() && find_file(&dir.join("runtime"), "sherpa-onnx-offline-tts.exe").is_some(),
+        installed: dir.join("installed-kokoro-v1").exists()
+            && find_file(&dir.join("model"), MODEL).is_some()
+            && find_file(&dir.join("runtime"), "sherpa-onnx-offline-tts.exe").is_some(),
         busy: state.0.busy.load(Ordering::SeqCst),
     })
 }
@@ -174,10 +176,24 @@ pub async fn voice_pack_download(
     let extraction_dir = dir.clone();
     let inner = state.0.clone();
     tauri::async_runtime::spawn_blocking(move || {
-        unpack(&extraction_dir.join("runtime.tar.bz2"), &extraction_dir.join("runtime"), true, &inner)?;
-        unpack(&extraction_dir.join("model.tar.bz2"), &extraction_dir.join("model"), false, &inner)
-    }).await.map_err(|e| e.to_string())??;
-    if find_file(&dir.join("model"), MODEL).is_none() || find_file(&dir.join("runtime"), "sherpa-onnx-offline-tts.exe").is_none() {
+        unpack(
+            &extraction_dir.join("runtime.tar.bz2"),
+            &extraction_dir.join("runtime"),
+            true,
+            &inner,
+        )?;
+        unpack(
+            &extraction_dir.join("model.tar.bz2"),
+            &extraction_dir.join("model"),
+            false,
+            &inner,
+        )
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+    if find_file(&dir.join("model"), MODEL).is_none()
+        || find_file(&dir.join("runtime"), "sherpa-onnx-offline-tts.exe").is_none()
+    {
         return Err("VoiceM archive is incomplete. Try repair.".into());
     }
     fs::write(dir.join("ATTRIBUTION.txt"), "Kokoro-82M v1.0 by hexgrad, Apache-2.0. ONNX int8 conversion: k2-fsa/sherpa-onnx. Sherpa-ONNX v1.12.15 Apache-2.0. Model and runtime archive licences and notices retained. eSpeak NG GPL-3.0-or-later: corresponding source https://github.com/espeak-ng/espeak-ng ; sherpa source https://github.com/k2-fsa/sherpa-onnx/tree/v1.12.15 ; model card https://huggingface.co/hexgrad/Kokoro-82M . Separate-process runtime. English voices only in this release.\n").map_err(|e| e.to_string())?;
@@ -189,29 +205,58 @@ fn unpack(archive: &Path, destination: &Path, runtime: bool, state: &Inner) -> R
     let mut archive = tar::Archive::new(decoder);
     let mut total = 0u64;
     for entry in archive.entries().map_err(|e| e.to_string())? {
-        if state.cancelled.load(Ordering::SeqCst) { return Err("VoiceM setup stopped".into()); }
+        if state.cancelled.load(Ordering::SeqCst) {
+            return Err("VoiceM setup stopped".into());
+        }
         let mut entry = entry.map_err(|e| e.to_string())?;
         let path = entry.path().map_err(|e| e.to_string())?.into_owned();
-        if path.components().any(|c| !matches!(c, std::path::Component::Normal(_) | std::path::Component::CurDir)) { return Err("Unsafe VoiceM archive path".into()); }
+        if path.components().any(|c| {
+            !matches!(
+                c,
+                std::path::Component::Normal(_) | std::path::Component::CurDir
+            )
+        }) {
+            return Err("Unsafe VoiceM archive path".into());
+        }
         let kind = entry.header().entry_type();
-        if !kind.is_file() && !kind.is_dir() { return Err("VoiceM links are not supported".into()); }
+        if !kind.is_file() && !kind.is_dir() {
+            return Err("VoiceM links are not supported".into());
+        }
         // The publisher bundles many unrelated executables and libraries. Keep TTS and notices only.
         if runtime && kind.is_file() {
-            let name = path.file_name().unwrap_or_default().to_string_lossy().to_lowercase();
-            if name.ends_with(".exe") && name != "sherpa-onnx-offline-tts.exe" { continue; }
-            if name.ends_with(".lib") || name.ends_with(".h") || name.ends_with(".hpp") { continue; }
+            let name = path
+                .file_name()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .to_lowercase();
+            if name.ends_with(".exe") && name != "sherpa-onnx-offline-tts.exe" {
+                continue;
+            }
+            if name.ends_with(".lib") || name.ends_with(".h") || name.ends_with(".hpp") {
+                continue;
+            }
         }
         total += entry.size();
-        if total > 600_000_000 { return Err("VoiceM archive exceeds extraction limit".into()); }
-        if !entry.unpack_in(destination).map_err(|e| e.to_string())? { return Err("Unsafe VoiceM path".into()); }
+        if total > 600_000_000 {
+            return Err("VoiceM archive exceeds extraction limit".into());
+        }
+        if !entry.unpack_in(destination).map_err(|e| e.to_string())? {
+            return Err("Unsafe VoiceM path".into());
+        }
     }
     Ok(())
 }
 fn find_file(dir: &Path, name: &str) -> Option<PathBuf> {
     for entry in fs::read_dir(dir).ok()?.flatten() {
         let path = entry.path();
-        if path.is_file() && path.file_name().is_some_and(|n| n == name) { return Some(path); }
-        if path.is_dir() { if let Some(found) = find_file(&path, name) { return Some(found); } }
+        if path.is_file() && path.file_name().is_some_and(|n| n == name) {
+            return Some(path);
+        }
+        if path.is_dir() {
+            if let Some(found) = find_file(&path, name) {
+                return Some(found);
+            }
+        }
     }
     None
 }
@@ -250,8 +295,10 @@ pub async fn voice_synthesize(
     let dir = root(&app)?;
     tauri::async_runtime::spawn_blocking(move || -> Result<Vec<u8>, String> {
         let _operation = operation;
-        let executable = find_file(&dir.join("runtime"), "sherpa-onnx-offline-tts.exe").ok_or("Download / repair Kokoro VoiceM first")?;
-        let model = find_file(&dir.join("model"), MODEL).ok_or("Kokoro model missing. Try repair.")?;
+        let executable = find_file(&dir.join("runtime"), "sherpa-onnx-offline-tts.exe")
+            .ok_or("Download / repair Kokoro VoiceM first")?;
+        let model =
+            find_file(&dir.join("model"), MODEL).ok_or("Kokoro model missing. Try repair.")?;
         let model_dir = model.parent().unwrap();
         if _operation.0.cancelled.load(Ordering::SeqCst) {
             return Err("Voice stopped".into());
@@ -262,10 +309,23 @@ pub async fn voice_synthesize(
         command
             .current_dir(executable.parent().unwrap())
             .arg(format!("--kokoro-model={}", model.display()))
-            .arg(format!("--kokoro-voices={}", model_dir.join("voices.bin").display()))
-            .arg(format!("--kokoro-tokens={}", model_dir.join("tokens.txt").display()))
-            .arg(format!("--kokoro-data-dir={}", model_dir.join("espeak-ng-data").display()))
-            .arg(format!("--kokoro-lexicon={},{}", model_dir.join("lexicon-us-en.txt").display(), model_dir.join("lexicon-gb-en.txt").display()))
+            .arg(format!(
+                "--kokoro-voices={}",
+                model_dir.join("voices.bin").display()
+            ))
+            .arg(format!(
+                "--kokoro-tokens={}",
+                model_dir.join("tokens.txt").display()
+            ))
+            .arg(format!(
+                "--kokoro-data-dir={}",
+                model_dir.join("espeak-ng-data").display()
+            ))
+            .arg(format!(
+                "--kokoro-lexicon={},{}",
+                model_dir.join("lexicon-us-en.txt").display(),
+                model_dir.join("lexicon-gb-en.txt").display()
+            ))
             .arg("--num-threads=2")
             .arg("--debug=0")
             .arg(format!("--sid={sid}"))

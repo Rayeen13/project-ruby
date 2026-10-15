@@ -8,6 +8,7 @@ export const SETUP_PRESETS=Object.freeze([
 ]);
 export function mountApplicationSetup({document,storage,tauri,state,identity,engines,engineSelect,modelSelect,connect,onBusy=()=>{},refreshVoice=()=>{}}){
  const el=id=>document.getElementById(id);let preset='recommended',busy=false,cancelled=false;
+ let unlisten=[];if(tauri){for(const [event,render] of [['ruby-ai-pack',p=>({downloaded:p.downloaded,total:p.total,text:p.detail})],['ruby-voice-progress',p=>({...p,text:p.file})]])void tauri.event.listen(event,e=>{if(!busy)return;const p=render(e.payload);el('setup-progress').hidden=!(p.total>0);if(p.total>0){el('setup-progress').max=p.total;el('setup-progress').value=p.downloaded;status(p.text+' · '+(p.downloaded/1000000).toFixed(1)+' / '+(p.total/1000000).toFixed(1)+' MB');}}).then(fn=>unlisten.push(fn));window.addEventListener('pagehide',()=>unlisten.forEach(fn=>fn()),{once:true});}
  const status=text=>{el('setup-status').textContent=text;};
  const choose=id=>{if(busy)return;preset=id;for(const card of el('setup-presets').children){card.classList.toggle('selected',card.dataset.preset===id);card.setAttribute('aria-pressed',String(card.dataset.preset===id));}el('setup-custom').hidden=!['custom','pro'].includes(id);el('setup-engine').value=id==='pro'?'ollama':engineSelect.value;el('setup-title').textContent=SETUP_PRESETS.find(p=>p.id===id).tag;status(tauri?'Downloads start only when you choose Set up. Allow about 1.5 GB of free disk space for archives and extracted components.':'Explore presets here. Install and download offline components inside the Windows app.');};
  for(const spec of SETUP_PRESETS){const card=document.createElement('button');card.type='button';card.dataset.preset=spec.id;const title=document.createElement('strong'),tag=document.createElement('span'),detail=document.createElement('small');title.textContent=spec.name;tag.textContent=spec.tag;detail.textContent=spec.detail;card.append(title,tag,detail);card.onclick=()=>choose(spec.id);el('setup-presets').append(card);}
@@ -39,7 +40,7 @@ export function mountApplicationSetup({document,storage,tauri,state,identity,eng
    try{storage?.setItem(SETUP_KEY,JSON.stringify({version:1,preset,engine:engineSelect.value,model:modelSelect.value,completedAt:new Date().toISOString()}));}catch{}
    status('Ready · '+identity().name+' can chat'+(state.data.speak?' and speak offline. Preview her or his voice in VoiceM settings.':'. Add a VoiceM whenever you like.'));el('setup-open-chat').hidden=false;
   }catch(error){status(cancelled?'Setup stopped. Completed downloads are kept; Set up retries missing components.':String(error.message||error));}
-  finally{if(cancelled)status('Setup stopped. Completed downloads are kept; Set up retries missing components.');busy=false;onBusy(false);el('setup-run').disabled=false;el('setup-cancel').hidden=true;el('setup-presets').inert=false;}
+  finally{el('setup-progress').hidden=true;if(cancelled)status('Setup stopped. Completed downloads are kept; Set up retries missing components.');busy=false;onBusy(false);el('setup-run').disabled=false;el('setup-cancel').hidden=true;el('setup-presets').inert=false;}
  };
  el('setup-cancel').onclick=async()=>{cancelled=true;status('Stopping setup…');await Promise.allSettled([tauri?.core.invoke('ai_pack_stop'),tauri?.core.invoke('voice_stop')]);};
  refresh();choose('recommended');return {refresh};

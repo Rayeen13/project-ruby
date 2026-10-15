@@ -63,7 +63,7 @@ jobs:
           Copy-Item docs/WINDOWS.md desktop-artifact/README.md
           Copy-Item src-tauri/Cargo.lock desktop-artifact/
           Copy-Item ruby-native-smoke.txt desktop-artifact/
-          Copy-Item ruby-native-menu.png,ruby-native-float.png,ruby-native-dizzy.png,ruby-native-chat.png,ruby-native-chat_lab.png desktop-artifact/
+          Copy-Item ruby-native-menu.png,ruby-native-float.png,ruby-native-dizzy.png,ruby-native-chat.png,ruby-native-chat_lab.png,ruby-native-setup.png,ruby-native-opal.png desktop-artifact/
           Copy-Item ruby-native-carry.txt,ruby-native-pin.txt,ruby-native-zoom.txt,ruby-native-frame.txt desktop-artifact/
           Copy-Item ruby-native-left.png,ruby-native-right.png,ruby-native-zoom_view.png desktop-artifact/
           Get-ChildItem desktop-artifact/*.exe | Get-FileHash -Algorithm SHA256 | Format-List | Out-File desktop-artifact/SHA256.txt

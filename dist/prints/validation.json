@@ -83,5 +83,22 @@
     "connected_components": 1,
     "positive_volume": true,
     "reinforcement_bridges": 6
+  },
+  {
+    "model": "opal",
+    "file": "opal-120mm.stl",
+    "units": "mm",
+    "character_height_mm": 120,
+    "base_mm": 3,
+    "dimensions_mm": [
+      80.78,
+      80.78,
+      123.0
+    ],
+    "triangles": 8734,
+    "watertight": true,
+    "connected_components": 1,
+    "positive_volume": true,
+    "reinforcement_bridges": 2
   }
 ]
