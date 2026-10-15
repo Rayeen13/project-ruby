@@ -12,6 +12,20 @@ python3 -m http.server 8080 --directory dist
 
 Open http://localhost:8080. Run `npm test` for animation clearance checks.
 
+## Companion Studio · v0.4
+
+**Companion** means the 3D character; **LLM** means the language model; **VoiceM** means the speech model. These are independent modules. Changing an LLM does not change a Companion's identity or owner notes.
+
+Studio uses a native Windows title bar and an orbital vector interface. The desktop Companion remains transparent and frameless. Conversation and Settings reserve separate space beside the visible Companion. LLM downloads, engine/model choices, content style, memory and VoiceM live in Settings. The mesh interaction menu has a top-right ×. Studio has gravity and a static support collider for each rigid Companion body, plus a drop test. Floating wheel zoom selects Small, Medium, Large or Extra large; the host uses body-specific bounds.
+
+Ruby, Emme and Amy are female characters; Saph is male. Adult profiles have fictional ages; Chibi uses age 8 and a family-friendly prompt. Personality and validated expression tags drive visual mood independently of the selected LLM. Feelings are simulated character state, not consciousness. Local owner memory records explicit “My name is…”, “Remember…” and “I feel…” statements. Notes can be disabled, reviewed, individually deleted, cleared or exported.
+
+Online mode uses bounded search excerpts and source links (Windows: Bing RSS; browser: Wikipedia API, subject to network/CORS availability). Explicit search commands support follow-up queries. Queries go to the search service; stored owner notes and full history do not. Google AI Mode opens the question in your browser; Ruby does not scrape or import its answers. Search failures are shown explicitly. A compact LLM can still misunderstand evidence; check the sources.
+
+VoiceM Settings offers a one-time verified ~100 MB English Piper/VCTK pack, male/female preview, automatic gem matching, body/personality pace, optional spoken replies and Stop. It runs locally on CPU as a separate process. Device speech is an optional fallback where an offline voice exists. No microphone input or voice cloning is included. Content modes choose family-friendly or candid tone; they cannot disable an LLM's own restrictions.
+
+See [docs/COMPANION_STUDIO.md](docs/COMPANION_STUDIO.md) for architecture, voice attribution, references and validation limits.
+
 ## Catalog
 
 Classic EMO-style, Cyberpunk 3090, Chibi, Office and Gamer. Profiles: Ruby, Saph, Emme and Amy. Gamer carries a controller in its right hand and has headphone listening screens. Listening is currently a visual state, not live microphone analysis.
@@ -30,7 +44,7 @@ STL files and notes are in dist/prints. They are static figurines; review suppor
 
 ## Roadmap and architecture
 
-See [ROADMAP.md](ROADMAP.md) for the milestones from the visual MVP through local conversation, desktop actions, voice, mobile hosts, the companion world and creator studio. Capability contracts, gesture previews, persistent settings and animation transitions are implemented. The current slice adds mascot conversation to the Windows floating shell; Model evaluation follows measured performance and verified commercial-use weight licensing without mandatory model royalties.
+See [ROADMAP.md](ROADMAP.md) for the milestones from the visual MVP through local conversation, desktop actions, voice, mobile hosts, the companion world and creator studio. Capability contracts, gesture previews, persistent settings and animation transitions are implemented. The current slice adds Companion Studio, shared character state, internet evidence and optional VoiceM; Model evaluation follows measured performance and verified commercial-use weight licensing without mandatory model royalties.
 
 See [HAND_RIG.md](HAND_RIG.md) for jointed hands and gestures. Four finger chains and an opposing thumb support open, relaxed, point, fist and grip poses; object pickup physics is future work.
 

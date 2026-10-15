@@ -4,7 +4,11 @@
 
 Project Ruby is an ADICE (Artificial Digital Intelligent Companion Entity) companion product. Its first release combines an expressive robot, conversation, and explicitly enabled desktop actions. Project Kurumi continues as a separate character/research project; shared components can be extracted when both projects need them.
 
-The current milestone is an **interactive MVP with experimental local text conversation**. Five character bodies, four gem profiles, expressions, gaze tracking, orbit/touch controls, dance, wave, jointed hands and static STL exports are implemented. The public browser demo is available. Streamed conversation, cancellation/retry and saved local history work with a separately running model server; no model is bundled or approved as the default. Microphone input, internet answers, desktop input control, native widgets and world physics are not implemented. Windows native lab and floating/tray/click-through shell builds are implemented; physical-device acceptance remains open.
+Terminology: **Companion = 3D mesh character**, **LLM = intelligence model**, **VoiceM = voice synthesis model**. Keep these terms in UI, plugin contracts and documentation.
+
+The current milestone is **Companion Studio v0.4**: five frozen bodies, gem identities, expressions, personality, persistent owner notes, independent chat/Settings, managed local LLM download, sourced internet lookup and downloadable English VoiceM with preview/speech. Windows Studio uses native window chrome; floating Companion remains frameless with body-specific bounds and preset sizes. Google AI Mode is a browser shortcut, not a hidden answer API. Content preference is prompt-level, not a guarantee of LLM compliance. Microphone input, screen vision, desktop input control, native mobile widgets and world physics remain open. Windows CI exercises actual WebView/process behavior; physical-device acceptance remains required.
+
+User-requested speech output was brought forward from November. **November still requires two-way voice conversation:** microphone capture, ASR, interruption, latency/hardware tuning, multilingual packs and accessible listening feedback. Do not call text-to-speech alone completion of that milestone.
 
 ## October delivery window: 15 days, 3 hours/day
 

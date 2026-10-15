@@ -9,7 +9,7 @@
    assert(JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.length>0,'Conversation survives native app restart');
    assert(state.floating&&!state.pinned&&state.edge==='right'&&state.size>1,'Pin, dock and size survive native restart');
    const pack=await window.__TAURI__.core.invoke('ai_pack_status');assert(pack.installed,'Downloaded AI survives application restart');
-   document.querySelector('#chat-launcher').click();
+   document.querySelector('#settings-launcher').click();await wait(150);
    for(let i=0;i<100&&document.querySelector('#ai-pack-start').hidden;i++)await wait(50);
    document.querySelector('#ai-pack-start').click();
    for(let i=0;i<300&&!document.querySelector('#chat-model').value;i++)await wait(100);
@@ -21,7 +21,10 @@
   assert((await window.__TAURI__.core.invoke('desktop_status')).floating,'Executable opens directly as floating mascot');
   await window.__TAURI__.core.invoke('desktop_action',{action:'lab'});await wait(350);
   document.querySelector('[data-chat-open]').click();await wait(150);
-  assert(!document.querySelector('#chat-panel').hidden,'Mascot opens attached conversation');
+  assert(!document.querySelector('#chat-panel').hidden,'Companion opens independent conversation');
+  assert(!document.querySelector('#chat-panel').contains(document.querySelector('#chat-model')),'LLM selector is inside Settings, outside chat');
+  document.querySelector('#chat-settings').click();await wait(250);
+  assert(!document.querySelector('#settings-panel').hidden,'Chat gear opens separate Settings');
   assert(document.querySelector('[data-chat-open]'),'Windows lab has an explicit Conversation entry point');
   document.querySelector('#chat-clear').click();
   let progressed=false;const unlistenPack=await window.__TAURI__.event.listen('ruby-ai-pack',event=>{if(event.payload.phase==='downloading'&&event.payload.downloaded>0)progressed=true;});
@@ -37,6 +40,7 @@
   unlistenPack();
   for(let i=0;i<150&&!document.querySelector('#chat-model').value;i++)await wait(100);
   assert(document.querySelector('#chat-model').value,'Actual WebView connects to CPU model through restricted native AI bridge');
+  document.querySelector('#settings-close').click();await wait(150);document.querySelector('#chat-launcher').click();await wait(250);
   document.querySelector('#chat-input').value='Hi Ruby. Say hello briefly.';
   document.querySelector('#chat-form').dispatchEvent(new Event('submit',{cancelable:true}));
   for(let i=0;i<300&&document.querySelector('#chat-panel').dataset.state!=='idle';i++)await wait(100);
@@ -46,7 +50,8 @@
   const panel=document.querySelector('#chat-panel');
   for(let i=0;i<8;i++)await window.__TAURI__.core.invoke('desktop_action',{action:'zoom_out'});await wait(250);
   const panelBounds=panel.getBoundingClientRect(),inputBounds=document.querySelector('#chat-input').getBoundingClientRect();
-  assert(panelBounds.top>=0&&panelBounds.bottom<=innerHeight&&inputBounds.top>=0&&inputBounds.bottom<=innerHeight,'Attached chat and input fit smallest native floating window');
+  assert(panelBounds.top>=0&&panelBounds.bottom<=innerHeight&&inputBounds.top>=0&&inputBounds.bottom<=innerHeight,'Independent chat and input fit smallest native floating window');
+  assert(stage.getBoundingClientRect().right<=panelBounds.left,'Companion viewport never overlaps the conversation');
   await window.__TAURI__.core.invoke('desktop_action',{action:'size_reset'});await wait(250);
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'chat'});await wait(400);
   document.querySelector('#chat-expand').click();await wait(300);
@@ -59,10 +64,29 @@
   document.querySelector('#chat-retry').click();
   for(let i=0;i<300&&document.querySelector('#chat-panel').dataset.state!=='idle';i++)await wait(100);
   assert(document.querySelector('#chat-panel').dataset.state==='idle'&&JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.at(-1).status==='complete','Managed AI accepts Retry after cancellation');
+  document.querySelector('#chat-settings').click();await wait(250);
+  document.querySelector('[data-settings-tab="companion"]').click();
+  document.querySelector('#memory-input').value='Owner enjoys building Ruby';document.querySelector('#memory-form').dispatchEvent(new Event('submit',{cancelable:true}));
+  assert(document.querySelector('#memory-list').textContent.includes('Owner enjoys building Ruby'),'Owner memory can be added and reviewed in Settings');
+  assert(document.querySelector('#identity-summary').textContent.includes('female'),'Ruby identity includes gender');
+  const results=await window.__TAURI__.core.invoke('internet_search',{query:'NASA Artemis program'});
+  assert(results.length>0&&results.every(s=>s.url.startsWith('https://')),'Native internet search returns bounded real HTTPS sources');
+  document.querySelector('[data-settings-tab="voice"]').click();document.querySelector('#voice-download').click();
+  for(let i=0;i<1800&&document.querySelector('#voice-download').disabled;i++)await wait(100);
+  assert((await window.__TAURI__.core.invoke('voice_pack_status')).installed,'VoiceM downloads and verifies inside the Windows app');
+  const wav=await window.__TAURI__.core.invoke('voice_synthesize',{text:'Hello, I am Ruby. Your companion is ready.',gender:'female',pace:1});
+  assert(wav.length>1000&&String.fromCharCode(...wav.slice(0,4))==='RIFF','Downloaded female VoiceM produces real WAV speech');
+  const male=await window.__TAURI__.core.invoke('voice_synthesize',{text:'Hello, I am Saph.',gender:'male',pace:.96});
+  assert(male.length>1000,'Downloaded male VoiceM produces real speech');
+  document.querySelector('#voice-preview').click();for(let i=0;i<200&&stage.dataset.speaking!=='true';i++)await wait(100);
+  assert(stage.dataset.speaking==='true','VoiceM preview starts actual audio playback');document.querySelector('#voice-stop').click();
+  assert(stage.dataset.speaking==='false','Stop voice ends playback');
+  document.querySelector('[data-settings-tab="llm"]').click();
   document.querySelector('#ai-pack-stop').click();await wait(300);
   assert((await window.__TAURI__.core.invoke('ai_pack_status')).phase==='stopped','Stop AI unloads the owned model process');
-  document.querySelector('#chat-close').click();
+  document.querySelector('#settings-close').click();await wait(150);
   document.querySelector('#reset-preferences').click();await wait(300);
+  document.querySelector('#physics-drop').click();await wait(1500);assert(stage.dataset.grounded==='true','Rigid Companion drops and lands on the Studio platform');
   assert(document.querySelectorAll('#model-gallery [data-model]').length===5,'Gallery lists all five accepted bodies');
   document.querySelector('[data-category="Professional"]').click();
   assert([...document.querySelectorAll('#model-gallery [data-model]')].filter(card=>!card.hidden).length===1,'Category filter shows matching bodies');
@@ -83,6 +107,7 @@
    assert(document.querySelector('#interaction-feedback').textContent.length>0,id+': real mesh tap reacts');
    stage.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:x,clientY:y,button:2}));
    assert(!menu.hidden,id+': mesh right-click opens bubble');
+   assert(menu.querySelector('.menu-dismiss')&&!menu.textContent.includes('Close menu'),id+': interaction menu has a corner close control');
    assert(menu.querySelector('[data-interaction="wave"]').disabled===(id==='classic'),id+': wave respects hands');
    menu.querySelector('[data-interaction="sleep"]').click();await wait(100);
    assert(menu.hidden&&document.querySelector('#status').textContent.includes('Sleepy'),id+': sleep action works');
@@ -131,7 +156,7 @@
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'pin'});await wait(500);
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'zoom'});
   for(let i=0;i<40&&(await status()).size<1.3;i++)await wait(100);
-  assert((await status()).size>1.3&&stage.clientHeight>420,'Real mouse wheel grows transparent canvas instead of clipping');
+  assert((await status()).size>1.3&&stage.clientHeight>420,'Real mouse wheel moves through stable predefined Companion sizes');
   for(const id of ['classic','cyber','chibi','office','gamer']){select.value=id;select.dispatchEvent(new Event('change',{bubbles:true}));await wait(250);assert(Number(stage.dataset.cameraDistance)>=8.7,id+': floating camera retains fitted distance after zoom');}
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'zoom_view'});await wait(1200);
   for(const edge of ['left','right']){
