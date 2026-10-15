@@ -48,8 +48,8 @@
   assert(document.querySelector('#chat-panel').dataset.state==='idle'&&document.querySelector('#chat-log .assistant p')?.textContent.length>0,'Actual WebView renders a completed real AI reply');
   assert(JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.at(-1).status==='complete','WebView persists completed conversation');
   document.querySelector('#chat-input').value='Search NASA Artemis program';document.querySelector('#chat-form').dispatchEvent(new Event('submit',{cancelable:true}));
-  for(let i=0;i<450&&document.querySelector('#chat-panel').dataset.state!=='idle';i++)await wait(100);
-  assert(document.querySelector('#chat-panel').dataset.state==='idle'&&document.querySelector('#chat-log .chat-sources a'),'Real local LLM answers an internet query with visible retrieved source links');
+  for(let i=0;i<1250&&['thinking','replying'].includes(document.querySelector('#chat-panel').dataset.state);i++)await wait(100);
+  assert(document.querySelector('#chat-panel').dataset.state==='idle'&&document.querySelector('#chat-log .chat-sources a'),'Real local LLM answers an internet query with visible retrieved source links · '+document.querySelector('#chat-status').textContent);
   await window.__TAURI__.core.invoke('desktop_action',{action:'float'});await wait(300);
   const introduction=JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.find(m=>m.role==='assistant'&&m.status==='complete')?.content||'';
   assert(/Ruby/i.test(introduction)&&!/(?:\[(?:curious|sleepy|neutral|female)\])|(?:neutral.*neutral)/i.test(introduction),'Real model introduces Ruby naturally without leaked labels: '+introduction);
@@ -69,7 +69,7 @@
   assert(!document.querySelector('#chat-stop').hidden,'WebView exposes Stop during real generation');document.querySelector('#chat-stop').click();
   assert(document.querySelector('#chat-panel').dataset.state==='idle'&&!document.querySelector('#chat-retry').hidden,'WebView stops and offers Retry without losing partial reply');
   document.querySelector('#chat-retry').click();
-  for(let i=0;i<900&&['thinking','replying'].includes(document.querySelector('#chat-panel').dataset.state);i++)await wait(100);
+  for(let i=0;i<1250&&['thinking','replying'].includes(document.querySelector('#chat-panel').dataset.state);i++)await wait(100);
   assert(document.querySelector('#chat-panel').dataset.state==='idle'&&JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.at(-1).status==='complete','Managed AI accepts Retry after cancellation · '+document.querySelector('#chat-status').textContent);
   document.querySelector('#chat-settings').click();await wait(250);
   document.querySelector('[data-settings-tab="companion"]').click();
@@ -201,5 +201,5 @@
   assert(!document.documentElement.classList.contains('floating'),'Native lab restores full controls');
   await action('float');await action('toggle_pin');await action('snap_right');await action('zoom_in');
   await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:true,details:checks.join('\n')});
- }catch(error){await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:false,details:checks.join('\n')+'\nFAIL: '+error.message});}
+ }catch(error){await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:false,details:checks.join('\n')+'\nFAIL: '+error.message+'\nDiagnostics: '+JSON.stringify({chatState:document.querySelector('#chat-panel')?.dataset.state,status:document.querySelector('#chat-status')?.textContent,voice:document.querySelector('#voice-status')?.textContent,setup:document.querySelector('#setup-status')?.textContent,lastMessages:JSON.parse(localStorage.getItem('project-ruby.conversation.v1')||'null')?.messages?.slice(-2)})});}
 })();

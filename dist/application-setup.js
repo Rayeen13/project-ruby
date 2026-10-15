@@ -22,25 +22,25 @@ export function mountApplicationSetup({document,storage,tauri,state,identity,eng
  el('setup-model').onchange=()=>{modelSelect.value=el('setup-model').value;modelSelect.dispatchEvent(new Event('change'));};
  el('setup-run').onclick=async()=>{
   if(busy)return;if(!tauri&&['recommended','lite'].includes(preset)){status('Use the Windows app to download the offline LLM. Custom can connect to a model already running on this computer.');return;}
-  const chosenVoice=el('setup-voice').value,chosenModel=el('setup-model').value;busy=true;cancelled=false;onBusy(true);el('setup-run').disabled=true;el('setup-cancel').hidden=false;el('setup-presets').inert=true;
+  const chosenVoice=el('setup-voice').value,chosenModel=el('setup-model').value;busy=true;cancelled=false;onBusy(true);el('setup-run').disabled=true;el('setup-cancel').hidden=false;el('setup-presets').inert=true;el('setup-custom').inert=true;
   try{
    if(preset==='recommended'||preset==='lite'){
     engineSelect.value='ruby';engineSelect.dispatchEvent(new Event('change'));status('1 / '+(preset==='lite'?'1':'2')+' · Checking and preparing offline LLM…');
-    const installed=await tauri.core.invoke('ai_pack_status');if(installed.phase!=='ready')await tauri.core.invoke('ai_pack_run',{download:!installed.installed});if(cancelled)return;await connect();
+    const installed=await tauri.core.invoke('ai_pack_status');if(cancelled)return;if(installed.phase!=='ready')await tauri.core.invoke('ai_pack_run',{download:!installed.installed});if(cancelled)return;await connect();
    }else{
     await configureEngine(el('setup-engine').value);if([...modelSelect.options].some(o=>o.value===chosenModel))modelSelect.value=chosenModel;if(cancelled)return;if(!modelSelect.value)throw new Error('Load a model in your selected engine, then check the connection.');
    }
    if(cancelled)return;
    if(preset!=='lite'){
     if(!tauri)throw new Error('LLM connected. Matched Kokoro VoiceM requires the Windows app.');
-    status('Preparing Kokoro VoiceM · verified installed files are reused…');const voiceStatus=await tauri.core.invoke('voice_pack_status');if(!voiceStatus.installed)await tauri.core.invoke('voice_pack_download');if(cancelled)return;
+    status('Preparing Kokoro VoiceM · verified installed files are reused…');const voiceStatus=await tauri.core.invoke('voice_pack_status');if(cancelled)return;if(!voiceStatus.installed)await tauri.core.invoke('voice_pack_download');if(cancelled)return;
     if(['custom','pro'].includes(preset))state.data.voiceChoices[identity().profile]=chosenVoice;
    }
    if(cancelled)return;state.data.speak=preset!=='lite';state.save();el('voice-enabled').checked=state.data.speak;refreshVoice();
    try{storage?.setItem(SETUP_KEY,JSON.stringify({version:1,preset,engine:engineSelect.value,model:modelSelect.value,completedAt:new Date().toISOString()}));}catch{}
    status('Ready · '+identity().name+' can chat'+(state.data.speak?' and speak offline. Preview her or his voice in VoiceM settings.':'. Add a VoiceM whenever you like.'));el('setup-open-chat').hidden=false;
   }catch(error){status(cancelled?'Setup stopped. Completed downloads are kept; Set up retries missing components.':String(error.message||error));}
-  finally{el('setup-progress').hidden=true;if(cancelled)status('Setup stopped. Completed downloads are kept; Set up retries missing components.');busy=false;onBusy(false);el('setup-run').disabled=false;el('setup-cancel').hidden=true;el('setup-presets').inert=false;}
+  finally{el('setup-progress').hidden=true;if(cancelled)status('Setup stopped. Completed downloads are kept; Set up retries missing components.');busy=false;onBusy(false);el('setup-run').disabled=false;el('setup-cancel').hidden=true;el('setup-presets').inert=false;el('setup-custom').inert=false;}
  };
  el('setup-cancel').onclick=async()=>{cancelled=true;status('Stopping setup…');await Promise.allSettled([tauri?.core.invoke('ai_pack_stop'),tauri?.core.invoke('voice_stop')]);};
  refresh();choose('recommended');return {refresh};
