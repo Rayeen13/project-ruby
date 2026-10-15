@@ -424,6 +424,16 @@ pub async fn voice_synthesize(
         }
         let output = dir.join("speech.wav");
         let _ = fs::remove_file(&output);
+        // Sherpa's narrow argv must use UTF-8 on Windows, independent of OS locale.
+        // Its pinned executables have no embedded application manifest.
+        fs::write(
+            executable.with_extension("exe.manifest"),
+            include_bytes!("voice-utf8.manifest"),
+        )
+        .map_err(|e| e.to_string())?;
+        let diagnostic = Partial(dir.join("speech.log"));
+        let log = File::create(&diagnostic.0).map_err(|e| e.to_string())?;
+        let spoken = text.replace(['\n', '\r'], " ");
         let mut command = Command::new(&executable);
         command.current_dir(executable.parent().unwrap());
         if pack == "supertonic3" {
@@ -501,10 +511,10 @@ pub async fn voice_synthesize(
             .arg(format!("--sid={sid}"))
             .arg(format!("--output-filename={}", output.display()))
             .arg("--")
-            .arg(text.replace(['\n', '\r'], " "))
+            .arg(&spoken)
             .stdin(Stdio::null())
             .stdout(Stdio::null())
-            .stderr(Stdio::null());
+            .stderr(log);
         #[cfg(windows)]
         {
             use std::os::windows::process::CommandExt;
@@ -534,6 +544,15 @@ pub async fn voice_synthesize(
                     let _ = child.wait();
                     return Err(e.to_string());
                 }
+            }
+        }
+        if language != "en" {
+            if fs::metadata(&diagnostic.0).map_err(|e| e.to_string())?.len() > 32_000 {
+                return Err("VoiceM diagnostic exceeded its limit".into());
+            }
+            let diagnostic_text = fs::read(&diagnostic.0).map_err(|e| e.to_string())?;
+            if !String::from_utf8_lossy(&diagnostic_text).contains(&spoken) {
+                return Err("VoiceM could not preserve Unicode text. Windows 10 version 1903 or newer is required.".into());
             }
         }
         if fs::metadata(&output).map_err(|e| e.to_string())?.len() > 12_000_000 {
