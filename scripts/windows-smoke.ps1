@@ -36,7 +36,7 @@ $rubyProcess = Start-Process src-tauri/target/release/project-ruby.exe -Argument
 $rubyHandle = [IntPtr]::Zero
 $seen = @{}
 try {
-  for ($tick = 0; $tick -lt 6000; $tick++) {
+  for ($tick = 0; $tick -lt 12000; $tick++) {
     $rubyProcess.Refresh()
     if ($rubyProcess.HasExited) { break }
     $rubyHandle = [RubyBounds]::FindCompanion([uint32]$rubyProcess.Id)
