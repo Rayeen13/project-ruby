@@ -1,8 +1,16 @@
+# Windows v0.4 quick start
+
+Quit the previous tray instance before installing. Studio now has a native Windows title bar; the floating Companion remains frameless. Open **Settings → LLM → Download AI** (or Start AI for an existing download), then close Settings and choose Talk. LLM selection no longer occupies chat. Both chat and Settings leave a reserved Companion viewport visible.
+
+**Settings → VoiceM → Download VoiceM** installs the ~100 MB English pack. Preview the matched voice, optionally enable spoken replies and use Stop voice to interrupt. **Settings → Companion** shows age/gender, content tone and owner notes. **Settings → Internet** enables sourced answers or opens a question in Google AI Mode in your browser. Online services can fail; no account or Gemini API key is bundled.
+
+Right-click the Companion for actions, preset size selection and a corner ×. Wheel zoom uses those same four sizes. Body switches refit the native canvas. Close Studio hides to tray; Quit exits fully.
+
 # Project Ruby Windows shell preview
 
 The native shell runs the existing character lab in a Tauri/WebView2 window. It includes the five bodies, gem profiles, expressions, gesture controls, smooth greeting and local preferences. The packaged viewer assets are local; the viewer needs no account or server to start.
 
-It is a desktop shell preview, not a complete AI assistant. Floating mode and tray controls are implemented as a Windows build preview. Conversation, voice, screen understanding and OS input actions remain later steps. Two bounded host commands control only the local companion window; the frontend has no filesystem, shell, external-app input or shortcut-registration permissions.
+It is a desktop shell preview, not a complete AI assistant. Floating mode and tray controls are implemented as a Windows build preview. Local conversation, sourced search, owner notes and downloadable VoiceM speech are implemented. Screen understanding, microphone input and OS input actions remain later steps. Native commands are bounded to companion controls, approved downloads, local model endpoints, search and HTTPS browser links.
 
 ## Try the CI build
 
@@ -16,7 +24,7 @@ Preferences belong to this native application's WebView storage and are separate
 
 ## Floating companion and recovery
 
-The installed app opens as a floating companion. From the lab, choose **Float companion** at the top of its controls. The same character becomes a compact transparent, window pinned above other apps by default. **Move** is a pointer drag handle; **Lab** returns to the full controls; **Hide** hides to the tray. The tray offers Float companion, Open character lab, Stop / restore interaction, Hide companion and Quit. Closing the window hides it to the tray; choose Quit there to exit fully.
+The installed app opens as a floating companion. From the lab, choose **Float companion** at the top of its controls. The same character becomes a compact transparent, window pinned above other apps by default. Carry the mesh to move it; **Lab** returns to the full controls; **Hide** hides to the tray. The tray offers Float companion, Open character lab, Stop / restore interaction, Hide companion and Quit. Closing the window hides it to the tray; choose Quit there to exit fully.
 
 **Click-through** lets mouse input pass through the whole floating window. Restore interaction with **Ctrl+Alt+Shift+R**, or the tray's **Stop / restore interaction** item. The shortcut restores/shows and recenters the window and pauses animation, gaze tracking, dance, turning and greetings. The shortcut also cancels an active chat request. OS task execution is not connected. Resume using Animate and Eyes + head tracking in the lab. If the shortcut cannot register (for example, another app owns it), click-through is disabled and the lab reports the conflict.
 
@@ -42,7 +50,7 @@ Output is under `src-tauri/target/release/` and `src-tauri/target/release/bundle
 
 ## Direct model interactions and Windows experiments
 
-Drag horizontally to turn the model in the same screen direction. Tap the head to pat it, the body to boop it, or a hand to wave when supported. Touch reactions briefly show a happy face and a small, eased head nod or tilt with the feet grounded, then return to the selected expression. Right-click the visible robot mesh (not the background) for a bubble with Head pat, Boop, Wave, Gentle sway, Sleep, Wake and Stop. Touch screens use a stationary long-press. Escape dismisses the menu; arrow keys navigate it. These are real visual interactions; conversation and object physics remain future work.
+Drag horizontally to turn the model in the same screen direction. Tap the head to pat it, the body to boop it, or a hand to wave when supported. Touch reactions briefly show a happy face and a small, eased head nod or tilt with the feet grounded, then return to the selected expression. Right-click the visible robot mesh (not the background) for a bubble with Head pat, Boop, Wave, Gentle sway, Sleep, Wake and Stop. Touch screens use a stationary long-press. Escape dismisses the menu; arrow keys navigate it. These are visual interactions alongside local conversation. Studio now has a rigid Companion/support-plane collider; general object physics remains future work.
 
 Windows CI launches the packaged application with `--native-smoke-test`. It exercises all five models in the actual WebView, checks mesh taps/right-click actions and corrected drag, switches native floating/lab modes, and uses a real Ctrl+Alt+Shift+R key sequence to recover click-through. The artifact includes the resulting report and captured native menu/floating screenshots. Test reporting/checkpoint commands are rejected during normal launches. A hosted runner is an automated test machine, not an interactive VPS or proof of every physical-device behavior.
 
@@ -50,9 +58,9 @@ Windows CI launches the packaged application with `--native-smoke-test`. It exer
 
 Floating mode shows the transparent companion without a toolbar. Right-click its body for desktop controls, or use the tray. Hold or drag the model itself to move its window; fast back-and-forth shaking triggers temporary spiral eyes and stars. Ctrl+Alt+Shift+R still stops reactions and restores interaction. Background/Alt-drag rotates the lab view.
 
-The companion collection includes category cards and saved personality presets per body. These are visual reaction/idle presets; language-model conversation is still a separate integration step. See `COMPANION_INTERACTIONS.md` for controls and test scope.
+The companion collection includes category cards and saved personality presets per body. These presets also shape LLM prompts and VoiceM pace. See `COMPANION_INTERACTIONS.md` for controls and test scope.
 
-The executable now starts directly as the frameless floating mascot. The lab also has no native title bar; use its Move/Float/Hide controls or the tray. Whole-screen cursor following works in Windows, including outside the companion window. Quick taps keep the feet grounded; holding for 420 ms or deliberate dragging carries it.
+The executable now starts directly as the frameless floating mascot. Studio has a native Windows title bar. The Move window button has been removed. Whole-screen cursor following works in Windows, including outside the companion window. Quick taps keep the feet grounded; holding for 420 ms or deliberate dragging carries it.
 
 ## Frameless zoom, pin and edge peeking
 
@@ -66,12 +74,12 @@ Windows tests use real wheel input, validate the native topmost flag, capture en
 
 Opening the floating companion or choosing Wake up resumes cursor tracking. Stop still pauses tracking immediately. Global gaze uses screen-wide distances so a docked companion responds to different cursor positions instead of saturating at the window edge.
 
-## Conversation and offline AI — v0.3.0
+## Conversation and offline AI — v0.4.0
 
-Use the tray's **Open conversation**, the lab's **Open conversation / set up AI**, the floating **Talk** button or the robot's right-click menu. The header/lab identifies this build as v0.3.0. Close the previous installed/portable instance before testing a different executable.
+Use the tray's **Open conversation**, the lab's **Open conversation / set up AI**, the floating **Talk** button or the robot's right-click menu. The header/lab identifies this build as v0.4.0. Close the previous installed/portable instance before testing a different executable.
 
 Choose **Ruby offline AI → Download AI** for the one-time ~511 MB model/runtime download. Progress and Cancel are built in. Ruby verifies the pinned Qwen GGUF, runtime archive and publisher template, retains licences, starts a private loopback process and connects chat. There is no Python or manual server requirement. **Start AI** reuses verified installed assets offline; **Stop / unload AI** releases the process without deleting history. Quit also stops Ruby's owned model process; Hide keeps it available.
 
 Saved files use `%LOCALAPPDATA%/ProjectRuby/experimental-ai`, including compatible files from the previous experimental launcher. Optional existing-server presets are available for users who already run another engine. See [AI_ENGINES.md](AI_ENGINES.md). No default large MoE or training stack is downloaded.
 
-Full history is local display/export storage; the compact model sees bounded recent context. Search, voice and PC task execution remain future work. Model quality, Hindi and individual laptop/iGPU performance need further acceptance work.
+Full history is local display/export storage; the compact model sees bounded recent context. Sourced search and VoiceM speech are implemented; microphone input and PC task execution remain future work. Model quality, Hindi and individual laptop/iGPU performance need further acceptance work.

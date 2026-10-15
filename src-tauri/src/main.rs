@@ -3,7 +3,9 @@
 mod ai_pack;
 mod desktop;
 mod desktop_layout;
+mod internet;
 mod local_ai;
+mod voice;
 
 use desktop::{perform, set_shortcut_ready, DesktopAction, DesktopState, RECOVERY_SHORTCUT};
 use std::sync::Mutex;
@@ -68,10 +70,17 @@ async fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
 fn main() {
     tauri::Builder::default()
         .manage(ai_pack::PackState::default())
+        .manage(voice::VoiceState::default())
         .manage(local_ai::AiState::default())
         .manage(Mutex::new(DesktopState::default()))
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
+            internet::internet_search,
+            internet::open_web_url,
+            voice::voice_pack_status,
+            voice::voice_pack_download,
+            voice::voice_synthesize,
+            voice::voice_stop,
             ai_pack::ai_pack_status,
             ai_pack::ai_pack_run,
             ai_pack::ai_pack_stop,
@@ -81,6 +90,7 @@ fn main() {
             desktop::desktop_action,
             desktop::desktop_status,
             desktop::desktop_move,
+            desktop::desktop_body,
             desktop_smoke_report,
             desktop_smoke_checkpoint
         ])

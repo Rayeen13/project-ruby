@@ -1,6 +1,6 @@
 # Project Ruby
 
-A desktop-companion prototype with five procedural 3D robot bodies, gem colour profiles, cursor tracking and expressive animation. Built with Three.js and browser JavaScript; a first Windows desktop shell is available as a build preview; Windows v0.3 can download, verify and run its own compact local AI inside the app, with optional existing-server connections. Voice and OS automation are future work.
+A desktop-companion prototype with five procedural 3D robot bodies, gem colour profiles, cursor tracking and expressive animation. Built with Three.js and browser JavaScript; a first Windows desktop shell is available as a build preview; Windows v0.4 downloads and runs local LLM and VoiceM packs, with optional existing-server connections, sourced internet answers and independent Companion/chat/Settings views. Microphone input and OS automation are future work.
 
 ## Run locally
 
@@ -11,6 +11,20 @@ python3 -m http.server 8080 --directory dist
 ```
 
 Open http://localhost:8080. Run `npm test` for animation clearance checks.
+
+## Companion Studio · v0.4
+
+**Companion** means the 3D character; **LLM** means the language model; **VoiceM** means the speech model. These are independent modules. Changing an LLM does not change a Companion's identity or owner notes.
+
+Studio uses a native Windows title bar and an orbital vector interface. The desktop Companion remains transparent and frameless. Conversation and Settings reserve separate space beside the visible Companion. LLM downloads, engine/model choices, content style, memory and VoiceM live in Settings. The mesh interaction menu has a top-right ×. Studio has gravity and a static support collider for each rigid Companion body, plus a drop test. Floating wheel zoom selects Small, Medium, Large or Extra large; the host uses body-specific bounds.
+
+Ruby, Emme and Amy are female characters; Saph is male. Adult profiles have fictional ages; Chibi uses age 8 and a family-friendly prompt. Personality and validated expression tags drive visual mood independently of the selected LLM. Feelings are simulated character state, not consciousness. Local owner memory records explicit “My name is…”, “Remember…” and “I feel…” statements. Notes can be disabled, reviewed, individually deleted, cleared or exported.
+
+Online mode uses bounded search excerpts and source links (Windows: Bing RSS; browser: Wikipedia API, subject to network/CORS availability). Explicit search commands support follow-up queries. Queries go to the search service; stored owner notes and full history do not. Google AI Mode opens the question in your browser; Ruby does not scrape or import its answers. Search failures are shown explicitly. A compact LLM can still misunderstand evidence; check the sources.
+
+VoiceM Settings offers a one-time verified ~100 MB English Piper/VCTK pack, male/female preview, automatic gem matching, body/personality pace, optional spoken replies and Stop. It runs locally on CPU as a separate process. Device speech is an optional fallback where an offline voice exists. No microphone input or voice cloning is included. Content modes choose family-friendly or candid tone; they cannot disable an LLM's own restrictions.
+
+See [docs/COMPANION_STUDIO.md](docs/COMPANION_STUDIO.md) for architecture, voice attribution, references and validation limits.
 
 ## Catalog
 
@@ -26,11 +40,11 @@ Default branch: main. Repository: project-ruby. Use Conventional Commits, e.g. `
 
 ## Printing and platforms
 
-STL files and notes are in dist/prints. They are static figurines; review supports and slicer settings before printing. docs/PLATFORMS.md distinguishes shared rendering from native host/widget/overlay features, which are not implemented.
+STL files and notes are in dist/prints. They are static figurines; review supports and slicer settings before printing. docs/PLATFORMS.md distinguishes shared rendering, the implemented Windows host and planned mobile widget/overlay hosts.
 
 ## Roadmap and architecture
 
-See [ROADMAP.md](ROADMAP.md) for the milestones from the visual MVP through local conversation, desktop actions, voice, mobile hosts, the companion world and creator studio. Capability contracts, gesture previews, persistent settings and animation transitions are implemented. The current slice adds mascot conversation to the Windows floating shell; Model evaluation follows measured performance and verified commercial-use weight licensing without mandatory model royalties.
+See [ROADMAP.md](ROADMAP.md) for the milestones from the visual MVP through local conversation, desktop actions, voice, mobile hosts, the companion world and creator studio. Capability contracts, gesture previews, persistent settings and animation transitions are implemented. The current slice adds Companion Studio, shared character state, internet evidence and optional VoiceM; Model evaluation follows measured performance and verified commercial-use weight licensing without mandatory model royalties.
 
 See [HAND_RIG.md](HAND_RIG.md) for jointed hands and gestures. Four finger chains and an opposing thumb support open, relaxed, point, fist and grip poses; object pickup physics is future work.
 

@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "desktop-viewer",
-  "description": "Companion window, chat on fixed loopback endpoint, and a managed checksum-pinned AI pack; no arbitrary URLs, executable paths, shell or OS input commands.",
+  "description": "Companion host, fixed loopback LLM engines, explicit search, HTTPS browser links and checksum-pinned VoiceM downloads. No unrestricted shell or OS input.",
   "windows": [
     "main"
   ],
@@ -21,6 +21,13 @@
     "allow-local-ai-cancel",
     "allow-ai-pack-status",
     "allow-ai-pack-run",
-    "allow-ai-pack-stop"
+    "allow-ai-pack-stop",
+    "allow-internet-search",
+    "allow-open-web-url",
+    "allow-voice-pack-status",
+    "allow-voice-pack-download",
+    "allow-voice-synthesize",
+    "allow-voice-stop",
+    "allow-desktop-body"
   ]
 }
