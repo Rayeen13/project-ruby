@@ -50,7 +50,7 @@ Output is under `src-tauri/target/release/` and `src-tauri/target/release/bundle
 
 ## Direct model interactions and Windows experiments
 
-Drag horizontally to turn the model in the same screen direction. Tap the head to pat it, the body to boop it, or a hand to wave when supported. Touch reactions briefly show a happy face and a small, eased head nod or tilt with the feet grounded, then return to the selected expression. Right-click the visible robot mesh (not the background) for a bubble with Head pat, Boop, Wave, Gentle sway, Sleep, Wake and Stop. Touch screens use a stationary long-press. Escape dismisses the menu; arrow keys navigate it. These are real visual interactions; conversation and object physics remain future work.
+Drag horizontally to turn the model in the same screen direction. Tap the head to pat it, the body to boop it, or a hand to wave when supported. Touch reactions briefly show a happy face and a small, eased head nod or tilt with the feet grounded, then return to the selected expression. Right-click the visible robot mesh (not the background) for a bubble with Head pat, Boop, Wave, Gentle sway, Sleep, Wake and Stop. Touch screens use a stationary long-press. Escape dismisses the menu; arrow keys navigate it. These are visual interactions alongside local conversation. Studio now has a rigid Companion/support-plane collider; general object physics remains future work.
 
 Windows CI launches the packaged application with `--native-smoke-test`. It exercises all five models in the actual WebView, checks mesh taps/right-click actions and corrected drag, switches native floating/lab modes, and uses a real Ctrl+Alt+Shift+R key sequence to recover click-through. The artifact includes the resulting report and captured native menu/floating screenshots. Test reporting/checkpoint commands are rejected during normal launches. A hosted runner is an automated test machine, not an interactive VPS or proof of every physical-device behavior.
 
@@ -58,9 +58,9 @@ Windows CI launches the packaged application with `--native-smoke-test`. It exer
 
 Floating mode shows the transparent companion without a toolbar. Right-click its body for desktop controls, or use the tray. Hold or drag the model itself to move its window; fast back-and-forth shaking triggers temporary spiral eyes and stars. Ctrl+Alt+Shift+R still stops reactions and restores interaction. Background/Alt-drag rotates the lab view.
 
-The companion collection includes category cards and saved personality presets per body. These are visual reaction/idle presets; language-model conversation is still a separate integration step. See `COMPANION_INTERACTIONS.md` for controls and test scope.
+The companion collection includes category cards and saved personality presets per body. These presets also shape LLM prompts and VoiceM pace. See `COMPANION_INTERACTIONS.md` for controls and test scope.
 
-The executable now starts directly as the frameless floating mascot. The lab also has no native title bar; use its Move/Float/Hide controls or the tray. Whole-screen cursor following works in Windows, including outside the companion window. Quick taps keep the feet grounded; holding for 420 ms or deliberate dragging carries it.
+The executable now starts directly as the frameless floating mascot. Studio has a native Windows title bar. The Move window button has been removed. Whole-screen cursor following works in Windows, including outside the companion window. Quick taps keep the feet grounded; holding for 420 ms or deliberate dragging carries it.
 
 ## Frameless zoom, pin and edge peeking
 
@@ -82,4 +82,4 @@ Choose **Ruby offline AI → Download AI** for the one-time ~511 MB model/runtim
 
 Saved files use `%LOCALAPPDATA%/ProjectRuby/experimental-ai`, including compatible files from the previous experimental launcher. Optional existing-server presets are available for users who already run another engine. See [AI_ENGINES.md](AI_ENGINES.md). No default large MoE or training stack is downloaded.
 
-Full history is local display/export storage; the compact model sees bounded recent context. Search, voice and PC task execution remain future work. Model quality, Hindi and individual laptop/iGPU performance need further acceptance work.
+Full history is local display/export storage; the compact model sees bounded recent context. Sourced search and VoiceM speech are implemented; microphone input and PC task execution remain future work. Model quality, Hindi and individual laptop/iGPU performance need further acceptance work.

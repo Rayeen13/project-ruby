@@ -10,6 +10,8 @@ The current milestone is **Companion Studio v0.4**: five frozen bodies, gem iden
 
 User-requested speech output was brought forward from November. **November still requires two-way voice conversation:** microphone capture, ASR, interruption, latency/hardware tuning, multilingual packs and accessible listening feedback. Do not call text-to-speech alone completion of that milestone.
 
+Version labels in the original long-term table below are planning labels, not claims that a shipped v0.4 already has OS control. Current shipped scope is the milestone above.
+
 ## October delivery window: 15 days, 3 hours/day
 
 Budget: **45 hours**. This is a target for a narrow Windows desktop assistant MVP, not completion of the entire long-term roadmap. Timebox work to three hours each day. Keep unfinished work on feature branches. Focus October on the desktop foundation. Cut stretch features before cutting release validation; voice is a required November milestone.
@@ -126,6 +128,6 @@ Public repository: `Rayeen13/project-ruby`. Default branch: `main`. Stable relea
 
 ## Optional model packs — 13 October decision
 
-Keep Ruby's application package under 1 GB. Riyan approved optional larger model downloads outside that package; under-1 GB models remain preferred when useful. Expose pack size, RAM needs and licences before an explicit user-selected install. Model weights must allow commercial use and selling Ruby without mandatory model royalties; MIT is no longer required. Colibri/Soup may be evaluated as separately installed inference/training tools behind a pluggable provider interface; neither is integrated or an approved model today. See `docs/OFFLINE_MODELS.md` for the audit, GPT-family options and rejected candidates.
+Keep Ruby's application package under 1 GB. Riyan approved optional larger model downloads outside that package; under-1 GB models remain preferred when useful. Expose pack size, RAM needs and licences before an explicit user-selected install. Model weights must allow commercial use and selling Ruby without mandatory model royalties; MIT is no longer required. Colibri is an optional existing-server connection preset (not installed or benchmarked by Ruby); Soup remains a future training/studio evaluation. Neither is a model. See `docs/OFFLINE_MODELS.md` for the audit, GPT-family options and rejected candidates.
 
 On 13 October Riyan broadened model eligibility from MIT-only to commercially usable licences with no mandatory model royalty. MIT and Apache-2.0 are the first reviewed licence families for experiments; other licences require their exact terms to be reviewed. Keep licence/copyright notices and any required attribution. Ruby source remains GPL-2.0-only.

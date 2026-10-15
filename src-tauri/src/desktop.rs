@@ -293,6 +293,34 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
                     window.set_size(size).map_err(|e| e.to_string())?;
                     window.set_position(position).map_err(|e| e.to_string())?;
                 }
+                // Restoring client bounds after adding native chrome must still fit the monitor.
+                let area = work_area(&window)?;
+                let outer = window.outer_size().map_err(|e| e.to_string())?;
+                let inner = window.inner_size().map_err(|e| e.to_string())?;
+                let width = area
+                    .width
+                    .saturating_sub(outer.width.saturating_sub(inner.width));
+                let height = area
+                    .height
+                    .saturating_sub(outer.height.saturating_sub(inner.height));
+                window
+                    .set_size(PhysicalSize::new(
+                        inner.width.min(width),
+                        inner.height.min(height),
+                    ))
+                    .map_err(|e| e.to_string())?;
+                let size = window.outer_size().map_err(|e| e.to_string())?;
+                let position = window.outer_position().map_err(|e| e.to_string())?;
+                let (x, y) = bounded_position(
+                    area,
+                    (size.width, size.height),
+                    (position.x, position.y),
+                    None,
+                    false,
+                );
+                window
+                    .set_position(PhysicalPosition::new(x, y))
+                    .map_err(|e| e.to_string())?;
                 state.status.floating = false;
                 window.unminimize().map_err(|e| e.to_string())?;
                 window.show().map_err(|e| e.to_string())?;

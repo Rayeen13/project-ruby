@@ -1,6 +1,6 @@
 # Project Ruby
 
-A desktop-companion prototype with five procedural 3D robot bodies, gem colour profiles, cursor tracking and expressive animation. Built with Three.js and browser JavaScript; a first Windows desktop shell is available as a build preview; Windows v0.3 can download, verify and run its own compact local AI inside the app, with optional existing-server connections. Voice and OS automation are future work.
+A desktop-companion prototype with five procedural 3D robot bodies, gem colour profiles, cursor tracking and expressive animation. Built with Three.js and browser JavaScript; a first Windows desktop shell is available as a build preview; Windows v0.4 downloads and runs local LLM and VoiceM packs, with optional existing-server connections, sourced internet answers and independent Companion/chat/Settings views. Microphone input and OS automation are future work.
 
 ## Run locally
 
@@ -40,7 +40,7 @@ Default branch: main. Repository: project-ruby. Use Conventional Commits, e.g. `
 
 ## Printing and platforms
 
-STL files and notes are in dist/prints. They are static figurines; review supports and slicer settings before printing. docs/PLATFORMS.md distinguishes shared rendering from native host/widget/overlay features, which are not implemented.
+STL files and notes are in dist/prints. They are static figurines; review supports and slicer settings before printing. docs/PLATFORMS.md distinguishes shared rendering, the implemented Windows host and planned mobile widget/overlay hosts.
 
 ## Roadmap and architecture
 

@@ -100,6 +100,7 @@ for(const category of [...new Set(CHARACTER_MODELS.map(m=>m.category))]){
  }modelSelect.append(group);
 }
 function updateModelUI(){
+ document.documentElement.style.setProperty('--companion-ratio',({classic:340/390,cyber:310/430,chibi:320/430,office:310/395,gamer:360/450})[selection.spec.id]);
  if(desktopHost)void desktopHost.body(selection.spec.id).catch(error=>{document.querySelector('#interaction-feedback').textContent=String(error);});
  modelSelect.value=selection.spec.id;gallery?.update();
  const wave=document.querySelector('#wave');wave.disabled=!selection.capabilities.wave;

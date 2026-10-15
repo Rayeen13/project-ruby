@@ -46,12 +46,16 @@
   for(let i=0;i<300&&document.querySelector('#chat-panel').dataset.state!=='idle';i++)await wait(100);
   assert(document.querySelector('#chat-panel').dataset.state==='idle'&&document.querySelector('#chat-log .assistant p')?.textContent.length>0,'Actual WebView renders a completed real AI reply');
   assert(JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.at(-1).status==='complete','WebView persists completed conversation');
+  document.querySelector('#chat-input').value='Search NASA Artemis program';document.querySelector('#chat-form').dispatchEvent(new Event('submit',{cancelable:true}));
+  for(let i=0;i<450&&document.querySelector('#chat-panel').dataset.state!=='idle';i++)await wait(100);
+  assert(document.querySelector('#chat-panel').dataset.state==='idle'&&document.querySelector('#chat-log .chat-sources a'),'Real local LLM answers an internet query with visible retrieved source links');
   await window.__TAURI__.core.invoke('desktop_action',{action:'float'});await wait(300);
   const panel=document.querySelector('#chat-panel');
   for(let i=0;i<8;i++)await window.__TAURI__.core.invoke('desktop_action',{action:'zoom_out'});await wait(250);
   const panelBounds=panel.getBoundingClientRect(),inputBounds=document.querySelector('#chat-input').getBoundingClientRect();
   assert(panelBounds.top>=0&&panelBounds.bottom<=innerHeight&&inputBounds.top>=0&&inputBounds.bottom<=innerHeight,'Independent chat and input fit smallest native floating window');
   assert(stage.getBoundingClientRect().right<=panelBounds.left,'Companion viewport never overlaps the conversation');
+  assert(stage.clientHeight<innerHeight-50,'Small Companion keeps its selected viewport size beside chat');
   await window.__TAURI__.core.invoke('desktop_action',{action:'size_reset'});await wait(250);
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'chat'});await wait(400);
   document.querySelector('#chat-expand').click();await wait(300);

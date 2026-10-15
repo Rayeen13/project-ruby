@@ -116,7 +116,7 @@ try {
           if ($phase -eq 'chat_lab' -and $topInset -lt 20) { throw 'Studio is missing its native Windows title bar' }
           if ($phase -eq 'float' -and $topInset -gt 2) { throw 'Floating Companion has an unwanted native title bar' }
           $screen = [System.Windows.Forms.Screen]::FromHandle($rubyHandle)
-          if ($phase -eq 'zoom_view' -and ($bounds.Left -lt $screen.WorkingArea.Left -or $bounds.Top -lt $screen.WorkingArea.Top -or $bounds.Right -gt $screen.WorkingArea.Right -or $bounds.Bottom -gt $screen.WorkingArea.Bottom)) { throw 'Zoomed canvas extends beyond usable screen' }
+          if ($phase -in @('zoom_view','chat_lab') -and ($bounds.Left -lt $screen.WorkingArea.Left -or $bounds.Top -lt $screen.WorkingArea.Top -or $bounds.Right -gt $screen.WorkingArea.Right -or $bounds.Bottom -gt $screen.WorkingArea.Bottom)) { throw 'Zoomed canvas extends beyond usable screen' }
           if ($phase -eq 'left' -and $bounds.Left -ge $screen.WorkingArea.Left) { throw 'Left peek is not at the actual screen edge' }
           if ($phase -eq 'right' -and $bounds.Right -le $screen.WorkingArea.Right) { throw 'Right peek is not at the actual screen edge' }
           $captureLeft = [Math]::Max($bounds.Left,$screen.Bounds.Left)
@@ -129,7 +129,7 @@ try {
             $graphics.CopyFromScreen($captureLeft,$captureTop,0,0,$bitmap.Size)
             $bitmap.Save("$PWD/ruby-native-$phase.png",[System.Drawing.Imaging.ImageFormat]::Png)
           } finally { $graphics.Dispose(); $bitmap.Dispose() }
-          if ($topInset -gt 8) { throw 'Native title bar occupies the top of the window' }
+          if ($phase -ne 'chat_lab' -and $topInset -gt 8) { throw 'Floating Companion has an unwanted title bar' }
           if ($phase -in @('left','right')) {
             $hoverX = if ($phase -eq 'left') { $screen.WorkingArea.Left+80 } else { $screen.WorkingArea.Right-80 }
             [RubyBounds]::SetCursorPos($hoverX,[int]($bounds.Top+($bounds.Bottom-$bounds.Top)*0.45)) | Out-Null
