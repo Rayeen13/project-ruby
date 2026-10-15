@@ -1,8 +1,8 @@
 ## Current follow-up · Setup and voice quality
 
 - v0.4.1: natural identity prompts, hidden-until-requested floating controls, Recommended/Custom/Pro/Lite setup, matched Kokoro VoiceM choices, Jasper and Jet male identities, original sarcastic Opal android.
-- Release gate: actual Windows download/cancel/cache reuse, real-model self-introduction, female/male audio generation and preview, matching voice filters, all six body interactions and regression checks.
-- Next quality gate: audition voices on Riyan’s RTX 2050 laptop, compare stronger compact LLMs on natural conversation, measure first-audio latency, and refine Opal’s art with real screenshots. Functional WAV generation alone is not a voice-quality approval.
+- v0.4.1 release gate passed on Windows: download/cancel/cache reuse, real-model self-introduction, female/male synthesis and actual preview/Stop, matching voice filters, platform collision, context-menu controls, native carrying, global gaze, pin/peek and restart persistence. Shared Node 22/24 checks pass on Windows/Linux. The public website now uses the same rendering budget as the tested Windows build.
+- Next quality gate: audition voices on the owner’s RTX 2050 laptop, compare stronger compact LLMs on natural conversation, measure first-audio latency, and refine Opal’s art with real screenshots. Functional WAV generation alone is not a voice-quality approval.
 - November: microphone input, ASR, interruption and multilingual VoiceM remain required. Setup must keep size, hardware and individual model licences visible. Companion = character mesh; LLM = intelligence; VoiceM = voice model.
 
 # Project Ruby roadmap
@@ -13,7 +13,7 @@ Project Ruby is an ADICE (Artificial Digital Intelligent Companion Entity) compa
 
 Terminology: **Companion = 3D mesh character**, **LLM = intelligence model**, **VoiceM = voice synthesis model**. Keep these terms in UI, plugin contracts and documentation.
 
-The current milestone is **Companion Studio v0.4**: five frozen bodies, gem identities, expressions, personality, persistent owner notes, independent chat/Settings, managed local LLM download, sourced internet lookup and downloadable English VoiceM with preview/speech. Windows Studio uses native window chrome; floating Companion remains frameless with body-specific bounds and preset sizes. Google AI Mode is a browser shortcut, not a hidden answer API. Content preference is prompt-level, not a guarantee of LLM compliance. Microphone input, screen vision, desktop input control, native mobile widgets and world physics remain open. Windows CI exercises actual WebView/process behavior; physical-device acceptance remains required.
+The current milestone is **Companion Studio v0.4.1**: five preserved robot bodies plus the original Opal android, gem identities, expressions, personality, persistent owner notes, independent chat/Settings, managed local LLM download, sourced internet lookup and downloadable English VoiceM with preview/speech. Windows Studio uses native window chrome; floating Companion remains frameless with body-specific bounds and preset sizes. Google AI Mode is a browser shortcut, not a hidden answer API. Content preference is prompt-level, not a guarantee of LLM compliance. Microphone input, screen vision, desktop input control, native mobile widgets and world physics remain open. Windows CI exercises actual WebView/process behavior; physical-device acceptance remains required.
 
 User-requested speech output was brought forward from November. **November still requires two-way voice conversation:** microphone capture, ASR, interruption, latency/hardware tuning, multilingual packs and accessible listening feedback. Do not call text-to-speech alone completion of that milestone.
 

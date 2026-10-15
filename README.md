@@ -32,7 +32,7 @@ Open http://localhost:8080. Run `npm test` for animation clearance checks.
 
 Studio uses a native Windows title bar and an orbital vector interface. The desktop Companion remains transparent and frameless. Conversation and Settings reserve separate space beside the visible Companion. LLM downloads, engine/model choices, content style, memory and VoiceM live in Settings. The mesh interaction menu has a top-right ×. Studio has gravity and a static support collider for each rigid Companion body, plus a drop test. Floating wheel zoom selects Small, Medium, Large or Extra large; the host uses body-specific bounds.
 
-Ruby, Emme and Amy are female characters; Saph is male. Adult profiles have fictional ages; Chibi uses age 8 and a family-friendly prompt. Personality and validated expression tags drive visual mood independently of the selected LLM. Feelings are simulated character state, not consciousness. Local owner memory records explicit “My name is…”, “Remember…” and “I feel…” statements. Notes can be disabled, reviewed, individually deleted, cleared or exported.
+Ruby, Emme, Amy and Opal are female characters; Saph, Jasper and Jet are male. Adult profiles have fictional ages; Chibi uses age 8 and a family-friendly prompt. Personality and validated expression tags drive visual mood independently of the selected LLM. Feelings are simulated character state, not consciousness. Local owner memory records explicit “My name is…”, “Remember…” and “I feel…” statements. Notes can be disabled, reviewed, individually deleted, cleared or exported.
 
 Online mode uses bounded search excerpts and source links (Windows: Bing RSS; browser: Wikipedia API, subject to network/CORS availability). Explicit search commands support follow-up queries. Queries go to the search service; stored owner notes and full history do not. Google AI Mode opens the question in your browser; Ruby does not scrape or import its answers. Search failures are shown explicitly. A compact LLM can still misunderstand evidence; check the sources.
 
@@ -42,7 +42,7 @@ See [docs/COMPANION_STUDIO.md](docs/COMPANION_STUDIO.md) for architecture, voice
 
 ## Catalog
 
-Classic EMO-style, Cyberpunk 3090, Chibi, Office and Gamer. Profiles: Ruby, Saph, Emme and Amy. Gamer carries a controller in its right hand and has headphone listening screens. Listening is currently a visual state, not live microphone analysis.
+Bodies: Classic EMO-style, Cyberpunk 3090, Chibi, Office, Gamer and Opal. Gem profiles: Ruby, Saph, Emme, Amy, Jasper, Jet and Opal. Gamer carries a controller in its right hand and has headphone listening screens. Listening is currently a visual state, not live microphone analysis.
 
 ## Licence
 
@@ -64,7 +64,11 @@ See [HAND_RIG.md](HAND_RIG.md) for jointed hands and gestures. Four finger chain
 
 ## Build and validation
 
-`npm run build` creates versioned browser assets after source changes. `npm test` checks host-injected character contracts, capability-aware gesture routing and 1,920 sampled waving poses, head clearance, gesture joints/handedness, eye dimensions and controller attachment. `npm run check:assets` verifies the built browser module graph. GitHub Actions runs these checks on Windows/Linux with Node 22/24. Visual review is still required on real WebGL devices. The software SVG renderer is a compatibility fallback.
+Release validation for v0.4.1: [Windows native UI and restart checks](https://github.com/Rayeen13/project-ruby/actions/runs/38720245485) and [Node 22/24 checks on Windows/Linux](https://github.com/Rayeen13/project-ruby/actions/runs/38720245341) passed on `main`. Native checks cover downloaded LLM/VoiceM, real introductions, sourced answers, audio preview/Stop, setup reuse, carry/shake, pin/peek, global gaze and persistence. Speech samples, screenshots and reports accompany the Windows artifact. These checks do not replace listening and visual acceptance on the target laptop.
+
+Both the public website and Windows app now use the rendering budget introduced in v0.4.1: a 30 FPS cap, lower software-renderer limits, and reduced rendering during native synthesis to leave CPU capacity for VoiceM.
+
+`npm run build` creates versioned browser assets after source changes. `npm test` checks host-injected character contracts, capability-aware gesture routing and 2,400 sampled waving poses, head clearance, gesture joints/handedness, eye dimensions and controller attachment. `npm run check:assets` verifies the built browser module graph. GitHub Actions runs these checks on Windows/Linux with Node 22/24. Visual review is still required on real WebGL devices. The software SVG renderer is a compatibility fallback.
 
 `npm run export:print` regenerates static STL figurines. Python dependencies: trimesh, manifold3d, numpy, scipy and scikit-image. Exported files are reloaded and checked for a connected watertight solid with positive volume. They contain no mechanical joints; inspect thin fingers and supports in your slicer.
 
@@ -76,7 +80,7 @@ The lab saves model, gem, expression, hand poses, camera, tracking and animation
 
 ## Windows shell preview
 
-See [docs/WINDOWS.md](docs/WINDOWS.md) for the Tauri host, local build instructions and the Windows CI installer artifact. The native viewer embeds the same lab assets. The Windows preview includes a transparent floating window, tray, pointer drag handle, click-through and Ctrl+Alt+Shift+R recovery. OS control and AI are not connected yet. Build validation and physical-device runtime validation are separate checks.
+See [docs/WINDOWS.md](docs/WINDOWS.md) for the Tauri host, local build instructions and the Windows CI installer artifact. The native viewer embeds the same lab assets. The Windows preview includes a transparent floating window, tray, hold/drag carrying, click-through and Ctrl+Alt+Shift+R recovery. Managed local AI, sourced internet answers and VoiceM speech are connected. Mouse/keyboard automation, screen vision and microphone input remain planned. Build validation and physical-device runtime validation are separate checks.
 
 ## Touch and model menu
 
@@ -84,7 +88,7 @@ Tap a robot's head/body for a pat or boop, or its hand for a greeting. Right-cli
 
 ## Offline model gate
 
-See [docs/OFFLINE_MODELS.md](docs/OFFLINE_MODELS.md) for the commercial-use weight/tokenizer audit, Windows CPU benchmark and raw quality probes. Phi-1.5 and Shunya baselines were rejected for basic conversation failures. Official Qwen2.5-0.5B Q4_K_M (491 MB, Apache-2.0) with an explicit Ruby persona is now an English chat integration candidate; Hindi and strict introduction formatting remain limited. No model is bundled or presented as a working Ruby chat provider yet. Use the Offline model evaluation workflow for repeatable measured candidates; November voice remains a required milestone.
+See [docs/OFFLINE_MODELS.md](docs/OFFLINE_MODELS.md) for the commercial-use weight/tokenizer audit, Windows CPU benchmark and raw quality probes. Phi-1.5 and Shunya baselines were rejected for basic conversation failures. Official Qwen2.5-0.5B Q4_K_M (491 MB weights, Apache-2.0) is the managed Windows chat model, downloaded with its runtime through Settings. It is not embedded in the installer. Windows CI validates real conversation, natural self-introduction, sourced answers and Stop/Retry. General conversation quality and Hindi remain limited. Use the Offline model evaluation workflow to compare candidates; November two-way voice remains required.
 
 ### Companion collection and carry reactions
 
@@ -92,8 +96,8 @@ Browse the six bodies by category, choose gem colour and a saved personality for
 
 ## Local conversation
 
-Windows v0.3: open **Conversation** from the tray, **Open conversation / set up AI** in the lab, or **Talk** beside the mascot. Choose **Download AI** for the one-time ~511 MB managed pack. Ruby verifies and starts the model; Stop / unload AI releases its process. Later starts work with the verified local cache. No Python or terminal is needed. Chat supports streaming, Stop/Retry, saved history and gem/body personalities.
+Windows v0.4.1: open **Conversation** from the tray or Studio, or right-click the Companion and choose **Talk**. For automatic setup, choose **Settings → Setup → Recommended**. For the LLM alone, choose **Settings → LLM → Download AI** for the one-time ~511 MB managed pack. Ruby verifies and starts the model; Stop / unload AI releases its process. Later starts work with the verified local cache. No Python or terminal is needed. Chat supports streaming, Stop/Retry, saved history and gem/body personalities.
 
 The AI engine selector also connects to existing local Ollama, LM Studio, Colibri, vLLM and MoE-Infinity OpenAI-compatible servers. These optional connections do not install their frameworks or large models. The website remains a browser demo connecting to an already running local server, subject to browser local-network restrictions.
 
-See [docs/AI_ENGINES.md](docs/AI_ENGINES.md) for the runtime review, precise integration boundaries and setup. Voice, sourced internet search and PC task execution remain future work.
+See [docs/AI_ENGINES.md](docs/AI_ENGINES.md) for the runtime review, precise integration boundaries and setup. English VoiceM speech and sourced internet search are implemented. Microphone input, interruption, multilingual speech and PC task execution remain future work.
