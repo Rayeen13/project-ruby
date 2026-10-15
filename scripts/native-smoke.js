@@ -20,7 +20,7 @@
   assert(stage.dataset.ready==='true','Actual WebView renderer initialized');
   assert((await window.__TAURI__.core.invoke('desktop_status')).floating,'Executable opens directly as floating mascot');
   await window.__TAURI__.core.invoke('desktop_action',{action:'lab'});await wait(350);
-  document.querySelector('#chat-launcher').click();await wait(150);
+  document.querySelector('[data-chat-open]').click();await wait(150);
   assert(!document.querySelector('#chat-panel').hidden,'Mascot opens attached conversation');
   assert(document.querySelector('[data-chat-open]'),'Windows lab has an explicit Conversation entry point');
   document.querySelector('#chat-clear').click();
@@ -51,6 +51,7 @@
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'chat'});await wait(400);
   document.querySelector('#chat-expand').click();await wait(300);
   assert(!(await window.__TAURI__.core.invoke('desktop_status')).floating&&panel.classList.contains('expanded'),'Expand opens lab with the same conversation');
+  await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'chat_lab'});
   document.querySelector('#chat-input').value='Explain computers in detail.';document.querySelector('#chat-form').dispatchEvent(new Event('submit',{cancelable:true}));
   for(let i=0;i<200&&document.querySelector('#chat-panel').dataset.state==='thinking';i++)await wait(50);
   assert(!document.querySelector('#chat-stop').hidden,'WebView exposes Stop during real generation');document.querySelector('#chat-stop').click();

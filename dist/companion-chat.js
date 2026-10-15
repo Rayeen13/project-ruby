@@ -6,6 +6,7 @@ import {Conversation} from './conversation.js';
 export function mountCompanionChat({document,storage,identity,onState=()=>{},onOpen=()=>{},onExpand=()=>{}}){
  const el=id=>document.getElementById(id),panel=el('chat-panel'),log=el('chat-log'),input=el('chat-input'),model=el('chat-model');
  const provider=globalThis.__TAURI__?new NativeChatProvider(globalThis.__TAURI__):new LocalChatProvider();let connecting=null,packBusy=false;
+ const engineNote=engine=>!globalThis.__TAURI__&&engine.id==='ruby'?'Download offline AI inside the Windows app → Conversation → Download AI. This website connects to the running server on your device.':engine.note;
  const engineSelect=el('chat-engine');
  for(const engine of AI_ENGINES){const option=document.createElement('option');option.value=engine.id;option.textContent=engine.name;engineSelect.append(option);}
  const chat=new Conversation({provider,storage,identity,onChange:render});
@@ -36,9 +37,9 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
  if(globalThis.__TAURI__)void globalThis.__TAURI__.event.listen('ruby-open-chat',()=>open()).then(unlisten=>window.addEventListener('pagehide',unlisten,{once:true}));
  el('chat-launcher').onclick=open;el('chat-close').onclick=()=>{panel.hidden=true;el('chat-launcher').focus();};
  panel.addEventListener('keydown',event=>{if(event.key==='Escape'){event.stopPropagation();panel.hidden=true;el('chat-launcher').focus();}});
- el('chat-expand').onclick=async()=>{await onExpand();panel.classList.toggle('expanded');el('chat-expand').textContent=panel.classList.contains('expanded')?'Compact':'Expand';input.focus();};
- engineSelect.onchange=()=>{chat.stop();model.replaceChildren();const engine=engineFor(engineSelect.value);if(globalThis.__TAURI__)provider.engine=engine.id;else provider.base=engine.base;el('chat-engine-note').textContent=engine.note;el('ai-pack-section').hidden=!globalThis.__TAURI__||engine.id!=='ruby';chat.error='';chat.state='idle';render();};
- el('chat-engine-note').textContent=AI_ENGINES[0].note;
+ el('chat-expand').onclick=async()=>{await onExpand();panel.classList.toggle('expanded');el('chat-expand').textContent=panel.classList.contains('expanded')?'Compact':'Expand';input.focus({preventScroll:true});};
+ engineSelect.onchange=()=>{chat.stop();model.replaceChildren();const engine=engineFor(engineSelect.value);if(globalThis.__TAURI__)provider.engine=engine.id;else provider.base=engine.base;el('chat-engine-note').textContent=engineNote(engine);el('ai-pack-section').hidden=!globalThis.__TAURI__||engine.id!=='ruby';chat.error='';chat.state='idle';render();};
+ el('chat-engine-note').textContent=engineNote(AI_ENGINES[0]);
  el('chat-connect').onclick=connect;el('chat-stop').onclick=()=>chat.stop();el('chat-retry').onclick=()=>chat.retry(model.value);
  el('chat-form').onsubmit=async event=>{event.preventDefault();const text=input.value;if(!text.trim()||chat.active)return;if(!model.value){el('chat-status').textContent='Connect a local model before sending.';el('chat-setup').open=true;return;}input.value='';await chat.send(text,model.value);input.focus({preventScroll:true});};
  el('chat-clear').onclick=()=>{chat.clear();input.value='';};

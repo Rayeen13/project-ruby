@@ -33,7 +33,7 @@ fn desktop_smoke_report(
 }
 
 #[tauri::command]
-fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
+async fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
     if !std::env::args().any(|arg| arg == "--native-smoke-test")
         || ![
             "menu",
@@ -46,6 +46,7 @@ fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
             "zoom",
             "zoom_view",
             "chat",
+            "chat_lab",
             "left",
             "right",
             "pin",
@@ -57,7 +58,11 @@ fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
     {
         return Err("Smoke checkpoints are disabled outside the test launch".into());
     }
-    std::fs::write("ruby-native-phase.txt", phase).map_err(|error| error.to_string())
+    std::fs::write("ruby-native-phase.txt", &phase).map_err(|error| error.to_string())?;
+    if phase == "chat" || phase == "chat_lab" {
+        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+    }
+    Ok(())
 }
 
 fn main() {

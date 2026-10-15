@@ -92,6 +92,9 @@ fn parse_line(line: &[u8]) -> Result<(Option<String>, bool), String> {
         return Err("Local model reported an error".into());
     }
     let choice = &event["choices"][0];
+    if choice["finish_reason"].as_str() == Some("error") {
+        return Err("The AI engine could not complete the reply".into());
+    }
     Ok((
         choice["delta"]["content"].as_str().map(str::to_owned),
         choice["finish_reason"].is_string(),
