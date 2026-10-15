@@ -551,9 +551,23 @@ pub fn start_pointer_tracking(app: AppHandle) {
                 let Ok(area) = work_area(&window) else {
                     continue;
                 };
+                let pointer_width = {
+                    let handle = app.state::<Mutex<DesktopState>>();
+                    let state = handle.lock().ok();
+                    let with_chat = match state.as_ref() {
+                        Some(state) => state.status.floating && state.status.chat_open,
+                        None => false,
+                    };
+                    if with_chat {
+                        let scale = window.scale_factor().unwrap_or(1.0);
+                        size.width.saturating_sub((400.0 * scale).round() as u32)
+                    } else {
+                        size.width
+                    }
+                };
                 let (x, y) = screen_gaze(
                     area,
-                    (size.width, size.height),
+                    (pointer_width, size.height),
                     (position.x, position.y),
                     (cursor.x, cursor.y),
                 );
