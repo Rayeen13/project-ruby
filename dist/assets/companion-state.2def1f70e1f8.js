@@ -1,0 +1,14 @@
+// Portable character state: independent of meshes, LLM runtimes and VoiceM providers.
+export const COMPANION_KEY='project-ruby.companion.v1';
+const GEM_IDENTITIES={ruby:{gender:'female',age:24},saph:{gender:'male',age:25},emme:{gender:'female',age:26},amy:{gender:'female',age:24}};
+export const clean=value=>String(value??'').replace(/[\u0000-\u001f]/g,' ').trim().slice(0,180);
+export class CompanionState{
+ constructor(storage){this.storage=storage;let value;try{value=JSON.parse(storage?.getItem(COMPANION_KEY)||'null');}catch{}this.data={version:1,content:value?.content==='uncensored'?'uncensored':'censored',remember:value?.remember!==false,speak:value?.speak===true,voice:['auto','female','male','system'].includes(value?.voice)?value.voice:'auto',memories:Array.isArray(value?.memories)?value.memories.filter(x=>typeof x==='string').map(clean).filter(Boolean).slice(-12):[],feeling:clean(value?.feeling),emotion:['idle','happy','listen','sleep'].includes(value?.emotion)?value.emotion:'idle'};this.saved=true;}
+ save(){try{this.storage.setItem(COMPANION_KEY,JSON.stringify(this.data));this.saved=true;}catch{this.saved=false;}return this.saved;}
+ identity(base){const spec=GEM_IDENTITIES[base.profile]||{gender:'male',age:25};return {...base,...spec,age:base.bodyId==='chibi'?8:spec.age,content:this.data.content,memories:this.data.remember?[...this.data.memories]:[],ownerFeeling:this.data.remember?this.data.feeling:'',emotion:this.data.emotion};}
+ remember(text){text=clean(text);if(!text)return;this.data.memories=[...this.data.memories.filter(x=>x!==text),text].slice(-12);this.save();}
+ observe(text){if(!this.data.remember)return;const memory=text.match(/^(?:remember(?: that)?|please remember)[: ,]+(.+)/i);if(memory)this.remember(memory[1]);const name=text.match(/^my name is (.{1,50})[.!]?$/i);if(name)this.remember('Owner name: '+name[1]);const feeling=text.match(/^(?:i feel|i am feeling|i'm feeling)\s+(.+)/i);if(feeling)this.data.feeling=clean(feeling[1]);this.data.emotion=/\b(sad|lonely|anxious|stressed|upset|tired)\b/i.test(text)?'listen':/\b(thank|happy|excited|love|great|yay)\b/i.test(text)?'happy':'idle';this.save();}
+ forget(){this.data.memories=[];this.data.feeling='';this.data.emotion='idle';this.save();}
+ export(){return {schema:'project-ruby.companion',...this.data};}
+}
+export function parseExpression(text){const match=text.match(/^\s*\[(happy|curious|listening|sleepy|neutral)\]\s*/i);return {text:match?text.slice(match[0].length):text,mood:match?({happy:'happy',curious:'idle',listening:'listen',sleepy:'sleep',neutral:'idle'}[match[1].toLowerCase()]):null};}

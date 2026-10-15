@@ -1,11 +1,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod ai_pack;
-mod internet;
-mod voice;
 mod desktop;
 mod desktop_layout;
+mod internet;
 mod local_ai;
+mod voice;
 
 use desktop::{perform, set_shortcut_ready, DesktopAction, DesktopState, RECOVERY_SHORTCUT};
 use std::sync::Mutex;

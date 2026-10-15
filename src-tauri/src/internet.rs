@@ -27,7 +27,9 @@ pub async fn internet_search(query: String) -> Result<Vec<Source>, String> {
         .query(&[("format", "rss"), ("q", query.as_str())])
         .send()
         .await
-        .map_err(|_| "Internet search could not connect. Check your connection or turn online mode off.")?;
+        .map_err(|_| {
+            "Internet search could not connect. Check your connection or turn online mode off."
+        })?;
     if !response.status().is_success() {
         return Err("Search is unavailable. Try again or open Google AI Mode.".into());
     }
@@ -48,15 +50,30 @@ fn parse_results(xml: &str) -> Result<Vec<Source>, String> {
         .map_err(|_| "Search returned an unreadable response. Try Google AI Mode.")?;
     let mut sources = Vec::new();
     for item in document.descendants().filter(|n| n.has_tag_name("item")) {
-        let field = |name| item.children().find(|n| n.has_tag_name(name)).and_then(|n| n.text()).unwrap_or("");
+        let field = |name| {
+            item.children()
+                .find(|n| n.has_tag_name(name))
+                .and_then(|n| n.text())
+                .unwrap_or("")
+        };
         let url = field("link");
         if !url.starts_with("https://") || url.len() > 2000 {
             continue;
         }
-        sources.push(Source { title: bounded(field("title"), 150), url: url.into(), snippet: bounded(field("description"), 550) });
-        if sources.len() == 3 { break; }
+        sources.push(Source {
+            title: bounded(field("title"), 150),
+            url: url.into(),
+            snippet: bounded(field("description"), 550),
+        });
+        if sources.len() == 3 {
+            break;
+        }
     }
-    if sources.is_empty() { return Err("No usable search results. Try a more specific question or Google AI Mode.".into()); }
+    if sources.is_empty() {
+        return Err(
+            "No usable search results. Try a more specific question or Google AI Mode.".into(),
+        );
+    }
     Ok(sources)
 }
 
@@ -71,11 +88,32 @@ pub fn open_web_url(url: String) -> Result<(), String> {
         use std::os::windows::ffi::OsStrExt;
         #[link(name = "shell32")]
         unsafe extern "system" {
-            fn ShellExecuteW(window: isize, operation: *const u16, file: *const u16, parameters: *const u16, directory: *const u16, show: i32) -> isize;
+            fn ShellExecuteW(
+                window: isize,
+                operation: *const u16,
+                file: *const u16,
+                parameters: *const u16,
+                directory: *const u16,
+                show: i32,
+            ) -> isize;
         }
-        let wide: Vec<u16> = std::ffi::OsStr::new(&url).encode_wide().chain(Some(0)).collect();
-        let result = unsafe { ShellExecuteW(0, std::ptr::null(), wide.as_ptr(), std::ptr::null(), std::ptr::null(), 1) };
-        if result <= 32 { return Err("Windows could not open your browser".into()); }
+        let wide: Vec<u16> = std::ffi::OsStr::new(&url)
+            .encode_wide()
+            .chain(Some(0))
+            .collect();
+        let result = unsafe {
+            ShellExecuteW(
+                0,
+                std::ptr::null(),
+                wide.as_ptr(),
+                std::ptr::null(),
+                std::ptr::null(),
+                1,
+            )
+        };
+        if result <= 32 {
+            return Err("Windows could not open your browser".into());
+        }
     }
     Ok(())
 }

@@ -174,8 +174,11 @@ fn position_float(
     if resize {
         window
             .set_size(LogicalSize::new(
-                (body_width * state.status.size + if state.status.chat_open { 400.0 } else { 0.0 }).min(area.width as f64 / scale),
-                (body_height * state.status.size).max(if state.status.chat_open { 480.0 } else { 0.0 }).min(area.height as f64 / scale),
+                (body_width * state.status.size + if state.status.chat_open { 400.0 } else { 0.0 })
+                    .min(area.width as f64 / scale),
+                (body_height * state.status.size)
+                    .max(if state.status.chat_open { 480.0 } else { 0.0 })
+                    .min(area.height as f64 / scale),
             ))
             .map_err(|error| error.to_string())?;
     }
@@ -233,7 +236,10 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
             DesktopAction::ChatOpen | DesktopAction::ChatClose => {
                 state.status.chat_open = matches!(action, DesktopAction::ChatOpen);
                 if state.status.floating {
-                    if state.status.chat_open { state.status.edge = None; state.status.peeking = false; }
+                    if state.status.chat_open {
+                        state.status.edge = None;
+                        state.status.peeking = false;
+                    }
                     position_float(&window, &mut state, true, false)?;
                 }
             }
@@ -252,6 +258,7 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
                         .set_min_size(Some(LogicalSize::new(220.0, 272.0)))
                         .map_err(|e| e.to_string())?;
                     window.set_decorations(false).map_err(|e| e.to_string())?;
+                    window.set_resizable(false).map_err(|e| e.to_string())?;
                     if state.float_position.is_none() {
                         window.center().map_err(|e| e.to_string())?;
                     }
@@ -278,6 +285,7 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
                 window.set_always_on_top(false).map_err(|e| e.to_string())?;
                 window.set_skip_taskbar(false).map_err(|e| e.to_string())?;
                 window.set_decorations(true).map_err(|e| e.to_string())?;
+                window.set_resizable(true).map_err(|e| e.to_string())?;
                 window
                     .set_min_size(Some(LogicalSize::new(640.0, 600.0)))
                     .map_err(|e| e.to_string())?;
@@ -363,10 +371,22 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
                 state.float_position = Some(position);
                 position_float(&window, &mut state, false, false)?;
             }
-            DesktopAction::ZoomIn | DesktopAction::ZoomOut | DesktopAction::SizeReset | DesktopAction::SizeSmall | DesktopAction::SizeMedium | DesktopAction::SizeLarge | DesktopAction::SizeExtraLarge => {
+            DesktopAction::ZoomIn
+            | DesktopAction::ZoomOut
+            | DesktopAction::SizeReset
+            | DesktopAction::SizeSmall
+            | DesktopAction::SizeMedium
+            | DesktopAction::SizeLarge
+            | DesktopAction::SizeExtraLarge => {
                 state.status.size = match action {
-                    DesktopAction::ZoomIn => [0.7, 1.0, 1.35, 1.8].into_iter().find(|size| *size > state.status.size + 0.01).unwrap_or(1.8),
-                    DesktopAction::ZoomOut => [1.8, 1.35, 1.0, 0.7].into_iter().find(|size| *size < state.status.size - 0.01).unwrap_or(0.7),
+                    DesktopAction::ZoomIn => [0.7, 1.0, 1.35, 1.8]
+                        .into_iter()
+                        .find(|size| *size > state.status.size + 0.01)
+                        .unwrap_or(1.8),
+                    DesktopAction::ZoomOut => [1.8, 1.35, 1.0, 0.7]
+                        .into_iter()
+                        .find(|size| *size < state.status.size - 0.01)
+                        .unwrap_or(0.7),
                     DesktopAction::SizeSmall => 0.7,
                     DesktopAction::SizeLarge => 1.35,
                     DesktopAction::SizeExtraLarge => 1.8,
@@ -521,11 +541,27 @@ pub fn start_pointer_tracking(_app: AppHandle) {}
 
 #[tauri::command]
 pub fn desktop_body(window: WebviewWindow, body: String) -> Result<(), String> {
-    if window.label() != "main" { return Err("Only the local viewer may set its Companion body".into()); }
-    let dimensions = match body.as_str() { "classic"=>(340.0,390.0), "cyber"=>(310.0,430.0), "chibi"=>(320.0,430.0), "office"=>(310.0,395.0), "gamer"=>(360.0,450.0), _=>return Err("Unknown Companion body".into()) };
-    let state_handle=window.state::<Mutex<DesktopState>>();let mut state=state_handle.lock().map_err(|_|"Desktop state is unavailable")?;
-    if state.body_size==Some(dimensions) { return Ok(()); }
-    state.body_size=Some(dimensions);
-    if state.status.floating { position_float(&window,&mut state,true,true)?; }
+    if window.label() != "main" {
+        return Err("Only the local viewer may set its Companion body".into());
+    }
+    let dimensions = match body.as_str() {
+        "classic" => (340.0, 390.0),
+        "cyber" => (310.0, 430.0),
+        "chibi" => (320.0, 430.0),
+        "office" => (310.0, 395.0),
+        "gamer" => (360.0, 450.0),
+        _ => return Err("Unknown Companion body".into()),
+    };
+    let state_handle = window.state::<Mutex<DesktopState>>();
+    let mut state = state_handle
+        .lock()
+        .map_err(|_| "Desktop state is unavailable")?;
+    if state.body_size == Some(dimensions) {
+        return Ok(());
+    }
+    state.body_size = Some(dimensions);
+    if state.status.floating {
+        position_float(&window, &mut state, true, true)?;
+    }
     Ok(())
 }

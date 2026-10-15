@@ -22,6 +22,7 @@ export async function mountDesktopControls({host,document,onMode,onStop,onPointe
  if(!host)return;
  const controls=document.querySelector('#desktop-controls'),toolbar=document.querySelector('#floating-toolbar');
  const statusText=document.querySelector('#desktop-status'),floatStatus=document.querySelector('#floating-status');
+ for(const item of document.querySelectorAll('[data-native-only]'))item.hidden=false;
  controls.hidden=false;document.querySelector('#desktop-window-actions').hidden=false;
  let previousMode;
  const apply=status=>{
@@ -39,13 +40,13 @@ export async function mountDesktopControls({host,document,onMode,onStop,onPointe
   for(const button of document.querySelectorAll('[data-desktop-action="toggle_pin"]')){button.textContent=status.pinned?'Unpin from top':'Pin above windows';button.setAttribute('aria-pressed',String(status.pinned));}
   if(status.stopped)onStop();
  };
- let pending=false;
+ let pending=false,queuedSize=null;
  const run=async action=>{
-  if(pending)return;
+  if(pending){if(action.startsWith('size_'))queuedSize=action;return;}
   pending=true;
   try{apply(await host.action(action));}
   catch(error){statusText.textContent=error.message||String(error);floatStatus.textContent=statusText.textContent;}
-  finally{pending=false;}
+  finally{pending=false;if(queuedSize){const next=queuedSize;queuedSize=null;void run(next);}}
  };
  for(const slider of document.querySelectorAll('[data-companion-size]'))slider.oninput=()=>run(['size_small','size_medium','size_large','size_extra_large'][Number(slider.value)]);
  for(const button of document.querySelectorAll('[data-desktop-action]')){
