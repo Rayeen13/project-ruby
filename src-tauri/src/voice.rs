@@ -42,6 +42,64 @@ fn reserve(state: &VoiceState) -> Result<Operation, String> {
     state.0.cancelled.store(false, Ordering::SeqCst);
     Ok(Operation(state.0.clone()))
 }
+#[cfg(not(windows))]
+fn unicode_executable(original: &Path) -> Result<PathBuf, String> {
+    Ok(original.to_path_buf())
+}
+#[cfg(windows)]
+fn unicode_executable(original: &Path) -> Result<PathBuf, String> {
+    use std::{ffi::c_void, os::windows::ffi::OsStrExt};
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn BeginUpdateResourceW(path: *const u16, delete: i32) -> *mut c_void;
+        fn UpdateResourceW(
+            handle: *mut c_void,
+            kind: *const u16,
+            name: *const u16,
+            language: u16,
+            data: *mut c_void,
+            size: u32,
+        ) -> i32;
+        fn EndUpdateResourceW(handle: *mut c_void, discard: i32) -> i32;
+    }
+    let executable = original.with_file_name("ruby-utf8-tts.exe");
+    let marker = original.with_file_name("ruby-utf8-tts.sha256");
+    if let Ok(hash) = fs::read_to_string(&marker) {
+        if verified(&executable, hash.trim()) {
+            return Ok(executable);
+        }
+    }
+    fs::copy(original, &executable).map_err(|e| e.to_string())?;
+    let path: Vec<u16> = executable.as_os_str().encode_wide().chain(Some(0)).collect();
+    let manifest = include_bytes!("voice-utf8.manifest");
+    // Only a Ruby-owned copy is modified. Keep every existing resource.
+    unsafe {
+        let handle = BeginUpdateResourceW(path.as_ptr(), 0);
+        if handle.is_null() {
+            return Err(std::io::Error::last_os_error().to_string());
+        }
+        // RT_MANIFEST (24), CREATEPROCESS_MANIFEST_RESOURCE_ID (1), neutral locale.
+        if UpdateResourceW(
+            handle,
+            24usize as *const u16,
+            1usize as *const u16,
+            0,
+            manifest.as_ptr() as *mut c_void,
+            manifest.len() as u32,
+        ) == 0
+        {
+            let error = std::io::Error::last_os_error().to_string();
+            EndUpdateResourceW(handle, 1);
+            return Err(error);
+        }
+        if EndUpdateResourceW(handle, 0) == 0 {
+            return Err(std::io::Error::last_os_error().to_string());
+        }
+    }
+    let bytes = fs::read(&executable).map_err(|e| e.to_string())?;
+    fs::write(marker, format!("{:x}", Sha256::digest(bytes))).map_err(|e| e.to_string())?;
+    Ok(executable)
+}
 fn pack_id(pack: Option<&str>) -> Result<&'static str, String> {
     match pack {
         None | Some("kokoro") => Ok("kokoro"),
@@ -424,13 +482,7 @@ pub async fn voice_synthesize(
         }
         let output = dir.join("speech.wav");
         let _ = fs::remove_file(&output);
-        // Sherpa's narrow argv must use UTF-8 on Windows, independent of OS locale.
-        // Its pinned executables have no embedded application manifest.
-        fs::write(
-            executable.with_extension("exe.manifest"),
-            include_bytes!("voice-utf8.manifest"),
-        )
-        .map_err(|e| e.to_string())?;
+        let executable = unicode_executable(&executable)?;
         let diagnostic = Partial(dir.join("speech.log"));
         let log = File::create(&diagnostic.0).map_err(|e| e.to_string())?;
         let spoken = text.replace(['\n', '\r'], " ");
@@ -551,8 +603,11 @@ pub async fn voice_synthesize(
                 return Err("VoiceM diagnostic exceeded its limit".into());
             }
             let diagnostic_text = fs::read(&diagnostic.0).map_err(|e| e.to_string())?;
+            if std::env::args().any(|a| a == "--voice-smoke-test") {
+                let _ = fs::write("ruby-native-voice-diagnostic.txt", &diagnostic_text);
+            }
             if !String::from_utf8_lossy(&diagnostic_text).contains(&spoken) {
-                return Err("VoiceM could not preserve Unicode text. Windows 10 version 1903 or newer is required.".into());
+                return Err("VoiceM Unicode input check failed. Repair this pack; Windows 10 version 1903 or newer is required.".into());
             }
         }
         if fs::metadata(&output).map_err(|e| e.to_string())?.len() > 12_000_000 {
