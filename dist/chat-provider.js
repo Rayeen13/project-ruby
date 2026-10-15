@@ -29,6 +29,7 @@ export class LocalChatProvider {
      if(event.error)throw new Error('The local model reported an error.');
      const choice=event.choices?.[0],text=choice?.delta?.content;
      if(typeof text==='string'&&text)yield text;
+     if(choice?.finish_reason==='error')throw new Error('The AI engine could not complete the reply.');
      if(choice?.finish_reason)finished=true;
     }
     if(buffer.length>65536)throw new Error('The model stream exceeded its event limit.');

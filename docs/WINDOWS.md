@@ -66,14 +66,12 @@ Windows tests use real wheel input, validate the native topmost flag, capture en
 
 Opening the floating companion or choosing Wake up resumes cursor tracking. Stop still pauses tracking immediately. Global gaze uses screen-wide distances so a docked companion responds to different cursor positions instead of saturating at the window edge.
 
-## Experimental typed conversation
+## Conversation and offline AI — v0.3.0
 
-Choose **Talk** on the floating mascot or its right-click menu. Start the separate local model server with Python 3.11 or newer:
+Use the tray's **Open conversation**, the lab's **Open conversation / set up AI**, the floating **Talk** button or the robot's right-click menu. The header/lab identifies this build as v0.3.0. Close the previous installed/portable instance before testing a different executable.
 
-```powershell
-py start-local-ai.py
-```
+Choose **Ruby offline AI → Download AI** for the one-time ~511 MB model/runtime download. Progress and Cancel are built in. Ruby verifies the pinned Qwen GGUF, runtime archive and publisher template, retains licences, starts a private loopback process and connects chat. There is no Python or manual server requirement. **Start AI** reuses verified installed assets offline; **Stop / unload AI** releases the process without deleting history. Quit also stops Ruby's owned model process; Hide keeps it available.
 
-The preview ZIP includes this launcher. In a repository checkout use `py scripts/start-local-ai.py`. First setup downloads the checksum-pinned 491 MB Qwen candidate and the CPU runtime to `%LOCALAPPDATA%/ProjectRuby/experimental-ai`, retaining licence notices and the publisher chat template. Subsequent starts reuse verified cached downloads offline. Then choose **Connect** in Ruby. Keep the server terminal open; Ctrl+C unloads the model. The installer itself contains no model, Python interpreter or inference server.
+Saved files use `%LOCALAPPDATA%/ProjectRuby/experimental-ai`, including compatible files from the previous experimental launcher. Optional existing-server presets are available for users who already run another engine. See [AI_ENGINES.md](AI_ENGINES.md). No default large MoE or training stack is downloaded.
 
-Chat history stays in the local WebView storage; Clear chat removes it and Export chat saves a copy. Stop cancels generation; incomplete replies do not enter subsequent model context. Full history is display/export only: the small model receives a bounded recent conversation. Search, speech and desktop tasks remain future work.
+Full history is local display/export storage; the compact model sees bounded recent context. Search, voice and PC task execution remain future work. Model quality, Hindi and individual laptop/iGPU performance need further acceptance work.

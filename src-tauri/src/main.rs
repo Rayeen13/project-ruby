@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod ai_pack;
 mod desktop;
 mod desktop_layout;
 mod local_ai;
@@ -9,7 +10,7 @@ use std::sync::Mutex;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
-    Manager, WindowEvent,
+    Emitter, Manager, WindowEvent,
 };
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
@@ -32,7 +33,7 @@ fn desktop_smoke_report(
 }
 
 #[tauri::command]
-fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
+async fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
     if !std::env::args().any(|arg| arg == "--native-smoke-test")
         || ![
             "menu",
@@ -45,6 +46,7 @@ fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
             "zoom",
             "zoom_view",
             "chat",
+            "chat_lab",
             "left",
             "right",
             "pin",
@@ -56,15 +58,23 @@ fn desktop_smoke_checkpoint(phase: String) -> Result<(), String> {
     {
         return Err("Smoke checkpoints are disabled outside the test launch".into());
     }
-    std::fs::write("ruby-native-phase.txt", phase).map_err(|error| error.to_string())
+    std::fs::write("ruby-native-phase.txt", &phase).map_err(|error| error.to_string())?;
+    if phase == "chat" || phase == "chat_lab" {
+        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+    }
+    Ok(())
 }
 
 fn main() {
     tauri::Builder::default()
+        .manage(ai_pack::PackState::default())
         .manage(local_ai::AiState::default())
         .manage(Mutex::new(DesktopState::default()))
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
+            ai_pack::ai_pack_status,
+            ai_pack::ai_pack_run,
+            ai_pack::ai_pack_stop,
             local_ai::local_ai_models,
             local_ai::local_ai_chat,
             local_ai::local_ai_cancel,
@@ -75,6 +85,7 @@ fn main() {
             desktop_smoke_checkpoint
         ])
         .setup(|app| {
+            let chat = MenuItem::with_id(app, "chat", "Open conversation", true, None::<&str>)?;
             let float = MenuItem::with_id(app, "float", "Float companion", true, None::<&str>)?;
             let lab = MenuItem::with_id(app, "lab", "Open character lab", true, None::<&str>)?;
             let stop = MenuItem::with_id(
@@ -95,13 +106,18 @@ fn main() {
             let menu = Menu::with_items(
                 app,
                 &[
-                    &float, &lab, &pin, &left, &right, &undock, &stop, &hide, &quit,
+                    &chat, &float, &lab, &pin, &left, &right, &undock, &stop, &hide, &quit,
                 ],
             )?;
             let mut tray = TrayIconBuilder::with_id("ruby-tray")
                 .tooltip("Project Ruby — companion controls")
                 .menu(&menu)
                 .on_menu_event(|app, event| {
+                    if event.id.as_ref() == "chat" {
+                        let _ = perform(app, DesktopAction::Float);
+                        let _ = app.emit("ruby-open-chat", ());
+                        return;
+                    }
                     let action = match event.id.as_ref() {
                         "float" => DesktopAction::Float,
                         "lab" => DesktopAction::Lab,
@@ -168,6 +184,11 @@ fn main() {
                 }
             }
         })
-        .run(tauri::generate_context!())
-        .expect("Project Ruby could not start");
+        .build(tauri::generate_context!())
+        .expect("Project Ruby could not start")
+        .run(|app, event| {
+            if matches!(event, tauri::RunEvent::Exit) {
+                ai_pack::shutdown(app);
+            }
+        });
 }
