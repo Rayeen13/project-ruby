@@ -37,9 +37,7 @@ fn reserve(state: &VoiceState) -> Result<Operation, String> {
     Ok(Operation(state.0.clone()))
 }
 fn root(app: &AppHandle) -> Result<PathBuf, String> {
-    let smoke = std::env::args().any(|a| {
-        a == "--native-smoke-test" || a == "--voice-smoke-test"
-    });
+    let smoke = std::env::args().any(|a| a == "--native-smoke-test" || a == "--voice-smoke-test");
     Ok(app
         .path()
         .app_local_data_dir()
@@ -181,7 +179,10 @@ pub async fn voice_pack_download(
         download(&app, &client, url, &dir.join(name), Some(hash), &state.0).await?;
     }
     if std::env::args().any(|a| a == "--voice-smoke-test") {
-        let _ = fs::write("ruby-native-voice-live.txt", "Extracting verified VoiceM archives");
+        let _ = fs::write(
+            "ruby-native-voice-live.txt",
+            "Extracting verified VoiceM archives",
+        );
     }
     let extraction_dir = dir.clone();
     let inner = state.0.clone();
@@ -408,8 +409,11 @@ mod tests {
 }
 
 pub async fn smoke(app: AppHandle) -> Result<(), String> {
-    fs::write("ruby-native-voice-live.txt", "Checking and downloading VoiceM")
-        .map_err(|e| e.to_string())?;
+    fs::write(
+        "ruby-native-voice-live.txt",
+        "Checking and downloading VoiceM",
+    )
+    .map_err(|e| e.to_string())?;
     voice_pack_download(app.clone(), app.state::<VoiceState>()).await?;
     for (gender, text) in [
         ("female", "Hello, I am Ruby. Your companion is ready."),

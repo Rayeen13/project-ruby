@@ -42,7 +42,7 @@ try {
     if ($elapsed.Elapsed.TotalSeconds - $lastHeartbeat -ge 15) {
       $lastHeartbeat = $elapsed.Elapsed.TotalSeconds
       Write-Host "Native UI elapsed: $([Math]::Round($lastHeartbeat)) seconds"
-      if (Test-Path ruby-native-live.json) { Get-Content ruby-native-live.json -Raw | Write-Host }
+      if (Test-Path ruby-native-live.json) { Get-Content ruby-native-live.json -Raw -ErrorAction SilentlyContinue | Write-Host }
     }
     $rubyProcess.Refresh()
     if ($rubyProcess.HasExited) { break }

@@ -5,7 +5,7 @@ $last = ''
 try {
   while (-not $process.HasExited -and $clock.Elapsed.TotalMinutes -lt 13) {
     if (Test-Path ruby-native-voice-live.txt) {
-      $progress = Get-Content ruby-native-voice-live.txt -Raw
+      $progress = Get-Content ruby-native-voice-live.txt -Raw -ErrorAction SilentlyContinue
       if ($progress -ne $last) { Write-Host $progress; $last = $progress }
     }
     Start-Sleep -Seconds 2

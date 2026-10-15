@@ -5,7 +5,7 @@
   "license": "GPL-2.0-only",
   "scripts": {
     "start": "python3 -m http.server 8080 --directory dist",
-    "test": "node tests/preferences.mjs && node tests/greeting.mjs && node tests/character-contract.mjs && node tests/wave-clearance.mjs && node tests/desktop-host.mjs && node tests/interactions.mjs && node tests/companion-grab.mjs && node tests/mascot-motion.mjs && node tests/camera-fit.mjs && node tests/conversation.mjs && node tests/native-chat-provider.mjs && node tests/companion-state.mjs && node tests/companion-physics.mjs && node tests/setup-voices.mjs && node tests/setup-flow.mjs",
+    "test": "node --check scripts/native-smoke.js && node tests/preferences.mjs && node tests/greeting.mjs && node tests/character-contract.mjs && node tests/wave-clearance.mjs && node tests/desktop-host.mjs && node tests/interactions.mjs && node tests/companion-grab.mjs && node tests/mascot-motion.mjs && node tests/camera-fit.mjs && node tests/conversation.mjs && node tests/native-chat-provider.mjs && node tests/companion-state.mjs && node tests/companion-physics.mjs && node tests/setup-voices.mjs && node tests/setup-flow.mjs",
     "export:print": "node scripts/export-print-input.mjs && python3 scripts/build-prints.py",
     "build": "node scripts/build-site-assets.mjs",
     "check:assets": "node scripts/check-site-assets.mjs",
