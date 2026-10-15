@@ -72,7 +72,10 @@ async fn desktop_smoke_checkpoint(phase: String, detail: Option<String>) -> Resu
         return std::fs::write("ruby-native-live.json", detail).map_err(|e| e.to_string());
     }
     std::fs::write("ruby-native-phase.txt", &phase).map_err(|error| error.to_string())?;
-    if matches!(phase.as_str(), "chat" | "chat_lab" | "setup" | "opal" | "languages") {
+    if matches!(
+        phase.as_str(),
+        "chat" | "chat_lab" | "setup" | "opal" | "languages"
+    ) {
         tokio::time::sleep(std::time::Duration::from_secs(2)).await;
     }
     Ok(())

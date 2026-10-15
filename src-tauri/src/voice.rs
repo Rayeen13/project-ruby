@@ -457,8 +457,8 @@ pub async fn voice_synthesize(
                 std::env::join_paths(paths).map_err(|e| e.to_string())?,
             );
         } else {
-            let model = find_file(&dir.join("model"), MODEL)
-                .ok_or("Kokoro model missing. Try repair.")?;
+            let model =
+                find_file(&dir.join("model"), MODEL).ok_or("Kokoro model missing. Try repair.")?;
             let model_dir = model.parent().unwrap();
             command
                 .arg(format!("--kokoro-model={}", model.display()))
@@ -604,8 +604,18 @@ pub async fn smoke(app: AppHandle) -> Result<(), String> {
     }
     for (pack, language, gender, text) in [
         ("kokoro", "zh", "female", "你好，我是露比。欢迎回来。"),
-        ("supertonic3", "ja", "female", "こんにちは。おかえりなさい。"),
-        ("supertonic3", "ja", "male", "こんにちは。一緒に始めましょう。"),
+        (
+            "supertonic3",
+            "ja",
+            "female",
+            "こんにちは。おかえりなさい。",
+        ),
+        (
+            "supertonic3",
+            "ja",
+            "male",
+            "こんにちは。一緒に始めましょう。",
+        ),
     ] {
         if pack == "supertonic3" && gender == "female" {
             voice_pack_download(
