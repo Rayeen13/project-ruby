@@ -1,6 +1,6 @@
 # Companion Studio contracts
 
-Companion = 3D mesh character, LLM = language model, VoiceM = speech model. Character geometry remains frozen. Rendering, state/prompt, LLM transport, search and speech use separate modules. This is the portable foundation to evaluate before extracting anything into Project Kurumi.
+Companion = 3D mesh character, LLM = language model, VoiceM = speech model, LangM = local translation model. Character identity remains independent of the inference engine. Rendering, state/prompt, LLM transport, search and speech use separate modules. This is the portable foundation to evaluate before extracting anything into Project Kurumi.
 
 ## Identity, memory and emotion
 
@@ -18,20 +18,17 @@ Windows uses a bounded HTTPS Bing RSS search request. The web build uses the pub
 
 Google AI Mode is a HTTPS browser shortcut with the current question. The external service controls account/region availability. There is no hidden browser, scraping, session reuse or automatic import. A supported Gemini provider would require separate authenticated API configuration and quota handling.
 
-## VoiceM pack and licences
+## VoiceM, LangM and licences
 
-English VCTK medium: https://huggingface.co/rhasspy/piper-voices/tree/c10ece1aade47bb51c153c893d14e5bf8e5b7117/en/en_GB/vctk/medium
+Settings → Voice & language separates displayed text from spoken language. English text with Japanese speech uses a local LangM to translate each spoken phrase, leaving the stored/displayed reply untouched. Matching languages skip translation. By default LangM reuses the selected LLM with a separate translation-only request containing no owner history. Advanced settings select another model in a supported local engine. There is no cloud translation fallback. Compact-model translation quality is limited; wrong-script or empty output reports an error instead of pretending translation succeeded.
 
-- Weights: 76,952,753 bytes, SHA256 `4e9fc85ab9009385319fc6bae7f55577f8a2d7ee77fd9159a5500eb6531f41e6`.
-- Publisher config SHA256 `7f85e6391ed0f7f46e4abd19345929a16be931a0c9945086f96692dce2087fa8`.
-- Publisher repository declares MIT weights. The individual card identifies VCTK corpus CC BY 4.0 and fine-tuning from Lessac. Retain provenance and attribution; repository-level metadata alone is not enough for future packs.
-- VCTK attribution: Christophe Veaux, Junichi Yamagishi and Kirsten MacDonald, University of Edinburgh. https://datashare.ed.ac.uk/handle/10283/3443 and https://creativecommons.org/licenses/by/4.0/ .
-- Config maps female p225 to speaker 107 and male p226 to speaker 95. Automatic matching follows gem identity; owner can override. Body/personality changes duration scale, not the speaker's recorded identity. This is a prototype English voice, not a custom anime voice actor.
-- Piper Windows runtime: https://github.com/rhasspy/piper/releases/tag/2023.11.14-2 . ZIP 22,477,236 bytes, SHA256 `f3c58906402b24f3a96d92145f58acba6d86c9b5db896d207f78dc80811efcea`.
-- Archived Piper source is MIT; ONNX Runtime is MIT; eSpeak NG is GPL-3.0-or-later. Download keeps notices and corresponding-source references. Ruby talks to this separately downloaded executable over stdin/WAV, not by linking it into GPL-2.0-only Ruby. Preserve the component licences if redistributing; do not relabel the whole runtime MIT.
-- No Ryan pack: its individual card identifies a CC BY-NC-SA dataset, contrary to the project's commercial-use requirement.
+Kokoro-82M provides English and Chinese in the pinned Sherpa-ONNX v1.12.15 pack. All eight English and eight Chinese presets share its approximately 316 MB download. Weights and Sherpa use Apache-2.0. Runtime component licences, including eSpeak NG GPL-3.0-or-later and source references, remain in the downloaded component. The runtime runs as a separate process, not linked into GPL-2.0-only Ruby. Publisher: https://huggingface.co/hexgrad/Kokoro-82M . Runtime source: https://github.com/k2-fsa/sherpa-onnx/tree/v1.12.15 . Japanese Kokoro is not offered because this pinned runtime does not support it.
 
-Executable archive, weights and config are pinned and verified before synthesis. Archive paths and total extraction size are bounded. Downloads use temporary files, real byte progress and retry. Verified completed files are reused. Voice stop cancels playback and requests cancellation of download/synthesis; a pending HTTP read is bounded by its timeout. Synthesis has a 45-second process timeout. Text never becomes a shell command. WAV files are deleted after transfer to the UI. Device speech fallback uses local-service voices only, where supported; no background cloud TTS or microphone capture.
+Supertonic 3 int8 provides the original Japanese/English character collection: five female and five male preset styles, shared across languages. The verified Windows runtime and model download total approximately 154 MB. Model/style weights use OpenRAIL-M; commercial use and redistribution are subject to those terms. The full publisher model licence is bundled at `docs/licenses/SUPERTONIC3-OPENRAIL-M.txt`, shown before download and retained with installed files. Sherpa-ONNX v1.13.8 is Apache-2.0 and retains component notices. Model and code licences are separate. Publisher: https://huggingface.co/Supertone/supertonic-3 . Runtime source: https://github.com/k2-fsa/sherpa-onnx/tree/v1.13.8 . These presets are not voice clones of anime actors or third-party characters. Subjective anime-style quality requires listening and acceptance.
+
+Downloads use fixed URLs and SHA256 verification, temporary files, bounded extraction, progress and cancellation. Existing complete files are reused. Synthesis runs on CPU with two threads, a 90-second timeout and one phrase of prefetch. Speech begins with a short phrase and preserves order; Stop waits for cancellation before another native request starts. Temporary WAVs are deleted after transfer. There is no device/cloud speech substitution on the website. Language changes may add local translation latency; timings from CI do not establish performance on a user's laptop.
+
+Personality maps to speaker defaults, pace, supported delivery cues and mesh expressions. Known `[]`/`()` directions are removed from spoken dialogue and approximated through pace, pauses and voiced interjections. These engines do not provide ElevenLabs-style emotional acting, authentic groans or laughter on command. No paid API, voice cloning or microphone capture is included.
 
 ## References and limits
 

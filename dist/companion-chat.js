@@ -1,3 +1,4 @@
+import {LocalLangM} from './languages.js';
 import {SETUP_KEY,mountApplicationSetup} from './application-setup.js';
 import {CompanionState,parseExpression} from './companion-state.js';
 import {searchInternet,searchQuery,googleAiUrl} from './internet-provider.js';
@@ -10,7 +11,7 @@ import {Conversation} from './conversation.js';
 export function mountCompanionChat({document,storage,identity,onState=()=>{},onOpen=()=>{},onExpand=()=>{},onClose=()=>{},onExpression=()=>{}}){
  const el=id=>document.getElementById(id),panel=el('chat-panel'),log=el('chat-log'),input=el('chat-input'),model=el('chat-model');
  const baseIdentity=identity,state=new CompanionState(storage);identity=()=>state.identity(baseIdentity());let voice,setup;
- const provider=globalThis.__TAURI__?new NativeChatProvider(globalThis.__TAURI__):new LocalChatProvider();let connecting=null,packBusy=false;
+ const provider=globalThis.__TAURI__?new NativeChatProvider(globalThis.__TAURI__):new LocalChatProvider();let connecting=null,packBusy=false,submitting=false;
  const engineNote=engine=>!globalThis.__TAURI__&&engine.id==='ruby'?'Download offline AI inside the Windows app → Settings → LLM → Download AI. This website connects to the running server on your device.':engine.note;
  const engineSelect=el('chat-engine');
  for(const engine of AI_ENGINES){const option=document.createElement('option');option.value=engine.id;option.textContent=engine.name;engineSelect.append(option);}
@@ -21,7 +22,9 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
   if(!el('internet-enabled').checked&&!/^(?:please\s+)?(?:search|look up)\b/i.test(text))return;
   el('chat-status').textContent='Searching the internet…';const query=searchQuery(text,history);lastQuery=query;
   const sources=await searchInternet(query,{signal});if(!sources.length)throw new Error('No useful internet results. Try a more specific question.');return sources;
- },onComplete:reply=>{onExpression(reply.mood||state.data.emotion);if(state.data.speak)void voice?.speak(reply.content);}});
+ },onComplete:reply=>{onExpression(reply.mood||state.data.emotion);if(state.data.speak)void voice?.speak(reply.content,{textLanguage:reply.textLanguage});}});
+ const langmProvider=(engine=state.data.langm.engine==='same'?engineSelect.value:state.data.langm.engine)=>{if(globalThis.__TAURI__){const p=new NativeChatProvider(globalThis.__TAURI__);p.engine=engine;return p;}return new LocalChatProvider({base:engineFor(engine).base});};
+ const langm=new LocalLangM({provider:langmProvider,model:()=>state.data.langm.engine==='same'?model.value:state.data.langm.model});
  let lastQuery='';
  function renderMemory(){
   const current=identity();el('identity-summary').textContent=`${current.name} · ${current.gender} · age ${current.age} · ${current.personality.name}`;
@@ -39,7 +42,7 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
  el('content-mode').onchange=()=>{state.data.content=el('content-mode').value;state.save();renderMemory();};el('memory-enabled').onchange=()=>{state.data.remember=el('memory-enabled').checked;state.save();renderMemory();};
  el('memory-form').onsubmit=event=>{event.preventDefault();state.remember(el('memory-input').value);el('memory-input').value='';renderMemory();};el('memory-clear').onclick=()=>{state.forget();renderMemory();};el('memory-export').onclick=()=>downloadJson('ruby-companion.json',state.export());
  el('google-ai-open').onclick=()=>{const query=input.value.trim()||lastQuery||[...chat.messages].reverse().find(m=>m.role==='user')?.content||'';if(!query){el('chat-status').textContent='Write a question first.';return;}void openLink(googleAiUrl(query)).catch(error=>{el('chat-status').textContent=String(error);});};
- voice=mountVoice({document,state,identity,onCue:cue=>onExpression(cue.mood),onSpeaking:value=>{onState(value?'speaking':chat.state);document.querySelector('#stage').dataset.speaking=String(value);}});
+ voice=mountVoice({document,state,identity,engines:AI_ENGINES,modelsFor:engine=>langmProvider(engine).models(),translate:(text,language,options)=>langm.translate(text,language,options),onPreferences:()=>renderMemory(),onCue:cue=>onExpression(cue.mood),onSpeaking:value=>{onState(value?'speaking':chat.state);document.querySelector('#stage').dataset.speaking=String(value);}});
  renderMemory();
  function render(){
   const nearBottom=log.scrollHeight-log.scrollTop-log.clientHeight<45;
@@ -71,8 +74,8 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
  el('chat-expand').onclick=async()=>{await onExpand();panel.classList.toggle('expanded');el('chat-expand').textContent=panel.classList.contains('expanded')?'Compact':'Expand';input.focus({preventScroll:true});};
  engineSelect.onchange=()=>{chat.stop();voice.stop();model.replaceChildren();const engine=engineFor(engineSelect.value);if(globalThis.__TAURI__)provider.engine=engine.id;else provider.base=engine.base;el('chat-engine-note').textContent=engineNote(engine);el('ai-pack-section').hidden=!globalThis.__TAURI__||engine.id!=='ruby';chat.error='';chat.state='idle';render();};
  el('chat-engine-note').textContent=engineNote(engineFor(engineSelect.value));
- el('chat-connect').onclick=connect;el('chat-stop').onclick=()=>{chat.stop();voice.stop();};el('chat-retry').onclick=()=>chat.retry(model.value);
- el('chat-form').onsubmit=async event=>{event.preventDefault();const text=input.value;if(!text.trim()||chat.active)return;if(!model.value){await settings();el('chat-status').textContent='Connect an LLM in Settings.';return;}voice.unlock();voice.stop();input.value='';await chat.send(text,model.value);input.focus({preventScroll:true});};
+ el('chat-connect').onclick=connect;el('chat-stop').onclick=()=>{chat.stop();voice.stop();};el('chat-retry').onclick=async()=>{await voice.stop();await chat.retry(model.value);};
+ el('chat-form').onsubmit=async event=>{event.preventDefault();const text=input.value;if(!text.trim()||chat.active||submitting)return;if(!model.value){await settings();el('chat-status').textContent='Connect an LLM in Settings.';return;}submitting=true;voice.unlock();input.value='';try{await voice.stop();await chat.send(text,model.value);}finally{submitting=false;input.focus({preventScroll:true});}};
  el('chat-clear').onclick=()=>{voice.stop();chat.clear();input.value='';};
  el('chat-export').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({version:1,messages:chat.messages},null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='ruby-conversation.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
  mountAiPack({tauri:globalThis.__TAURI__,document,onReady:connect,onBusy:value=>{packBusy=value;engineSelect.disabled=value||!!chat.active;},onStop:()=>{chat.stop();model.replaceChildren();render();}});

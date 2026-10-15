@@ -1,3 +1,4 @@
+import {selectedVoice} from '../dist/voice-catalogue.js';
 import assert from 'node:assert/strict';
 import {mountApplicationSetup,SETUP_KEY} from '../dist/application-setup.js';
 class Element {
@@ -21,6 +22,6 @@ try{
  el('setup-presets').children.find(c=>c.dataset?.preset==='custom');
  // Fake elements retain data attributes exactly as the DOM does.
  el('setup-presets').children[1].onclick();modelSelect.append(Object.assign(new Element(),{value:'second',textContent:'Second LLM'}));setup.refresh();el('setup-model').value='second';el('setup-voice').value='af_bella';await el('setup-run').onclick();
- assert.equal(modelSelect.value,'second','Chosen model survives connection refresh');assert.equal(state.data.voiceChoices.ruby,'af_bella','Chosen VoiceM survives connection refresh');assert.equal(JSON.parse(saved.get(SETUP_KEY)).model,'second');
+ assert.equal(modelSelect.value,'second','Chosen model survives connection refresh');assert.equal(selectedVoice({profile:'ruby',gender:'female'},state.data.voiceChoices).id,'af_bella','Chosen VoiceM survives connection refresh');assert.equal(JSON.parse(saved.get(SETUP_KEY)).model,'second');
  console.log('Setup flow: early cancellation, frozen choices, installed-file reuse and Custom model/voice preservation passed.');
 }finally{globalThis.window=originalWindow;}

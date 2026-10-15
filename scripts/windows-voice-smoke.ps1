@@ -15,7 +15,7 @@ try {
   $process.WaitForExit()
   if (Test-Path ruby-native-voice.txt) { Get-Content ruby-native-voice.txt }
   if ($process.ExitCode -ne 0) { throw 'Native voice generation failed' }
-  foreach ($gender in @('female','male')) {
+  foreach ($gender in @('female','male','zh-female','ja-female','ja-male')) {
     $bytes = [System.IO.File]::ReadAllBytes("$PWD/ruby-native-$gender.wav")
     if ($bytes.Length -lt 1000 -or [System.Text.Encoding]::ASCII.GetString($bytes,0,4) -ne 'RIFF') { throw "Invalid $gender WAV" }
   }
