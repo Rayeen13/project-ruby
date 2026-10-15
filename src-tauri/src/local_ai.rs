@@ -110,7 +110,7 @@ async fn stream_reply(
 ) -> Result<(), String> {
     let mut response = client(120)?
         .post(format!("{base}/v1/chat/completions"))
-        .json(&json!({"messages": messages, "model": model, "stream": true, "max_tokens": 192, "temperature": 0.65}))
+        .json(&json!({"messages": messages, "model": model, "stream": true, "max_tokens": 192, "temperature": 0.55, "frequency_penalty": 0.35}))
         .send()
         .await
         .map_err(|error| format!("Local AI request failed: {error}"))?;

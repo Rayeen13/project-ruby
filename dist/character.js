@@ -4,7 +4,10 @@ export const GEM_PROFILES = Object.freeze([
  {id:'ruby',name:'Ruby',gem:'Ruby',color:'#ff5278'},
  {id:'saph',name:'Saph',gem:'Sapphire',color:'#529dff'},
  {id:'emme',name:'Emme',gem:'Emerald',color:'#42efb2'},
- {id:'amy',name:'Amy',gem:'Amethyst',color:'#bf86ff'}
+ {id:'amy',name:'Amy',gem:'Amethyst',color:'#bf86ff'},
+ {id:'jasper',name:'Jasper',gem:'Jasper',color:'#ffaf66'},
+ {id:'jet',name:'Jet',gem:'Jet',color:'#96b8cc'},
+ {id:'opal',name:'Opal',gem:'Opal',color:'#b4b8ff'}
 ]);
 // Replaceable character: geometry and behaviour are independent of stage/UI.
 export class RubyCharacter {

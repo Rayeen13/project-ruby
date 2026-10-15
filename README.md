@@ -1,3 +1,17 @@
+## Setup and voice refresh · v0.4.1
+
+Right-click the Companion to reveal shimmering Talk and Settings controls. The floating desktop stays clear until you ask for an action. Keyboard users can focus the Companion and press Shift+F10.
+
+Settings → Setup offers Recommended (offline LLM + Kokoro VoiceM), Custom (choose your engine, loaded model and matched voice), Pro (your stronger existing local LLM + Kokoro), and Lite (text-only). Pro is a configuration preset, not a paid tier. Downloads are explicit, cancellable and checksum verified; verified complete files are reused. Recommended downloads about 827 MB on Windows. Allow approximately 1.5 GB free disk space for downloaded archives and extracted files; optional LLMs can need considerably more. The installer itself remains small.
+
+Kokoro replaces the VCTK default. Heart, Bella, Sarah and Emma are female choices; Michael, Fenrir, Puck and George are male choices. Defaults and overrides follow the selected Companion; cross-gender voice requests are rejected by the native host. All eight voices share one approximately 316 MB pack. English synthesis is supported in this release. Preview lets you audition the voice; quality and speed depend on hardware and text. No pitch-shifted device voice is silently substituted on the website.
+
+The gem cast adds Jasper (male, gaming), Jet (male, office) and Opal (female, dry wit). Opal has an original procedural toon android body; the five accepted robot bodies remain unchanged. Identity, body, personality, LLM and VoiceM remain separate modules. Existing owner memories and conversations are preserved. Older malformed replies are excluded from LLM context.
+
+Chat now uses a shorter natural-language identity prompt without bracketed mood instructions. Expressions still use portable host state and can parse legacy expression tags. The compact 0.5B LLM is experimental and can still produce weak answers; connect a stronger local LLM in Custom/Pro when needed.
+
+Voice sources: [Kokoro publisher](https://huggingface.co/hexgrad/Kokoro-82M), [published voice metadata](https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md), [Sherpa-ONNX](https://github.com/k2-fsa/sherpa-onnx/tree/v1.12.15). Kokoro weights and Sherpa runtime use Apache-2.0; eSpeak NG and other runtime components retain their own licences and notices. Downloaded voice components run as a separate process. No Nika character assets or dialogue are used.
+
 # Project Ruby
 
 A desktop-companion prototype with five procedural 3D robot bodies, gem colour profiles, cursor tracking and expressive animation. Built with Three.js and browser JavaScript; a first Windows desktop shell is available as a build preview; Windows v0.4 downloads and runs local LLM and VoiceM packs, with optional existing-server connections, sourced internet answers and independent Companion/chat/Settings views. Microphone input and OS automation are future work.

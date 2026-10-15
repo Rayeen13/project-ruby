@@ -1,3 +1,4 @@
+import {mountApplicationSetup} from './application-setup.js';
 import {CompanionState,parseExpression} from './companion-state.js';
 import {searchInternet,searchQuery,googleAiUrl} from './internet-provider.js';
 import {mountVoice} from './voice-provider.js';
@@ -8,7 +9,7 @@ import {LocalChatProvider} from './chat-provider.js';
 import {Conversation} from './conversation.js';
 export function mountCompanionChat({document,storage,identity,onState=()=>{},onOpen=()=>{},onExpand=()=>{},onClose=()=>{},onExpression=()=>{}}){
  const el=id=>document.getElementById(id),panel=el('chat-panel'),log=el('chat-log'),input=el('chat-input'),model=el('chat-model');
- const baseIdentity=identity,state=new CompanionState(storage);identity=()=>state.identity(baseIdentity());let voice;
+ const baseIdentity=identity,state=new CompanionState(storage);identity=()=>state.identity(baseIdentity());let voice,setup;
  const provider=globalThis.__TAURI__?new NativeChatProvider(globalThis.__TAURI__):new LocalChatProvider();let connecting=null,packBusy=false;
  const engineNote=engine=>!globalThis.__TAURI__&&engine.id==='ruby'?'Download offline AI inside the Windows app → Settings → LLM → Download AI. This website connects to the running server on your device.':engine.note;
  const engineSelect=el('chat-engine');
@@ -28,7 +29,7 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
  }
  function downloadJson(name,data){const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
  const openLink=url=>globalThis.__TAURI__?globalThis.__TAURI__.core.invoke('open_web_url',{url}):Promise.resolve(window.open(url,'_blank','noopener,noreferrer'));
- const settings=async()=>{await onOpen();panel.hidden=true;el('settings-panel').hidden=false;document.documentElement.classList.add('settings-open');document.documentElement.classList.remove('chat-open');renderMemory();el('settings-close').focus({preventScroll:true});};
+ const settings=async()=>{voice?.refresh();await onOpen();panel.hidden=true;el('settings-panel').hidden=false;document.documentElement.classList.add('settings-open');document.documentElement.classList.remove('chat-open');renderMemory();setup?.refresh();el('settings-close').focus({preventScroll:true});};
  const close=async()=>{panel.hidden=true;el('settings-panel').hidden=true;document.documentElement.classList.remove('chat-open','settings-open');await onClose();};
  el('settings-launcher').onclick=settings;el('chat-settings').onclick=settings;for(const button of document.querySelectorAll('[data-settings-open]'))button.onclick=settings;el('settings-close').onclick=close;
  el('settings-panel').addEventListener('keydown',event=>{if(event.key==='Escape'){event.stopPropagation();void close();}});
@@ -73,6 +74,7 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
  el('chat-clear').onclick=()=>{voice.stop();chat.clear();input.value='';};
  el('chat-export').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({version:1,messages:chat.messages},null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='ruby-conversation.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
  mountAiPack({tauri:globalThis.__TAURI__,document,onReady:connect,onBusy:value=>{packBusy=value;engineSelect.disabled=value||!!chat.active;},onStop:()=>{chat.stop();model.replaceChildren();render();}});
- // Setup downloads only after the user presses Download AI.
- render();return {open,stop:()=>{chat.stop();voice.stop();},refresh:()=>{render();renderMemory();}};
+ setup=mountApplicationSetup({document,storage,tauri:globalThis.__TAURI__,state,identity,engines:AI_ENGINES,engineSelect,modelSelect:model,connect,onBusy:value=>{packBusy=value;engineSelect.disabled=value||!!chat.active;},refreshVoice:()=>voice.refresh()});
+ // Downloads require an explicit setup action.
+ render();return {open,stop:()=>{chat.stop();voice.stop();},refresh:()=>{voice.refresh();setup?.refresh();render();renderMemory();}};
 }

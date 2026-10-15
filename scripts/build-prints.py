@@ -1,7 +1,7 @@
 """Build static, connected millimetre STL figurines from the procedural models.
 Requires trimesh, manifold3d, numpy and scipy. No animated rig in STL.
 """
-import json, pathlib, numpy as np, trimesh, manifold3d
+import os, json, pathlib, numpy as np, trimesh, manifold3d
 from scipy.spatial import cKDTree
 OUT=pathlib.Path(__file__).resolve().parents[1]/'dist'/'prints'
 
@@ -37,7 +37,7 @@ def rod(a,b,r=1.2):
     return trimesh.creation.cylinder(radius=r,height=length+2*r,sections=16,transform=transform)
 
 reports=[]
-for id in ['classic','cyber','chibi','office','gamer']:
+for id in ([os.environ['RUBY_PRINT_MODEL']] if os.environ.get('RUBY_PRINT_MODEL') else ['classic','cyber','chibi','office','gamer','opal']):
     data=json.loads(pathlib.Path(f'/tmp/print-{id}.json').read_text());parts=[]
     for i,p in enumerate(data['parts']):
         m=trimesh.Trimesh(vertices=np.array(p['vertices']).reshape(-1,3),faces=np.array(p['faces']).reshape(-1,3),process=True)
@@ -93,4 +93,7 @@ for id in ['classic','cyber','chibi','office','gamer']:
     assert check.is_watertight and check.is_volume and len(check.split())==1
     report={'model':id,'file':path.name,'units':'mm','character_height_mm':120,'base_mm':3,'dimensions_mm':np.round(check.extents,2).tolist(),'triangles':len(check.faces),'watertight':bool(check.is_watertight),'connected_components':1,'positive_volume':bool(check.is_volume),'reinforcement_bridges':bridges}
     reports.append(report);print(report,flush=True)
+if os.environ.get('RUBY_PRINT_MODEL'):
+    existing=json.loads((OUT/'validation.json').read_text())
+    reports=[r for r in existing if r['model']!=os.environ['RUBY_PRINT_MODEL']]+reports
 (OUT/'validation.json').write_text(json.dumps(reports,indent=2))

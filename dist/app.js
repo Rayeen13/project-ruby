@@ -88,7 +88,8 @@ window.addEventListener('pointermove',e=>{
 stage.addEventListener('wheel',e=>{e.preventDefault();if(floating){if(performance.now()-lastZoom>80){lastZoom=performance.now();nativeAction(e.deltaY<0?'zoom_in':'zoom_out');}}else{distance=T.MathUtils.clamp(distance+e.deltaY*.008,4.5,12);saveSettings();}},{passive:false});stage.addEventListener('dblclick',()=>{reset();if(floating)nativeAction('size_reset');});
 document.querySelector('#physics-drop').onclick=()=>{document.querySelector('#animate').checked=true;physics.drop(ruby,1.2);};document.querySelector('#reset').onclick=reset;angle.oninput=()=>{turning=false;yaw=Number(angle.value)*Math.PI/180;saveSettings()};document.querySelector('#turn').onclick=()=>{turning=!turning;if(!turning)saveSettings()};document.querySelector('#dance').onclick=()=>interactionAction('dance');document.querySelectorAll('[data-mood]').forEach(b=>b.onclick=()=>{changeMood(b.dataset.mood);saveSettings();});
 document.querySelector('#wave').onclick=()=>interactionAction('wave');
-document.querySelectorAll('[data-profile]').forEach(b=>b.onclick=()=>{changeProfile(b.dataset.profile);saveSettings();});
+const swatches=document.querySelector('.swatches');swatches.replaceChildren();for(const profile of GEM_PROFILES){const button=document.createElement('button');button.dataset.profile=profile.id;button.textContent=profile.name;button.style.setProperty('--gem-color',profile.color);const dot=document.createElement('i');dot.style.background=profile.color;button.prepend(dot);swatches.append(button);}
+document.querySelectorAll('[data-profile]').forEach(b=>b.onclick=()=>{const id=b.dataset.profile;const preset={jasper:{body:'gamer',personality:'playful'},jet:{body:'office',personality:'focused'},opal:{body:'opal',personality:'sarcastic'}}[id];if(preset){personalities[preset.body]=preset.personality;modelSelect.value=preset.body;modelSelect.dispatchEvent(new Event('change'));}changeProfile(id);saveSettings();});
 
 const modelSelect=document.querySelector('#model-select');
 // Build categories from the registry so new designs are added, not substituted.
@@ -100,7 +101,7 @@ for(const category of [...new Set(CHARACTER_MODELS.map(m=>m.category))]){
  }modelSelect.append(group);
 }
 function updateModelUI(){
- document.documentElement.style.setProperty('--companion-ratio',({classic:340/390,cyber:310/430,chibi:320/430,office:310/395,gamer:360/450})[selection.spec.id]);
+ document.documentElement.style.setProperty('--companion-ratio',({classic:340/390,cyber:310/430,chibi:320/430,office:310/395,gamer:360/450,opal:320/450})[selection.spec.id]);
  if(desktopHost)void desktopHost.body(selection.spec.id).catch(error=>{document.querySelector('#interaction-feedback').textContent=String(error);});
  modelSelect.value=selection.spec.id;gallery?.update();
  const wave=document.querySelector('#wave');wave.disabled=!selection.capabilities.wave;

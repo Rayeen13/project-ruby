@@ -11,7 +11,7 @@ export class LocalChatProvider {
   return models.map(item=>item.id);
  }
  async *stream({messages,model,signal}){
-  const response=await this.fetcher(this.base+'/v1/chat/completions',{method:'POST',signal,credentials:'omit',redirect:'error',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,messages,stream:true,max_tokens:192,temperature:.65})});
+  const response=await this.fetcher(this.base+'/v1/chat/completions',{method:'POST',signal,credentials:'omit',redirect:'error',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,messages,stream:true,max_tokens:192,temperature:.55,frequency_penalty:.35})});
   if(!response.ok)throw new Error('Local AI request failed ('+response.status+').');
   if(!response.body||!response.headers.get('content-type')?.includes('text/event-stream'))throw new Error('The model server did not return a text stream.');
   const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='',finished=false;
