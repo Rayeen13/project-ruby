@@ -70,6 +70,10 @@
   assert(document.querySelector('#chat-panel').dataset.state==='idle'&&JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.at(-1).status==='complete','Managed AI accepts Retry after cancellation');
   document.querySelector('#chat-settings').click();await wait(250);
   document.querySelector('[data-settings-tab="companion"]').click();
+  const sizeSlider=document.querySelector('[data-settings-page="companion"] [data-companion-size]'),studioWidth=innerWidth;
+  sizeSlider.value='2';sizeSlider.dispatchEvent(new Event('input'));await wait(250);
+  const sized=await window.__TAURI__.core.invoke('desktop_status');assert(!sized.floating&&sized.size===1.35&&innerWidth===studioWidth,'Studio snap slider sets the floating preset without resizing Studio');
+  sizeSlider.value='1';sizeSlider.dispatchEvent(new Event('input'));await wait(200);
   document.querySelector('#memory-input').value='Owner enjoys building Ruby';document.querySelector('#memory-form').dispatchEvent(new Event('submit',{cancelable:true}));
   assert(document.querySelector('#memory-list').textContent.includes('Owner enjoys building Ruby'),'Owner memory can be added and reviewed in Settings');
   assert(document.querySelector('#identity-summary').textContent.includes('female'),'Ruby identity includes gender');

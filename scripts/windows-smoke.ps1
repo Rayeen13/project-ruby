@@ -129,7 +129,7 @@ try {
             $graphics.CopyFromScreen($captureLeft,$captureTop,0,0,$bitmap.Size)
             $bitmap.Save("$PWD/ruby-native-$phase.png",[System.Drawing.Imaging.ImageFormat]::Png)
           } finally { $graphics.Dispose(); $bitmap.Dispose() }
-          if ($phase -ne 'chat_lab' -and $topInset -gt 8) { throw 'Floating Companion has an unwanted title bar' }
+          if ($phase -in @('float','dizzy','zoom_view','left','right','chat') -and $topInset -gt 8) { throw 'Floating Companion has an unwanted title bar' }
           if ($phase -in @('left','right')) {
             $hoverX = if ($phase -eq 'left') { $screen.WorkingArea.Left+80 } else { $screen.WorkingArea.Right-80 }
             [RubyBounds]::SetCursorPos($hoverX,[int]($bounds.Top+($bounds.Bottom-$bounds.Top)*0.45)) | Out-Null

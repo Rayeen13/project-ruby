@@ -222,6 +222,11 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
             DesktopAction::Float
                 | DesktopAction::ChatOpen
                 | DesktopAction::ChatClose
+                | DesktopAction::SizeSmall
+                | DesktopAction::SizeMedium
+                | DesktopAction::SizeLarge
+                | DesktopAction::SizeExtraLarge
+                | DesktopAction::SizeReset
                 | DesktopAction::Lab
                 | DesktopAction::Drag
                 | DesktopAction::Hide
@@ -420,7 +425,9 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
                     DesktopAction::SizeExtraLarge => 1.8,
                     _ => 1.0,
                 };
-                position_float(&window, &mut state, true, true)?;
+                if state.status.floating {
+                    position_float(&window, &mut state, true, true)?;
+                }
             }
         }
         if !matches!(
