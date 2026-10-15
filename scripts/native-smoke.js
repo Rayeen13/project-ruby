@@ -95,8 +95,8 @@
   const voiceSelect=document.querySelector('#voice-select');assert([...voiceSelect.options].every(o=>o.value==='auto'||/^(af_|bf_)/.test(o.value)),'Female Companion only offers female VoiceM');
   document.querySelector('[data-profile="jasper"]').click();await wait(150);assert([...voiceSelect.options].every(o=>o.value==='auto'||/^(am_|bm_)/.test(o.value)),'Male Companion only offers male VoiceM');
   document.querySelector('[data-profile="ruby"]').click();await wait(150);
-  document.querySelector('#voice-preview').click();for(let i=0;i<200&&stage.dataset.speaking!=='true';i++)await wait(100);
-  assert(stage.dataset.speaking==='true','VoiceM preview starts actual audio playback');document.querySelector('#voice-stop').click();
+  const voicePreviewStarted=performance.now();document.querySelector('#voice-preview').click();for(let i=0;i<200&&stage.dataset.speaking!=='true';i++)await wait(100);
+  assert(stage.dataset.speaking==='true','VoiceM preview starts actual audio playback · first audio '+Math.round(performance.now()-voicePreviewStarted)+' ms');document.querySelector('#voice-stop').click();
   assert(stage.dataset.speaking==='false','Stop voice ends playback');
   document.querySelector('[data-settings-tab="setup"]').click();await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'setup'});document.querySelector('#setup-run').click();
   for(let i=0;i<300&&document.querySelector('#setup-run').disabled;i++)await wait(100);

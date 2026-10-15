@@ -10,7 +10,10 @@ export const VOICES=Object.freeze([
  {id:'bm_george',name:'George',gender:'male',accent:'UK',style:'Composed · articulate',sid:26}
 ].map(Object.freeze));
 export const voicesFor=identity=>VOICES.filter(v=>v.gender===(identity.gender==='male'?'male':'female'));
+const ACTING_VOICES={calm:['bf_emma','bm_george'],focused:['af_sarah','bm_george'],playful:['af_heart','am_puck'],sarcastic:['af_bella','am_michael'],deredere:['af_heart','am_puck'],tsundere:['af_bella','am_fenrir'],kuudere:['af_sarah','bm_george'],dandere:['bf_emma','am_michael'],yandere:['af_bella','am_michael'],himedere:['bf_emma','bm_george'],oujidere:['bf_emma','bm_george'],kamidere:['af_bella','am_fenrir'],bakadere:['af_heart','am_puck'],hajidere:['bf_emma','am_michael'],shundere:['af_sarah','bm_george'],nyandere:['af_heart','am_puck']};
 export function defaultVoice(identity){
+ const acting=ACTING_VOICES[identity.personality?.id];
+ if(acting)return voicesFor(identity).find(v=>v.id===acting[identity.gender==='male'?1:0]);
  const id=identity.gender==='male'?({jasper:'am_puck',jet:'bm_george',saph:'am_michael'}[identity.profile]||'am_fenrir'):({ruby:'af_heart',emme:'bf_emma',amy:'af_sarah',opal:'af_bella'}[identity.profile]||'af_heart');
  return voicesFor(identity).find(v=>v.id===id)||voicesFor(identity)[0];
 }
