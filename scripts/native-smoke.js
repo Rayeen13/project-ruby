@@ -1,6 +1,8 @@
 (async()=>{
  const checks=[];
  const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+ const trace=()=>window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'trace',detail:JSON.stringify({at:new Date().toISOString(),last:checks.at(-1),chat:document.querySelector('#chat-panel')?.dataset.state,chatStatus:document.querySelector('#chat-status')?.textContent,ai:document.querySelector('#ai-pack-status')?.textContent,voice:document.querySelector('#voice-status')?.textContent,setup:document.querySelector('#setup-status')?.textContent,ready:document.querySelector('#stage')?.dataset.ready})}).catch(()=>{});
+ void trace();setInterval(trace,2000);
  const assert=(value,message)=>{if(!value)throw new Error(message);checks.push(message);};
  try{
   for(let i=0;i<200&&!document.querySelector('#stage')?.dataset.ready;i++)await wait(100);
@@ -201,5 +203,5 @@
   assert(!document.documentElement.classList.contains('floating'),'Native lab restores full controls');
   await action('float');await action('toggle_pin');await action('snap_right');await action('zoom_in');
   await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:true,details:checks.join('\n')});
- }catch(error){await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:false,details:checks.join('\n')+'\nFAIL: '+error.message+'\nDiagnostics: '+JSON.stringify({chatState:document.querySelector('#chat-panel')?.dataset.state,status:document.querySelector('#chat-status')?.textContent,voice:document.querySelector('#voice-status')?.textContent,setup:document.querySelector('#setup-status')?.textContent,lastMessages:JSON.parse(localStorage.getItem('project-ruby.conversation.v1')||'null')?.messages?.slice(-2)})});}
+ }catch(error){await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:false,details:checks.join('\n')+'\nFAIL: '+String(error.message||error)+'\nDiagnostics: '+JSON.stringify({chatState:document.querySelector('#chat-panel')?.dataset.state,status:document.querySelector('#chat-status')?.textContent,voice:document.querySelector('#voice-status')?.textContent,setup:document.querySelector('#setup-status')?.textContent,lastMessages:JSON.parse(localStorage.getItem('project-ruby.conversation.v1')||'null')?.messages?.slice(-2)})});}
 })();

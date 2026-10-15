@@ -35,8 +35,15 @@ public static class RubyBounds {
 $rubyProcess = Start-Process src-tauri/target/release/project-ruby.exe -ArgumentList '--native-smoke-test' -PassThru
 $rubyHandle = [IntPtr]::Zero
 $seen = @{}
+$elapsed = [System.Diagnostics.Stopwatch]::StartNew()
+$lastHeartbeat = -15
 try {
-  for ($tick = 0; $tick -lt 12000; $tick++) {
+  while ($elapsed.Elapsed.TotalMinutes -lt 8) {
+    if ($elapsed.Elapsed.TotalSeconds - $lastHeartbeat -ge 15) {
+      $lastHeartbeat = $elapsed.Elapsed.TotalSeconds
+      Write-Host "Native UI elapsed: $([Math]::Round($lastHeartbeat)) seconds"
+      if (Test-Path ruby-native-live.json) { Get-Content ruby-native-live.json -Raw | Write-Host }
+    }
     $rubyProcess.Refresh()
     if ($rubyProcess.HasExited) { break }
     $rubyHandle = [RubyBounds]::FindCompanion([uint32]$rubyProcess.Id)

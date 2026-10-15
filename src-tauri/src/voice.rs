@@ -37,11 +37,14 @@ fn reserve(state: &VoiceState) -> Result<Operation, String> {
     Ok(Operation(state.0.clone()))
 }
 fn root(app: &AppHandle) -> Result<PathBuf, String> {
+    let smoke = std::env::args().any(|a| {
+        a == "--native-smoke-test" || a == "--voice-smoke-test"
+    });
     Ok(app
         .path()
         .app_local_data_dir()
         .map_err(|e| e.to_string())?
-        .join(if std::env::args().any(|a| a == "--native-smoke-test") {
+        .join(if smoke {
             "kokoro-smoke-v1"
         } else {
             "kokoro-v1"
@@ -131,6 +134,10 @@ async fn download(
         digest.update(&chunk);
         file.write_all(&chunk).map_err(|e| e.to_string())?;
         if last.elapsed() > Duration::from_millis(180) {
+            if std::env::args().any(|a| a == "--voice-smoke-test") {
+                let detail = format!("{}: {received}/{total} bytes", path.display());
+                let _ = fs::write("ruby-native-voice-live.txt", detail);
+            }
             let _ = app.emit(
                 "ruby-voice-progress",
                 Progress {
@@ -172,6 +179,9 @@ pub async fn voice_pack_download(
             return Err("VoiceM download stopped".into());
         }
         download(&app, &client, url, &dir.join(name), Some(hash), &state.0).await?;
+    }
+    if std::env::args().any(|a| a == "--voice-smoke-test") {
+        let _ = fs::write("ruby-native-voice-live.txt", "Extracting verified VoiceM archives");
     }
     let extraction_dir = dir.clone();
     let inner = state.0.clone();
@@ -395,4 +405,28 @@ mod tests {
         assert!(speaker(Some("af_heart"), "male").is_err());
         assert!(speaker(Some("../anything"), "female").is_err());
     }
+}
+
+pub async fn smoke(app: AppHandle) -> Result<(), String> {
+    fs::write("ruby-native-voice-live.txt", "Checking and downloading VoiceM")
+        .map_err(|e| e.to_string())?;
+    voice_pack_download(app.clone(), app.state::<VoiceState>()).await?;
+    for (gender, text) in [
+        ("female", "Hello, I am Ruby. Your companion is ready."),
+        ("male", "Hello, I am Saph. Let us build something together."),
+    ] {
+        let detail = format!("Synthesizing {gender}");
+        fs::write("ruby-native-voice-live.txt", detail).map_err(|e| e.to_string())?;
+        let bytes = voice_synthesize(
+            app.clone(),
+            app.state::<VoiceState>(),
+            text.into(),
+            gender.into(),
+            1.0,
+            None,
+        )
+        .await?;
+        fs::write(format!("ruby-native-{gender}.wav"), bytes).map_err(|e| e.to_string())?;
+    }
+    Ok(())
 }
