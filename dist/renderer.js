@@ -1,7 +1,7 @@
 import * as T from './vendor/three.module.js';
 import {SVGRenderer} from './vendor/SVGRenderer.js';
 export function createRenderer(){
- try{return {renderer:new T.WebGLRenderer({antialias:true,alpha:true}),software:false};}
+ try{const renderer=new T.WebGLRenderer({antialias:true,alpha:true}),gl=renderer.getContext(),info=gl.getExtension('WEBGL_debug_renderer_info');const name=info?String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)):'';return {renderer,software:false,lowPower:/swiftshader|llvmpipe|software|basic render/i.test(name)};}
  catch{const renderer=new SVGRenderer();renderer.setClearColor(0x0b111b);return {renderer,software:true};}
 }
 // SVGRenderer cannot sample canvas textures; project the same face canvases

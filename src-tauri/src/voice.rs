@@ -24,6 +24,12 @@ struct Inner {
 #[derive(Default)]
 pub struct VoiceState(Arc<Inner>);
 struct Operation(Arc<Inner>);
+struct VoiceRenderGuard(AppHandle);
+impl Drop for VoiceRenderGuard {
+    fn drop(&mut self) {
+        let _ = self.0.emit("ruby-voice-compute", false);
+    }
+}
 impl Drop for Operation {
     fn drop(&mut self) {
         self.0.busy.store(false, Ordering::SeqCst);
@@ -304,7 +310,10 @@ pub async fn voice_synthesize(
     let sid = speaker(voice.as_deref(), &gender)?;
     let operation = reserve(&state)?;
     let dir = root(&app)?;
+    let _ = app.emit("ruby-voice-compute", true);
+    let render_guard = VoiceRenderGuard(app.clone());
     tauri::async_runtime::spawn_blocking(move || -> Result<Vec<u8>, String> {
+        let _render_guard = render_guard;
         let _operation = operation;
         let executable = find_file(&dir.join("runtime"), "sherpa-onnx-offline-tts.exe")
             .ok_or("Download / repair Kokoro VoiceM first")?;
