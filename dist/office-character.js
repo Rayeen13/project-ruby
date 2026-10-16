@@ -3,6 +3,7 @@ import {RubyCharacter} from './character.js';
 // A separate body implementation; shared geometry helpers and animation contract.
 export class OfficeCharacter extends RubyCharacter {
  build(){
+  this.dizzyLayout={x:[224/640,416/640],y:127/280,radius:.17};
   // Compact appliance-like robot: no human neck, lapels or elongated skull.
   this.head.position.y=1.62;this.shoulderSpan=1.1;
   this.shell.color.set(0x626f7c);this.shell.metalness=.3;this.shell.roughness=.5;

@@ -67,9 +67,14 @@ export class GrabVisual {
 }
 
 export function drawDizzyFace(character,ms){
+ if(character.drawDizzyEyes){character.drawDizzyEyes(ms);return;}
  const c=character.ctx,canvas=character.canvas;if(!c||!canvas)return;
- c.clearRect(0,0,canvas.width,canvas.height);c.fillStyle='#080d17';c.fillRect(0,0,canvas.width,canvas.height);
+ c.clearRect(0,0,canvas.width,canvas.height);
+ // Only the original opaque display has a background. Transparent face decals stay transparent.
+ let opaque=false;character.head.traverse(o=>{if(o.isMesh&&o.material.map===character.faceTex&&!o.material.transparent)opaque=true;});
+ if(opaque){c.fillStyle='#080d17';c.fillRect(0,0,canvas.width,canvas.height);}
  c.strokeStyle=character.eyeColor||'#83f4ed';c.lineWidth=canvas.height*.028;c.lineCap='round';
- for(const x of [canvas.width*.32,canvas.width*.68]){c.beginPath();for(let i=0;i<=64;i++){const a=i*.18+ms*.002,r=i/64*canvas.height*.17;const px=x+Math.cos(a)*r,py=canvas.height*.48+Math.sin(a)*r;if(i)c.lineTo(px,py);else c.moveTo(px,py);}c.stroke();}
+ const layout=character.dizzyLayout||{x:[.334375,.665625],y:.425,radius:.13};
+ for(const x of layout.x.map(x=>x*canvas.width)){c.beginPath();for(let i=0;i<=64;i++){const a=i*.18+ms*.002,r=i/64*canvas.height*layout.radius;const px=x+Math.cos(a)*r,py=canvas.height*layout.y+Math.sin(a)*r;if(i)c.lineTo(px,py);else c.moveTo(px,py);}c.stroke();}
  character.faceTex.needsUpdate=true;
 }

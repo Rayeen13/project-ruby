@@ -1,3 +1,7 @@
+## v0.4.5 wardrobe
+
+Choose the **Opal · maid android** body in Studio, then open **Opal’s wardrobe** below the gem buttons. Select Classic lace, Rose café, Midnight satin or Studio professional. Automatic mode has separate morning (06–12), afternoon (12–17), evening (17–22) and night (22–06) choices in device local time. Work override temporarily takes precedence. Turn it off to resume the saved selection/schedule. These are original mesh costumes inspired by supplied fashion references. Floating mode uses the same saved wardrobe; open Studio to edit it. Existing LLM/VoiceM downloads are reused.
+
 # Windows v0.4 quick start
 
 Quit the previous tray instance before installing. Studio now has a native Windows title bar; the floating Companion remains frameless. Right-click the Companion for **Talk** and **Settings**. Use **Settings → Setup → Recommended** for LLM + VoiceM together, or open **Settings → LLM → Download AI** (or Start AI for an existing download), then close Settings and choose Talk. LLM selection no longer occupies chat. Both chat and Settings leave a reserved Companion viewport visible.

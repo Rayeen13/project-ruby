@@ -9,6 +9,7 @@
   if(window.__RUBY_SMOKE_RESTART__){
    const state=await window.__TAURI__.core.invoke('desktop_status');
    assert(JSON.parse(localStorage.getItem('project-ruby.conversation.v1')).messages.length>0,'Conversation survives native app restart');
+   assert(JSON.stringify(JSON.parse(localStorage.getItem('project-ruby.preferences.v1')).wardrobe)===localStorage.getItem('project-ruby.smoke-wardrobe'),'Outfit choice and custom time schedule survive native app restart');
    assert(state.floating&&!state.pinned&&state.edge==='right'&&state.size>1,'Pin, dock and size survive native restart');
    const pack=await window.__TAURI__.core.invoke('ai_pack_status');assert(pack.installed,'Downloaded AI survives application restart');
    document.querySelector('#settings-launcher').click();await wait(150);document.querySelector('[data-settings-tab="llm"]').click();
@@ -22,6 +23,19 @@
   assert(stage.dataset.ready==='true','Actual WebView renderer initialized');
   assert((await window.__TAURI__.core.invoke('desktop_status')).floating,'Executable opens directly as floating mascot');
   await window.__TAURI__.core.invoke('desktop_action',{action:'lab'});await wait(350);
+  const wardrobeChange=(id,value)=>{const e=document.querySelector(id);if(e.type==='checkbox')e.checked=value;else e.value=value;e.dispatchEvent(new Event('change'));};
+  document.querySelector('[data-profile="opal"]').click();select.value='opal';select.dispatchEvent(new Event('change'));await wait(200);
+  const wardrobeRoot=JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.opal;
+  for(const outfit of ['classic','rose','evening','work']){wardrobeChange('#opal-outfit',outfit);await wait(350);assert(stage.dataset.outfit===outfit,'Opal wardrobe selects '+outfit);await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'opal_'+outfit});await wait(300);}
+  wardrobeChange('#opal-auto',true);wardrobeChange('#opal-work',true);await wait(200);assert(stage.dataset.outfit==='work','Work override takes precedence over the clock');wardrobeChange('#opal-work',false);
+  const hour=new Date().getHours(),period=hour>=6&&hour<12?'morning':hour>=12&&hour<17?'afternoon':hour>=17&&hour<22?'evening':'night';
+  const scheduleSelect=document.querySelector('[data-outfit-period="'+period+'"]');const scheduled=scheduleSelect.value==='rose'?'evening':'rose';scheduleSelect.value=scheduled;scheduleSelect.dispatchEvent(new Event('change'));await wait(200);assert(stage.dataset.outfit===scheduled,'Automatic outfit follows configured local-time period');
+  assert(JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.opal===wardrobeRoot,'Clothes never replace Opal’s identity');wardrobeChange('#opal-auto',false);wardrobeChange('#opal-outfit','classic');await wait(250);localStorage.setItem('project-ruby.smoke-wardrobe',JSON.stringify(JSON.parse(localStorage.getItem('project-ruby.preferences.v1')).wardrobe));
+  // Real canvas pixels verify the bug: transparent face corners never become an extra black panel.
+  const registry=await import('./character-registry.js'),dizzy=await import('./companion-grab.js');
+  for(const spec of registry.CHARACTER_MODELS){const c=spec.create();c.update(0,{follow:false});dizzy.drawDizzyFace(c,1000);assert(c.ctx.getImageData(0,0,1,1).data[3]===(spec.id==='classic'?255:0),spec.id+': dizziness preserves the existing face background');
+   select.value=spec.id;select.dispatchEvent(new Event('change'));await wait(100);document.querySelector('[data-interaction="dizzy"]').click();await wait(250);await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'dizzy_'+spec.id});await wait(300);}
+  await wait(4000);document.querySelector('[data-profile="ruby"]').click();select.value='gamer';select.dispatchEvent(new Event('change'));await wait(250);
   document.querySelector('[data-chat-open]').click();await wait(150);
   assert(!document.querySelector('#chat-panel').hidden,'Companion opens independent conversation');
   assert(!document.querySelector('#chat-panel').contains(document.querySelector('#chat-model')),'LLM selector is inside Settings, outside chat');

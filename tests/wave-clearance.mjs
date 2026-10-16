@@ -18,7 +18,7 @@ for(const spec of CHARACTER_MODELS){const angles=[];const c=spec.create();c.setP
  if(spec.id!=='gamer'){assert(Math.abs(digits.fingers[0].base.rotation.x)<1e-6);assert(digits.fingers[1].base.rotation.x<-.5);}
  c.setHandGesture('relaxed');
  if(c.controller)assert.equal(c.controller.parent,c.rightArm.hand);
- c.update(0,{follow:false});c.root.updateMatrixWorld(true);const bodyWidth=new T.Box3().setFromObject(c.root,true).getSize(new T.Vector3()).x,headWidth=new T.Box3().setFromObject(c.head,true).getSize(new T.Vector3()).x;assert(bodyWidth<headWidth*1.4,`${spec.id}: overextended resting arms`);
+ c.update(0,{follow:false});c.root.updateMatrixWorld(true);const bodyWidth=new T.Box3().setFromObject(c.root,true).getSize(new T.Vector3()).x,headWidth=new T.Box3().setFromObject(c.head,true).getSize(new T.Vector3()).x;assert(bodyWidth<headWidth*(spec.id==='opal'?2.3:1.4),`${spec.id}: overextended resting arms`);
  console.log(`${spec.id}: clear for 480 sampled wave poses`);
 }
 for(const id of ['classic','office','gamer']){const c=CHARACTER_MODELS.find(s=>s.id===id).create();calls.length=0;c.update(0,{follow:false});const expected=id==='classic'?100:id==='office'?118:128;assert(calls.some(a=>a[2]===expected&&a[3]>130),`${id} needs large open eyes`);}

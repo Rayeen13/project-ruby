@@ -91,14 +91,14 @@
     "character_height_mm": 120,
     "base_mm": 3,
     "dimensions_mm": [
-      79.5,
-      79.5,
-      123.5
+      56.5,
+      56.5,
+      123.48
     ],
-    "triangles": 42020,
+    "triangles": 181972,
     "watertight": true,
     "connected_components": 1,
     "positive_volume": true,
-    "reinforcement_bridges": 4
+    "reinforcement_bridges": 11
   }
 ]

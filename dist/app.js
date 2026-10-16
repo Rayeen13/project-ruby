@@ -1,3 +1,4 @@
+import {OPAL_OUTFITS,normalizeWardrobe,selectedOutfit,wardrobePeriod} from './wardrobe.js';
 import {CompanionPhysics} from './companion-physics.js';
 import {mountCompanionChat} from './companion-chat.js';
 import {fitDistance,placeCamera} from './camera-fit.js';
@@ -19,6 +20,7 @@ const preferenceOptions={models:CHARACTER_MODELS.map(m=>m.id),profiles:GEM_PROFI
 let storage;try{storage=window.localStorage;}catch{}
 const greeting=new Greeting(),reaction=new TouchReaction(),motion=new MascotMotion();
 const loaded=loadPreferences(storage,preferenceOptions),preferences=loaded.state;
+let wardrobe=normalizeWardrobe(preferences.wardrobe);
 let handPoses={...preferences.gestures},personalities={...preferences.personalities},saveTimer,gallery;
 const desktopHost=createDesktopHost(window.__TAURI__),grab=new GrabState();
 const reducedMotion=matchMedia('(prefers-reduced-motion:reduce)');
@@ -105,6 +107,7 @@ function updateModelUI(){
  document.documentElement.style.setProperty('--companion-ratio',({classic:340/390,cyber:310/430,chibi:320/430,office:310/395,gamer:360/450,opal:320/450})[selection.spec.id]);
  if(desktopHost)void desktopHost.body(selection.spec.id).catch(error=>{document.querySelector('#interaction-feedback').textContent=String(error);});
  modelSelect.value=selection.spec.id;gallery?.update();
+ updateWardrobe();
  const wave=document.querySelector('#wave');wave.disabled=!selection.capabilities.wave;
  wave.title=selection.capabilities.wave?'Wave hello':'The classic body has no hands';
  document.querySelector('#model-caption').textContent=selection.spec.name;
@@ -113,6 +116,23 @@ function updateModelUI(){
  document.querySelector('#print-download').download=selection.spec.id+'-120mm.stl';
  document.querySelector('#unit-name').textContent=ruby.profile.name+' '+selection.spec.revision;
 }
+const outfitSelect=document.querySelector('#opal-outfit'),autoOutfit=document.querySelector('#opal-auto'),workOutfit=document.querySelector('#opal-work');
+for(const select of [outfitSelect,...document.querySelectorAll('[data-outfit-period]')])for(const outfit of OPAL_OUTFITS){const option=document.createElement('option');option.value=outfit.id;option.textContent=outfit.name;select.append(option);}
+function updateWardrobe(){
+ document.querySelector('#opal-wardrobe').hidden=selection.spec.id!=='opal';
+ if(!outfitSelect)return;
+ outfitSelect.value=wardrobe.outfit;autoOutfit.checked=wardrobe.automatic;workOutfit.checked=wardrobe.work;
+ outfitSelect.disabled=wardrobe.automatic||wardrobe.work;document.querySelector('#opal-schedule').hidden=!wardrobe.automatic;
+ for(const select of document.querySelectorAll('[data-outfit-period]'))select.value=wardrobe.schedule[select.dataset.outfitPeriod];
+ const id=selectedOutfit(wardrobe);ruby.setOutfit?.(id);stage.dataset.outfit=selection.spec.id==='opal'?id:'';
+ document.querySelector('#opal-outfit-status').textContent=(wardrobe.work?'Work override':wardrobe.automatic?'Automatic · '+wardrobePeriod():'Selected outfit')+' · '+OPAL_OUTFITS.find(o=>o.id===id).name;
+}
+outfitSelect.onchange=()=>{wardrobe.outfit=outfitSelect.value;updateWardrobe();saveSettings();};
+autoOutfit.onchange=()=>{wardrobe.automatic=autoOutfit.checked;updateWardrobe();saveSettings();};
+workOutfit.onchange=()=>{wardrobe.work=workOutfit.checked;updateWardrobe();saveSettings();};
+for(const select of document.querySelectorAll('[data-outfit-period]'))select.onchange=()=>{wardrobe.schedule[select.dataset.outfitPeriod]=select.value;updateWardrobe();saveSettings();};
+// Local clock only; no timer service or background network is required.
+setInterval(updateWardrobe,30000);
 const handSide=document.querySelector('#hand-side'),handGesture=document.querySelector('#hand-gesture');
 function applyHandPoses(){for(const side of [-1,1])selection.setHandGesture(handPoses[side===-1?'right':'left'],side);}
 function updateGestureUI(){
@@ -131,7 +151,7 @@ function changeProfile(id){
  document.querySelector('#unit-name').textContent=p.name+' '+selection.spec.revision;document.documentElement.style.setProperty('--accent',p.color);
  document.querySelectorAll('[data-profile]').forEach(b=>b.classList.toggle('selected',b.dataset.profile===id));chatMood=null;chatUI?.refresh();
 }
-function snapshot(){return normalizePreferences({version:1,model:selection.spec.id,profile:selection.profileId,mood:selection.mood,
+function snapshot(){return normalizePreferences({version:1,wardrobe,model:selection.spec.id,profile:selection.profileId,mood:selection.mood,
  follow:document.querySelector('#follow').checked,animate:document.querySelector('#animate').checked,
  handSide:Number(handSide.value),gestures:handPoses,personalities,camera:{yaw:T.MathUtils.euclideanModulo(yaw+Math.PI,2*Math.PI)-Math.PI,pitch,distance}},preferenceOptions);}
 function saveSettings(){
@@ -140,7 +160,7 @@ function saveSettings(){
  },160);
 }
 function applyPreferences(state){
- grab.clear();grabVisual.reset(ruby);personalities={...state.personalities};ruby=selection.select(state.model);greeting.clear();reaction.clear();motion.clear();modelMenu.close();danceUntil=0;turning=false;
+ grab.clear();grabVisual.reset(ruby);wardrobe=normalizeWardrobe(state.wardrobe);personalities={...state.personalities};ruby=selection.select(state.model);greeting.clear();reaction.clear();motion.clear();modelMenu.close();danceUntil=0;turning=false;
  handPoses={...state.gestures};handSide.value=String(state.handSide);changeMood(state.mood);changeProfile(state.profile);
  yaw=state.camera.yaw;pitch=state.camera.pitch;distance=state.camera.distance;angle.value=Math.round(yaw*180/Math.PI);
  document.querySelector('#follow').checked=state.follow;document.querySelector('#animate').checked=state.animate;

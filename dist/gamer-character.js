@@ -4,6 +4,7 @@ import {OfficeCharacter} from './office-character.js';
 // Gamer is a separate catalog model; accessories remain attached to the rig.
 export class GamerCharacter extends OfficeCharacter {
  build(){
+  this.dizzyLayout={x:[210/640,430/640],y:137/280,radius:.18};
   super.build();this.shoulderSpan=1.62;
   this.shell.color.set(0x252840);this.armor.color.set(0x667096);
   this.accent.emissiveIntensity=.5;

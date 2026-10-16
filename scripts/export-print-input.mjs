@@ -7,11 +7,11 @@ for(const spec of CHARACTER_MODELS.filter(m=>!process.env.RUBY_PRINT_MODEL||m.id
  // Physical eye relief replaces display textures, which cannot be printed.
  let face; c.head.traverse(o=>{if(o.isMesh&&o.geometry.type==='PlaneGeometry'&&o.material.map===c.faceTex)face=o;});
  for(const side of [-1,1]){
-  const w=spec.id==='classic'?.25:.23,h=spec.id==='classic'?.34:.3;
-  const eye=new T.Mesh(new T.BoxGeometry(w,h,.12));eye.position.set(side*.25,face.position.y+.015,face.position.z);c.head.add(eye);
+  const w=spec.id==='opal'?.07:spec.id==='classic'?.25:.23,h=spec.id==='opal'?.105:spec.id==='classic'?.34:.3;
+  const eye=new T.Mesh(new T.BoxGeometry(w,h,.12));eye.position.set(side*(spec.id==='opal'?.125:.25),face.position.y+.015,face.position.z);c.head.add(eye);
  }
  c.root.updateMatrixWorld(true);const parts=[];
- c.root.traverse(o=>{if(!o.isMesh||o.geometry.type==='PlaneGeometry')return;const g=o.geometry.clone().applyMatrix4(o.matrixWorld);parts.push({type:o.geometry.type,vertices:Array.from(g.attributes.position.array),faces:g.index?Array.from(g.index.array):Array.from({length:g.attributes.position.count},(_,i)=>i)});g.dispose();});
+ c.root.traverse(o=>{if(!o.isMesh||o.geometry.type==='PlaneGeometry')return;for(let node=o;node;node=node.parent)if(!node.visible)return;const g=o.geometry.clone().applyMatrix4(o.matrixWorld);parts.push({type:o.geometry.type,vertices:Array.from(g.attributes.position.array),faces:g.index?Array.from(g.index.array):Array.from({length:g.attributes.position.count},(_,i)=>i)});g.dispose();});
  fs.writeFileSync(`/tmp/print-${spec.id}.json`,JSON.stringify({id:spec.id,parts}));
 }
-console.log('Exported all five models in neutral display poses with physical eye relief.');
+console.log('Exported selected models in neutral display poses with physical eye relief.');

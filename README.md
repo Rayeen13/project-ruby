@@ -1,5 +1,12 @@
 ## Offline language choices · v0.4.3
 
+## v0.4.5 — Opal wardrobe and integrated dizzy eyes
+
+Opal has an original anime maid silhouette with long hair, articulated gloved hands and four outfits: Classic lace, Rose café, Midnight satin and Studio professional. Select Opal’s body, then open **Opal’s wardrobe** in the Studio controls. Pick a look, assign looks to morning/afternoon/evening/night, or enable the work override. The schedule uses the device’s local clock; it does not infer your job or calendar. Preferences and Companion backups include wardrobe choices. Clothing changes preserve DDNA identity and memory.
+
+Dizzy spirals use the existing face texture and each body’s eye positions. Transparent faces and Opal’s anime eyes retain their background instead of acquiring a black rectangular screen. The original opaque EMO display remains opaque. Opal’s neutral Classic lace figurine export is regenerated separately; runtime clothing is not a promise of articulated printable fabric.
+
+
 ## v0.4.4 — dialogue grounding and portable character continuity
 
 Ruby now has a persistent DDNA seed (identity root, canonical name/gender/age, original/active personality and values) independent of the LLM, body and VoiceM. Character-specific context prevents another Companion or older malformed replies from teaching its identity. Persona changes cancel active replies. This is a small JSON foundation aligned with ADICE; it is not Kurumi's canonical 1 MiB DDNA binary, a neural genome, sentience or learned emotional development.

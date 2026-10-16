@@ -20,6 +20,7 @@ export class CyberCharacter {
  sphere(parent,r,mat,pos,scale){return this.mesh(parent,new T.SphereGeometry(r,32,20),mat,pos,scale);}
  bar(parent,a,b,r,mat){const start=new T.Vector3(...a),end=new T.Vector3(...b),v=end.clone().sub(start);const m=this.mesh(parent,new T.CylinderGeometry(r,r,v.length(),12),mat,start.add(end).multiplyScalar(.5).toArray());m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),v.normalize());return m;}
  build(){
+  this.dizzyLayout={x:[205/640,435/640],y:133/280,radius:.16};
   // Swept helmet and floating visor instead of a rectangular display housing.
   this.sphere(this.head,1,this.shell,[0,0,0],[.88,.65,.55]);
   this.box(this.head,1.42,.64,.19,.18,this.dark,[0,-.02,.58]);
