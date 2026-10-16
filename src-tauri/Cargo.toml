@@ -1,6 +1,6 @@
 [package]
 name = "project-ruby"
-version = "0.4.3"
+version = "0.4.4"
 description = "Project Ruby desktop companion prototype"
 authors = ["Project Ruby contributors"]
 license = "GPL-2.0-only"

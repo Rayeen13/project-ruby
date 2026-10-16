@@ -1,0 +1,11 @@
+# Ruby DDNA seed and portable brain
+
+This implements a small Ruby-side foundation for ADICE (Artificial Digital Intelligent Companion Entity). It preserves the Kurumi distinction: DDNA is who the Companion is, the brain holds memories and development, and the LLM is replaceable cognition.
+
+`ddna.js` owns versioned identity roots and original/active personality references. A body, voice or LLM change does not create another identity. Imported roots continue the exported identity; an existing distinct root remains archived rather than destroyed. The current cast names, genders and fictional ages come from the character registry. Chibi keeps its family-friendly presentation age. No LLM or internet excerpt is allowed to rewrite the stored identity root.
+
+`companion-state.js` owns owner-approved facts and settings. `conversation.js` bounds model context to relevant notes and character/policy-scoped dialogue. Old messages remain visible/exportable but pre-fix assistant replies are excluded from new model context. `dialogue-grounding.js` handles exact text operations, authored language references, semantic normalization of two beginner romaji questions and persona examples. These are model adapters, not DDNA itself.
+
+`portable-memory.js` exports a versioned JSON archive with separate `ddna` and `brain` domains, recent dialogue and presentation preferences. Import is bounded to 2 MB, validates identity references, merges notes/messages and saves a recovery checkpoint first. Matching profiles select the imported root; previous roots remain in the identity collection. Legacy owner-note exports migrate without inventing old identity continuity. Downloads, runtime executables and model weights are not part of this backup. There is no cloud sync or mandatory account.
+
+Limits: 64 roots, 2,048 owner notes, 200 recent messages; context uses four relevant notes and six recent complete pairs. A full brain vault, vector/episodic retrieval, cryptographic lineage, anti-tampering and Kurumi's canonical fixed 1 MiB DDNA encoding are not implemented. JSON UUID roots establish application continuity, not proof of consciousness or unforgeable identity. Personality presets and memory are not neural training.

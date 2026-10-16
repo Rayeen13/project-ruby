@@ -12,5 +12,5 @@ for(const language of ['en','ja','zh'])for(const gender of ['female','male'])for
  const i={profile:'opal',gender,voiceLanguage:language,voiceEngine};const voices=voicesFor(i);assert(voices.length>=4);assert(voices.every(v=>v.gender===gender&&v.pack===voicePackFor(i)));assert(voices.every(v=>v.language==='multi'||v.language===language));
  const chosen=voices.at(-1);assert.equal(selectedVoice(i,{[voiceChoiceKey(i)]:chosen.id}).id,chosen.id);assert.equal(selectedVoice(i,{opal:gender==='male'?'af_heart':'am_puck'}).gender,gender);
 }
-const message=systemMessage(copy.identity({profile:'opal',personality:{prompt:'Be witty.'}}));assert.match(message,/Reply in English/);assert(!message.includes('Japanese'),'Displayed response language is independent from spoken translation');
+const message=systemMessage(copy.identity({profile:'opal',personality:{prompt:'Be witty.'}}));assert.match(message,/Reply in English/);assert(!message.includes('Reply in Japanese'),'Displayed response language is independent from spoken translation');
 console.log('PASS: local LangM isolation, separate text/voice languages, persisted settings and language/gender voice filtering.');

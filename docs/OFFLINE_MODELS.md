@@ -1,5 +1,13 @@
 # Offline model evaluation — 13 October 2026
 
+## v0.4.4 selected conversation pack
+
+The managed pack is now Qwen2.5-1.5B-Instruct Q3_K_M (official Qwen conversion). GGUF revision `91cad51170dc346986eccefdc2dd33a9da36ead9`, model SHA256 `58cb5c05ecef48e82961f1a2be6544145ea26136f69dddda4bbbd092f0e4b993`, 924,455,968 bytes. Upstream revision `989aa7980e4cf806f80c7fef2b1adb7bc71aa306`; publisher tokenizer template SHA256 `cd8e9439f0570856fd70470bf8889ebd8b5d1107207f67a5efb46e342330527f`. Both publisher and conversion identify Apache-2.0. The full upstream licence and README are retained during download. The pinned llama.cpp b11433 CPU runtime and its licence are unchanged.
+
+This upgrade is measured with the dialogue-grounding layer; it is not evidence that weights alone fix every instruction/language failure. Smaller 0.5B/0.6B/0.8B trials continued to drift on the supplied conversation. Exact repeats are host text operations and two romaji inputs have authored meaning normalization. Reports must distinguish those paths from free LLM generation. No Japanese fluency, general accuracy or physical-laptop speed guarantee is made. Earlier experiments below are historical.
+
+
+
 No default model is approved. The app now includes an experimental local-server conversation adapter; a separately downloaded candidate can be tested without approving a bundled default. Current eligibility requires commercial use and selling Ruby without a mandatory model royalty; MIT is no longer mandatory. The inference runtime cannot change the weight licence. Preserve the exact upstream copyright/licence and separately inspect tokenizer and converted model provenance before redistributing a pack.
 
 ## Initial shortlist under the earlier MIT-only rule

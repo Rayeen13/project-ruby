@@ -6,7 +6,7 @@ export function mountAiPack({tauri,document,onReady,onStop,onBusy=()=>{}}){
   const busy=running||['downloading','verifying','starting'].includes(status.phase);onBusy(busy);
   section.dataset.phase=status.phase;
   el('ai-pack-status').textContent=status.detail;
-  el('ai-pack-download').textContent=status.installed?'Download / repair':'Download AI · about 511 MB';
+  el('ai-pack-download').textContent=status.installed?'Download / repair':'Download AI · about 944 MB';
   el('ai-pack-download').disabled=busy||status.phase==='ready';
   el('ai-pack-start').hidden=!status.installed||status.phase==='ready';el('ai-pack-start').disabled=busy;
   el('ai-pack-stop').hidden=!busy&&status.phase!=='ready';
