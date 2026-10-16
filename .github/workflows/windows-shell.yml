@@ -112,6 +112,7 @@ jobs:
           Copy-Item LICENSE desktop-artifact/
           Copy-Item dist/vendor/THREE-LICENSE.txt desktop-artifact/
           Copy-Item docs/licenses/REQWEST-MIT.txt desktop-artifact/
+          Copy-Item docs/licenses/ZIP-MIT.txt desktop-artifact/
           Copy-Item docs/WINDOWS.md desktop-artifact/README.md
           Copy-Item src-tauri/Cargo.lock desktop-artifact/
           Copy-Item ruby-native-smoke.txt desktop-artifact/
