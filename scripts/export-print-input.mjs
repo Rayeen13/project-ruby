@@ -2,7 +2,8 @@ import fs from 'node:fs';
 import * as T from '../dist/vendor/three.module.js';
 const ctx=new Proxy({}, {get:(o,k)=>o[k]??(()=>{}),set:(o,k,v)=>(o[k]=v,true)});globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>ctx})};
 const {CHARACTER_MODELS}=await import('../dist/character-registry.js');
-for(const spec of CHARACTER_MODELS.filter(m=>!process.env.RUBY_PRINT_MODEL||m.id===process.env.RUBY_PRINT_MODEL)){
+if(process.env.RUBY_PRINT_MODEL==='opal')throw Error('Opal is now a skinned VRoid avatar; a separate printable conversion is pending.');
+for(const spec of CHARACTER_MODELS.filter(m=>m.id!=='opal'&&(!process.env.RUBY_PRINT_MODEL||m.id===process.env.RUBY_PRINT_MODEL))){
  const c=spec.create();c.setProfile('ruby');c.update(0,{follow:false});
  // Physical eye relief replaces display textures, which cannot be printed.
  let face; c.head.traverse(o=>{if(o.isMesh&&o.geometry.type==='PlaneGeometry'&&o.material.map===c.faceTex)face=o;});

@@ -36,18 +36,6 @@ def rod(a,b,r=1.2):
     transform=trimesh.geometry.align_vectors([0,0,1],v/length);transform[:3,3]=(a+b)/2
     return trimesh.creation.cylinder(radius=r,height=length+2*r,sections=16,transform=transform)
 
-def printable_remesh(original):
-    from scipy.ndimage import gaussian_filter
-    from skimage.measure import marching_cubes
-    voxels=original.voxelized(pitch=.5).fill()
-    # Smooth the scalar field before extraction to avoid diagonal point contacts.
-    field=np.pad(voxels.matrix.astype(np.float32),2)
-    field=gaussian_filter(field,.6)
-    vertices,faces,_,_=marching_cubes(field,level=.5,allow_degenerate=False)
-    result=trimesh.Trimesh(vertices=vertices-2,faces=faces,process=True)
-    result.apply_transform(voxels.transform);result.fix_normals()
-    return result
-
 reports=[]
 for id in ([os.environ['RUBY_PRINT_MODEL']] if os.environ.get('RUBY_PRINT_MODEL') else ['classic','cyber','chibi','office','gamer','opal']):
     data=json.loads(pathlib.Path(f'/tmp/print-{id}.json').read_text());parts=[]
@@ -89,14 +77,17 @@ for id in ([os.environ['RUBY_PRINT_MODEL']] if os.environ.get('RUBY_PRINT_MODEL'
     mesh=solid.to_mesh();model=trimesh.Trimesh(vertices=mesh.vert_properties[:,:3],faces=mesh.tri_verts,process=True)
     print(id,'post simplify',model.is_watertight,model.is_volume,len(model.faces),flush=True)
     if not model.is_watertight or not model.is_volume:
-        # A failed simplification must not replace the already validated solid.
-        model=original.copy()
-        print(id,'retained original validated solid',flush=True)
+        voxels=original.voxelized(pitch=.5).fill()
+        model=voxels.marching_cubes
+        model.apply_transform(voxels.transform)
+        model.fix_normals()
+        print(id,'solid remesh at 0.5 mm',model.is_watertight,model.is_volume,flush=True)
     assert model.is_watertight and model.is_volume
     path=OUT/f'{id}-120mm.stl';model.export(path)
     check=trimesh.load_mesh(path,process=True)
     if not check.is_watertight or not check.is_volume or len(check.split())!=1:
-        model=printable_remesh(original)
+        voxels=original.voxelized(pitch=.5).fill()
+        model=voxels.marching_cubes;model.apply_transform(voxels.transform);model.fix_normals()
         model.export(path);check=trimesh.load_mesh(path,process=True)
         print(id,'STL precision repair at 0.5 mm',flush=True)
     assert check.is_watertight and check.is_volume and len(check.split())==1

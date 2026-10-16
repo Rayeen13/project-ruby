@@ -1,3 +1,4 @@
+param([switch]$VisualOnly)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
@@ -32,7 +33,10 @@ public static class RubyBounds {
   [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr window, out Rect rect);
 }
 '@
-$rubyProcess = Start-Process src-tauri/target/release/project-ruby.exe -ArgumentList '--native-smoke-test' -PassThru
+foreach ($generated in @('ruby-native-phase.txt','ruby-native-live.json','ruby-native-smoke.txt')) { if (Test-Path $generated) { Remove-Item $generated } }
+$launchArguments = @('--native-smoke-test')
+if ($VisualOnly) { $launchArguments += '--native-visual-only' }
+$rubyProcess = Start-Process src-tauri/target/release/project-ruby.exe -ArgumentList $launchArguments -PassThru
 $rubyHandle = [IntPtr]::Zero
 $seen = @{}
 $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
@@ -152,6 +156,7 @@ try {
   if (-not (Test-Path ruby-native-smoke.txt)) { throw 'Native app did not report smoke results' }
   if (Test-Path ruby-native-smoke.txt) { Get-Content ruby-native-smoke.txt }
   if ($rubyProcess.ExitCode -ne 0) { throw 'Native WebView smoke checks failed' }
+  if ($VisualOnly) { return }
   if (-not (Test-Path ruby-native-carry.txt)) { throw 'Missing real native carry evidence' }
   Get-Content ruby-native-smoke.txt
   if ($rubyProcess.ExitCode -ne 0) { throw 'Native WebView smoke checks failed' }

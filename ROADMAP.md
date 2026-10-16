@@ -1,6 +1,6 @@
 ## Current follow-up · Setup and voice quality
 
-- v0.4.5: integrated dizzy-eye rendering for every body; original anime Opal proportions, four authored maid outfits, manual selection, configurable local-time periods and work override. Outfit choice is presentation state, separate from DDNA. Native image review and target-device visual acceptance remain distinct from functional tests.
+- v0.4.5: integrated dizzy-eye rendering for every body; real skinned VRoid Opal base (CC0), four adapted maid outfits, manual selection, configurable local-time periods and work override. Outfit choice is presentation state, separate from DDNA. Native image review and target-device visual acceptance remain distinct from functional tests.
 
 - v0.4.4: DDNA JSON seed and separate portable brain; stable identity roots across LLM/body changes; original/active personality; versioned export/import and recovery; relevant owner-note retrieval; grounded dialogue and sourced conversational lookup. Canonical Kurumi 1 MiB binary DDNA, cryptographic lineage, neural genome and expansive episodic retrieval remain later milestones.
 

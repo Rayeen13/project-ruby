@@ -1,6 +1,6 @@
 ## v0.4.5 wardrobe
 
-Choose the **Opal · maid android** body in Studio, then open **Opal’s wardrobe** below the gem buttons. Select Classic lace, Rose café, Midnight satin or Studio professional. Automatic mode has separate morning (06–12), afternoon (12–17), evening (17–22) and night (22–06) choices in device local time. Work override temporarily takes precedence. Turn it off to resume the saved selection/schedule. These are original mesh costumes inspired by supplied fashion references. Floating mode uses the same saved wardrobe; open Studio to edit it. Existing LLM/VoiceM downloads are reused.
+Choose the **Opal · maid android** body in Studio, then open **Opal’s wardrobe** below the gem buttons. Select Classic lace, Rose café, Midnight satin or Studio professional. Automatic mode has separate morning (06–12), afternoon (12–17), evening (17–22) and night (22–06) choices in device local time. Work override temporarily takes precedence. Turn it off to resume the saved selection/schedule. The anime body is an actual CC0 VRoid beta sample; clothing is adapted with skinned apron surfaces, sleeve cuts, hem lengths and accessories inspired by the supplied references. Floating mode uses the same saved wardrobe; open Studio to edit it. Existing LLM/VoiceM downloads are reused.
 
 # Windows v0.4 quick start
 

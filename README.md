@@ -2,9 +2,9 @@
 
 ## v0.4.5 — Opal wardrobe and integrated dizzy eyes
 
-Opal has an original anime maid silhouette with long hair, articulated gloved hands and four outfits: Classic lace, Rose café, Midnight satin and Studio professional. Select Opal’s body, then open **Opal’s wardrobe** in the Studio controls. Pick a look, assign looks to morning/afternoon/evening/night, or enable the work override. The schedule uses the device’s local clock; it does not infer your job or calendar. Preferences and Companion backups include wardrobe choices. Clothing changes preserve DDNA identity and memory.
+Opal now uses an actual skinned VRoid anime base (CC0), with humanoid bones, articulated hands, textured face/hair and facial morphs. The four adapted maid outfits are: Classic lace, Rose café, Midnight satin and Studio professional. Select Opal’s body, then open **Opal’s wardrobe** in the Studio controls. Pick a look, assign looks to morning/afternoon/evening/night, or enable the work override. The schedule uses the device’s local clock; it does not infer your job or calendar. Preferences and Companion backups include wardrobe choices. Clothing changes preserve DDNA identity and memory.
 
-Dizzy spirals use the existing face texture and each body’s eye positions. Transparent faces and Opal’s anime eyes retain their background instead of acquiring a black rectangular screen. The original opaque EMO display remains opaque. Opal’s neutral Classic lace figurine export is regenerated separately; runtime clothing is not a promise of articulated printable fabric.
+Dizzy spirals use the existing face texture and each body’s eye positions. Transparent faces and Opal’s anime eyes retain their background instead of acquiring a black rectangular screen. The original opaque EMO display remains opaque. The old procedural Opal figurine is retired; a print-ready static conversion of the new avatar is pending.
 
 
 ## v0.4.4 — dialogue grounding and portable character continuity
@@ -51,7 +51,7 @@ Voice sources: [Kokoro publisher](https://huggingface.co/hexgrad/Kokoro-82M), [p
 
 # Project Ruby
 
-A desktop-companion prototype with five procedural 3D robot bodies and an original Opal android, gem colour profiles, cursor tracking and expressive animation. Built with Three.js and browser JavaScript; a first Windows desktop shell is available as a build preview; Windows v0.4 downloads and runs local LLM and VoiceM packs, with optional existing-server connections, sourced internet answers and independent Companion/chat/Settings views. Microphone input and OS automation are future work.
+A desktop-companion prototype with five procedural 3D robot bodies and a CC0-derived skinned VRoid Opal avatar, gem colour profiles, cursor tracking and expressive animation. Built with Three.js and browser JavaScript; a first Windows desktop shell is available as a build preview; Windows v0.4 downloads and runs local LLM and VoiceM packs, with optional existing-server connections, sourced internet answers and independent Companion/chat/Settings views. Microphone input and OS automation are future work.
 
 ## Run locally
 
@@ -83,7 +83,7 @@ Bodies: Classic EMO-style, Cyberpunk 3090, Chibi, Office, Gamer and Opal. Gem pr
 
 ## Licence
 
-Project source: GPL-2.0-only. See LICENSE. Vendored Three.js and its example renderers remain under their original MIT licence in dist/vendor/THREE-LICENSE.txt. Original procedural character designs and supplied print exports are distributed under GPL-2.0-only as part of this project. No commercial third-party character meshes are included.
+Project source: GPL-2.0-only. See LICENSE. Vendored Three.js and its example renderers remain under their original MIT licence in dist/vendor/THREE-LICENSE.txt. Original procedural character designs and supplied print exports are distributed under GPL-2.0-only as part of this project. The Opal base is an adapted CC0 VRoid beta sample, separate from the GPL source licence. Its provenance and the MIT VRM runtime notice are documented in docs/OPAL_ASSET.md.
 
 ## Development conventions
 

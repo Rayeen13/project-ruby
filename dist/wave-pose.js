@@ -2,22 +2,18 @@ import * as T from './vendor/three.module.js';
 // Compact side arms with separately articulated robotic digits.
 export function mountSideArms(character){
  const compact=character.shoulderSpan!==undefined;
- const layout=character.armLayout||{},x=layout.x??(compact?.58:.52),y=layout.y??(compact?.69:(character.head.position.y>2?1.03:.88));
+ const x=compact?.58:.52,y=compact?.69:(character.head.position.y>2?1.03:.88);
  for(const rig of character.arms){
   const {arm,forearm,hand,side}=rig;
-  arm.position.set(side*x,y,layout.z??.12);arm.scale.setScalar(1);
+  arm.position.set(side*x,y,.12);arm.scale.setScalar(1);
   for(const child of [...arm.children])if(child!==forearm)arm.remove(child);
   character.sphere(arm,.065,character.dark,[0,0,0]);
   const cuff=character.sphere(arm,1,character.shell,[0,-.065,0]);cuff.scale.set(.075,.105,.075);
-  forearm.position.set(0,-(layout.upper??.09),0);
+  forearm.position.set(0,-.09,0);
   for(const child of [...forearm.children])if(child!==hand)forearm.remove(child);
-  hand.position.set(0,-(layout.lower??.10),.005);hand.scale.setScalar(layout.handScale??1);
-  if(character.armLayout){
-   character.bar(arm,[0,-.055,0],[0,-layout.upper,0],.043,character.skin);
-   rig.sleeve=character.bar(forearm,[0,0,0],[0,-layout.lower,0],.036,character.coat);
-  }
+  hand.position.set(0,-.10,.005);hand.scale.setScalar(1);
   for(const child of [...hand.children])if(child!==character.controller)hand.remove(child);
-  const palm=character.armLayout?character.sphere(hand,1,character.coat,[0,-.012,0],[.094,.058,.041]):character.box(hand,.185,.105,.075,.018,character.armor,[0,-.012,0]);
+  const palm=character.box(hand,.185,.105,.075,.018,character.armor,[0,-.012,0]);
   palm.name='robot-palm';
   const fingers=[];
   for(let i=0;i<4;i++){

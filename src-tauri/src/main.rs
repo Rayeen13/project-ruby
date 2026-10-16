@@ -223,6 +223,9 @@ fn main() {
                     if std::env::args().any(|arg| arg == "--native-smoke-restart") {
                         let _ = window.eval("window.__RUBY_SMOKE_RESTART__=true;");
                     }
+                    if std::env::args().any(|arg| arg == "--native-visual-only") {
+                        let _ = window.eval("window.__RUBY_VISUAL_ONLY__=true;");
+                    }
                     let _ = window.eval(include_str!("../../scripts/native-smoke.js"));
                 }
             }

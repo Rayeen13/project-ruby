@@ -24,7 +24,7 @@
   assert((await window.__TAURI__.core.invoke('desktop_status')).floating,'Executable opens directly as floating mascot');
   await window.__TAURI__.core.invoke('desktop_action',{action:'lab'});await wait(350);
   const wardrobeChange=(id,value)=>{const e=document.querySelector(id);if(e.type==='checkbox')e.checked=value;else e.value=value;e.dispatchEvent(new Event('change'));};
-  document.querySelector('[data-profile="opal"]').click();select.value='opal';select.dispatchEvent(new Event('change'));await wait(200);
+  document.querySelector('[data-profile="opal"]').click();select.value='opal';select.dispatchEvent(new Event('change'));for(let i=0;i<600&&stage.dataset.modelReady!=='true';i++)await wait(100);await wait(300);
   const wardrobeRoot=JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.opal;
   for(const outfit of ['classic','rose','evening','work']){wardrobeChange('#opal-outfit',outfit);await wait(350);assert(stage.dataset.outfit===outfit,'Opal wardrobe selects '+outfit);await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'opal_'+outfit});await wait(300);}
   wardrobeChange('#opal-auto',true);wardrobeChange('#opal-work',true);await wait(200);assert(stage.dataset.outfit==='work','Work override takes precedence over the clock');wardrobeChange('#opal-work',false);
@@ -33,9 +33,10 @@
   assert(JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.opal===wardrobeRoot,'Clothes never replace Opal’s identity');wardrobeChange('#opal-auto',false);wardrobeChange('#opal-outfit','classic');await wait(250);localStorage.setItem('project-ruby.smoke-wardrobe',JSON.stringify(JSON.parse(localStorage.getItem('project-ruby.preferences.v1')).wardrobe));
   // Real canvas pixels verify the bug: transparent face corners never become an extra black panel.
   const registry=await import('./character-registry.js'),dizzy=await import('./companion-grab.js');
-  for(const spec of registry.CHARACTER_MODELS){const c=spec.create();c.update(0,{follow:false});dizzy.drawDizzyFace(c,1000);assert(c.ctx.getImageData(0,0,1,1).data[3]===(spec.id==='classic'?255:0),spec.id+': dizziness preserves the existing face background');
-   select.value=spec.id;select.dispatchEvent(new Event('change'));await wait(100);document.querySelector('[data-interaction="dizzy"]').click();await wait(250);await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'dizzy_'+spec.id});await wait(300);}
+  for(const spec of registry.CHARACTER_MODELS){const c=spec.create();await c.ready;c.update(0,{follow:false});dizzy.drawDizzyFace(c,1000);assert(c.ctx.getImageData(0,0,1,1).data[3]===(spec.id==='classic'?255:0),spec.id+': dizziness preserves the existing face background');
+   select.value=spec.id;select.dispatchEvent(new Event('change'));for(let i=0;i<300&&stage.dataset.modelReady!=='true';i++)await wait(100);await wait(200);document.querySelector('[data-interaction="dizzy"]').click();await wait(250);await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'dizzy_'+spec.id});await wait(300);}
   await wait(4000);document.querySelector('[data-profile="ruby"]').click();select.value='gamer';select.dispatchEvent(new Event('change'));await wait(250);
+  if(window.__RUBY_VISUAL_ONLY__){await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:true,details:checks.join('\n')});return;}
   document.querySelector('[data-chat-open]').click();await wait(150);
   assert(!document.querySelector('#chat-panel').hidden,'Companion opens independent conversation');
   assert(!document.querySelector('#chat-panel').contains(document.querySelector('#chat-model')),'LLM selector is inside Settings, outside chat');

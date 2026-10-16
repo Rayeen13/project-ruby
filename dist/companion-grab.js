@@ -59,7 +59,7 @@ export class GrabVisual {
   root.position.y+=this.pose.lift;root.rotation.z+=this.pose.lean;
   this.stars.visible=dizzy;const fade=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};const opacity=fade((ms-(state.dizzyUntil-3800))/220)*fade((state.dizzyUntil-ms)/400);for(const star of this.stars.children)star.material.opacity=opacity;
   if(dizzy){
-   this.box.setFromObject(character.head);const top=this.box.max.y,centre=this.box.getCenter(new T.Vector3());
+   if(character.getHeadBounds)this.box.copy(character.getHeadBounds());else this.box.setFromObject(character.head);const top=this.box.max.y,centre=this.box.getCenter(new T.Vector3());
    for(let i=0;i<5;i++){const star=this.stars.children[i],a=(reduced?0:ms*.0016)+i*Math.PI*2/5;star.position.set(centre.x+Math.cos(a)*.48,top+.18+Math.sin(a*2)*.035,centre.z+Math.sin(a)*.3);star.rotation.set(0,-a,Math.sin(a)*.3);}
   }
  }
