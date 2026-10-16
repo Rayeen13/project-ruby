@@ -12,7 +12,7 @@ for(const spec of CHARACTER_MODELS){
  await c.ready;c.update(0,{follow:false});fills.length=0;drawDizzyFace(c,1000);
  assert.equal(fills.some(a=>a[0]===0&&a[1]===0&&a[2]===c.canvas.width&&a[3]===c.canvas.height),spec.id==='classic',spec.id+' must preserve face transparency during dizziness');
  if(spec.id==='opal'){
-  for(const outfit of OPAL_OUTFITS){c.setOutfit(outfit.id);assert.equal([...c.outfits.values()].filter(g=>g.visible).length,1);assert(c.outfits.get(outfit.id).visible);assert.equal(c.glasses.visible,outfit.id==='work');}
+  for(const outfit of OPAL_OUTFITS){c.setOutfit(outfit.id);assert.equal([...c.outfits.values()].filter(g=>g.visible).length,1);assert(c.outfits.get(outfit.id).visible);const garment=c.outfits.get(outfit.id).children.find(m=>m.name==='Opal-skinned-dress');assert(garment.material.isMeshToonMaterial,'Garment uses explicit fabric shading');assert(garment.material.color.getHex()!==0xffffff,'Garment palette is retained');assert.equal(c.glasses.visible,outfit.id==='work');}
   let iris;c.root.traverse(o=>{if(o.material?.name?.includes('EyeIris'))iris=o;});
   const irisCentre=()=>{const centre=new T.Vector3();for(let i=0;i<iris.geometry.attributes.position.count;i++)centre.add(iris.getVertexPosition(i,new T.Vector3()).applyMatrix4(iris.matrixWorld));return centre.divideScalar(iris.geometry.attributes.position.count);};
   c.update(0,{pointer:{x:0,y:0},dt:1});const centre=irisCentre();c.update(0,{pointer:{x:1,y:0},dt:1});assert(irisCentre().x>centre.x,'VRoid gaze follows right');c.update(0,{pointer:{x:0,y:1},dt:1});assert(irisCentre().y>centre.y,'VRoid gaze follows up');

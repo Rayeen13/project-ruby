@@ -40,11 +40,15 @@ export class OpalCharacter {
   for(const spec of OPAL_OUTFITS){const group=new T.Group();group.name='opal-outfit-'+spec.id;this.vrm.scene.add(group);this.outfits.set(spec.id,group);
    for(const source of clothes){
     source.visible=false;const dress=source.clone();dress.visible=true;dress.geometry=source.geometry.clone();dress.skeleton=source.skeleton;dress.bindMatrix.copy(source.bindMatrix);dress.bindMatrixInverse.copy(source.bindMatrixInverse);
-    const original=Array.isArray(source.material)?source.material[0]:source.material;dress.material=original.clone();dress.material.color?.set(({classic:0x343241,rose:0xffc0d6,evening:0x383450,work:0x364b65})[spec.id]);
+    const original=Array.isArray(source.material)?source.material[0]:source.material;dress.material=new T.MeshToonMaterial({map:original.map,color:({classic:0x24212e,rose:0xe9a0ba,evening:0x242035,work:0x26364c})[spec.id],side:T.DoubleSide});dress.name='Opal-skinned-dress';
     // Preserve the artist's continuous garment topology, UVs and skin weights.
     const positions=dress.geometry.attributes.position,box=new T.Box3().setFromBufferAttribute(positions),waist=box.min.y+(box.max.y-box.min.y)*.49;
     for(let i=0;i<positions.count;i++)if(positions.getY(i)<waist){const weight=Math.min(1,(waist-positions.getY(i))/Math.max(.001,waist-box.min.y));positions.setY(i,positions.getY(i)-(spec.id==='evening'?.36:spec.id==='work'?.12:spec.id==='rose'?-.035:0)*weight);}
-    positions.needsUpdate=true;dress.geometry.computeVertexNormals();group.add(dress);
+    // The skirt hangs from the pelvis: leg weights pinch a lengthened hem into trousers.
+    const hip=source.skeleton.bones.indexOf(this.vrm.humanoid.getRawBoneNode('hips')),skinIndex=dress.geometry.attributes.skinIndex,skinWeight=dress.geometry.attributes.skinWeight;
+    if(hip<0)throw Error('Opal garment is missing its pelvis binding');
+    for(let i=0;i<positions.count;i++)if(source.geometry.attributes.position.getY(i)<waist){skinIndex.setXYZW(i,hip,0,0,0);skinWeight.setXYZW(i,1,0,0,0);}
+    skinIndex.needsUpdate=true;skinWeight.needsUpdate=true;positions.needsUpdate=true;dress.geometry.computeVertexNormals();group.add(dress);
     // An apron cut from the actual skinned garment surface, with a sewn border.
     let indices=dress.geometry.index?.array||Array.from({length:positions.count},(_,i)=>i);
     if(['classic','rose'].includes(spec.id)){
