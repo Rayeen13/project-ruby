@@ -1,5 +1,19 @@
 ## Offline language choices · v0.4.3
 
+## v0.4.4 — dialogue grounding and portable character continuity
+
+Ruby now has a persistent DDNA seed (identity root, canonical name/gender/age, original/active personality and values) independent of the LLM, body and VoiceM. Character-specific context prevents another Companion or older malformed replies from teaching its identity. Persona changes cancel active replies. This is a small JSON foundation aligned with ADICE; it is not Kurumi's canonical 1 MiB DDNA binary, a neural genome, sentience or learned emotional development.
+
+The separate portable brain stores approved owner notes and recent dialogue. Settings → Companion → Export Companion backup exports identity roots, notes, recent dialogue and body/personality preferences. Import previews the file and merges notes/history; a pre-import recovery checkpoint can be exported. Legacy owner-note exports are accepted. Existing data is retained. The prototype supports 2,048 owner notes, 200 recent messages and retrieves up to four relevant notes plus six recent pairs for inference. It does not remember every conversation forever or silently turn web/model claims into permanent facts.
+
+The recommended CPU pack upgrades to official Qwen2.5-1.5B-Instruct Q3_K_M: 924,455,968 bytes of weights, approximately 944 MB with the existing pinned CPU runtime. Two threads, one server slot and zero GPU layers remain the defaults. Download this new pack explicitly in Settings → LLM; existing 0.5B files and owner data are not deleted. Optional VoiceM packs add separate download/disk requirements. The installer remains small.
+
+A real local regression script (`node scripts/dialogue-quality.mjs http://127.0.0.1:8081 report.json`) covers the supplied conversation, exact corrections/repeats, topic engagement and character switches. Exact quoted repetition is a deterministic text operation, not a test of model knowledge. A small authored input glossary normalizes two beginner romanized Japanese questions to their English meaning; it is not general Japanese fluency. Compact-model phrasing and language quality remain limited; larger existing local models can still be selected.
+
+Internet mode now skips greetings/identity/language-practice requests, adds sourced information to factual conversations and continues honestly offline when an automatic lookup fails. Explicit search failures remain visible. Search is opt-in or explicitly requested; notes/history are not sent as search queries. All seven gem buttons share the registered-colour glow.
+
+
+
 **LangM** is the local translation model, separate from the LLM (conversation) and VoiceM (speech). Settings → Voice & language lets you choose text and spoken languages independently, including English text with Japanese voice-over. LangM translates only each spoken phrase and leaves displayed chat untouched. It reuses the selected local LLM by default, with no extra model download or cloud API; advanced settings can select another model in a local engine. A multilingual model is required for useful translation. The compact default may translate poorly or fail language validation; it is not a professional translation guarantee.
 
 English/Chinese speech uses the shared Kokoro pack. The original character collection uses Supertonic 3 for Japanese or English (about 154 MB including its pinned Windows CPU runtime). Choose a language/collection, accept its model terms where required, download once and preview. Japanese presets are original style presets, not copies of anime characters or actors. Voice previews use native-language sample lines without needing LangM; custom lines and cross-language replies use LangM when necessary. Voice choices are saved per Companion, language and pack.

@@ -1,32 +1,37 @@
+import {exportCompanionMemory,parseCompanionMemory,importCompanionMemory,BACKUP_KEY} from './portable-memory.js';
+import {CompanionDNA} from './ddna.js';
+import {characterContextKey} from './conversation.js';
 import {LocalLangM} from './languages.js';
 import {SETUP_KEY,mountApplicationSetup} from './application-setup.js';
 import {CompanionState,parseExpression} from './companion-state.js';
-import {searchInternet,searchQuery,googleAiUrl} from './internet-provider.js';
+import {searchInternet,searchQuery,googleAiUrl,shouldSearch,explicitSearch} from './internet-provider.js';
 import {mountVoice} from './voice-provider.js';
 import {AI_ENGINES,engineFor} from './ai-engines.js';
 import {mountAiPack} from './ai-pack.js';
 import {NativeChatProvider} from './native-chat-provider.js';
 import {LocalChatProvider} from './chat-provider.js';
 import {Conversation} from './conversation.js';
-export function mountCompanionChat({document,storage,identity,onState=()=>{},onOpen=()=>{},onExpand=()=>{},onClose=()=>{},onExpression=()=>{}}){
+export function mountCompanionChat({document,storage,identity,onState=()=>{},onOpen=()=>{},onExpand=()=>{},onClose=()=>{},onExpression=()=>{},getPreferences=()=>({}),applyPreferences=()=>{}}){
  const el=id=>document.getElementById(id),panel=el('chat-panel'),log=el('chat-log'),input=el('chat-input'),model=el('chat-model');
- const baseIdentity=identity,state=new CompanionState(storage);identity=()=>state.identity(baseIdentity());let voice,setup;
+ const baseIdentity=identity,state=new CompanionState(storage),ddna=new CompanionDNA(storage);identity=()=>ddna.resolve(state.identity(baseIdentity()));let lastCharacter=characterContextKey(identity());let voice,setup;
  const provider=globalThis.__TAURI__?new NativeChatProvider(globalThis.__TAURI__):new LocalChatProvider();let connecting=null,packBusy=false,submitting=false;
  const engineNote=engine=>!globalThis.__TAURI__&&engine.id==='ruby'?'Download offline AI inside the Windows app → Settings → LLM → Download AI. This website connects to the running server on your device.':engine.note;
  const engineSelect=el('chat-engine');
  for(const engine of AI_ENGINES){const option=document.createElement('option');option.value=engine.id;option.textContent=engine.name;engineSelect.append(option);}
  let savedSetup;try{savedSetup=JSON.parse(storage?.getItem(SETUP_KEY)||'null');}catch{}
  if(AI_ENGINES.some(e=>e.id===savedSetup?.engine)){engineSelect.value=savedSetup.engine;if(globalThis.__TAURI__)provider.engine=engineSelect.value;else provider.base=engineFor(engineSelect.value).base;}
+ el('internet-enabled').checked=state.data.internet;el('internet-enabled').onchange=()=>{state.data.internet=el('internet-enabled').checked;state.save();};
  const chat=new Conversation({provider,storage,identity,onChange:render,prepare:async(text,{signal,history})=>{
   state.observe(text);onExpression(state.data.emotion);renderMemory();
-  if(!el('internet-enabled').checked&&!/^(?:please\s+)?(?:search|look up)\b/i.test(text))return;
+  if(!shouldSearch(text,{enabled:el('internet-enabled').checked}))return;
   el('chat-status').textContent='Searching the internet…';const query=searchQuery(text,history);lastQuery=query;
-  const sources=await searchInternet(query,{signal});if(!sources.length)throw new Error('No useful internet results. Try a more specific question.');return sources;
+  try{const sources=await searchInternet(query,{signal});if(!sources.length)throw new Error('No useful internet results.');return sources;}catch(error){if(signal.aborted)throw error;if(explicitSearch(text))throw error;return {unavailable:true};}
  },onComplete:reply=>{onExpression(reply.mood||state.data.emotion);if(state.data.speak)void voice?.speak(reply.content,{textLanguage:reply.textLanguage});}});
  const langmProvider=(engine=state.data.langm.engine==='same'?engineSelect.value:state.data.langm.engine)=>{if(globalThis.__TAURI__){const p=new NativeChatProvider(globalThis.__TAURI__);p.engine=engine;return p;}return new LocalChatProvider({base:engineFor(engine).base});};
  const langm=new LocalLangM({provider:langmProvider,model:()=>state.data.langm.engine==='same'?model.value:state.data.langm.model});
  let lastQuery='';
  function renderMemory(){
+  if(state.memoryError)el('memory-transfer-status').textContent=state.memoryError;
   const current=identity();el('identity-summary').textContent=`${current.name} · ${current.gender} · age ${current.age} · ${current.personality.name}`;
   el('content-mode').value=state.data.content;el('memory-enabled').checked=state.data.remember;el('memory-list').replaceChildren();
   state.data.memories.forEach((text,index)=>{const item=document.createElement('li'),label=document.createElement('span'),remove=document.createElement('button');label.textContent=text;remove.textContent='×';remove.setAttribute('aria-label','Forget '+text);remove.onclick=()=>{state.data.memories.splice(index,1);state.save();renderMemory();};item.append(label,remove);el('memory-list').append(item);});
@@ -40,7 +45,11 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
  el('settings-panel').addEventListener('keydown',event=>{if(event.key==='Escape'){event.stopPropagation();void close();}});
  for(const tab of document.querySelectorAll('[data-settings-tab]'))tab.onclick=()=>{for(const page of document.querySelectorAll('[data-settings-page]'))page.hidden=page.dataset.settingsPage!==tab.dataset.settingsTab;for(const other of document.querySelectorAll('[data-settings-tab]'))other.classList.toggle('active',other===tab);};
  el('content-mode').onchange=()=>{state.data.content=el('content-mode').value;state.save();renderMemory();};el('memory-enabled').onchange=()=>{state.data.remember=el('memory-enabled').checked;state.save();renderMemory();};
- el('memory-form').onsubmit=event=>{event.preventDefault();state.remember(el('memory-input').value);el('memory-input').value='';renderMemory();};el('memory-clear').onclick=()=>{state.forget();renderMemory();};el('memory-export').onclick=()=>downloadJson('ruby-companion.json',state.export());
+ el('memory-form').onsubmit=event=>{event.preventDefault();state.remember(el('memory-input').value);el('memory-input').value='';renderMemory();};el('memory-clear').onclick=()=>{state.forget();renderMemory();};el('memory-export').onclick=()=>downloadJson('ruby-companion-backup.json',exportCompanionMemory({ddna,state,messages:chat.messages,preferences:getPreferences()}));
+ let pendingMemory=null;
+ el('memory-import').onchange=async()=>{pendingMemory=null;el('memory-import-apply').hidden=true;const file=el('memory-import').files?.[0];if(!file)return;try{if(file.size>2_000_000)throw Error('Choose a Ruby backup under 2 MB.');pendingMemory=parseCompanionMemory(await file.text());el('memory-transfer-status').textContent=pendingMemory.summary;el('memory-import-apply').hidden=false;}catch(error){el('memory-transfer-status').textContent=String(error.message||error);}};
+ el('memory-import-apply').onclick=async()=>{if(!pendingMemory)return;chat.stop();await voice.stop();try{importCompanionMemory({file:pendingMemory,storage,state,ddna,chat,getPreferences,applyPreferences});pendingMemory=null;el('memory-import-apply').hidden=true;el('memory-import').value='';lastCharacter=characterContextKey(identity());voice.refresh();render();renderMemory();el('memory-transfer-status').textContent='Memory imported. Previous state is available as a recovery backup.';}catch(error){el('memory-transfer-status').textContent=String(error.message||error);}};
+ el('memory-recovery-export').onclick=()=>{const data=storage?.getItem(BACKUP_KEY);if(data)downloadJson('ruby-before-memory-import.json',JSON.parse(data));else el('memory-transfer-status').textContent='No recovery backup yet.';};
  el('google-ai-open').onclick=()=>{const query=input.value.trim()||lastQuery||[...chat.messages].reverse().find(m=>m.role==='user')?.content||'';if(!query){el('chat-status').textContent='Write a question first.';return;}void openLink(googleAiUrl(query)).catch(error=>{el('chat-status').textContent=String(error);});};
  voice=mountVoice({document,state,identity,engines:AI_ENGINES,modelsFor:engine=>langmProvider(engine).models(),translate:(text,language,options)=>langm.translate(text,language,options),onPreferences:()=>renderMemory(),onCue:cue=>onExpression(cue.mood),onSpeaking:value=>{onState(value?'speaking':chat.state);document.querySelector('#stage').dataset.speaking=String(value);}});
  renderMemory();
@@ -81,5 +90,5 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
  mountAiPack({tauri:globalThis.__TAURI__,document,onReady:connect,onBusy:value=>{packBusy=value;engineSelect.disabled=value||!!chat.active;},onStop:()=>{chat.stop();model.replaceChildren();render();}});
  setup=mountApplicationSetup({document,storage,tauri:globalThis.__TAURI__,state,identity,engines:AI_ENGINES,engineSelect,modelSelect:model,connect,onBusy:value=>{packBusy=value;engineSelect.disabled=value||!!chat.active;},refreshVoice:()=>voice.refresh()});
  // Downloads require an explicit setup action.
- render();return {open,stop:()=>{chat.stop();voice.stop();},refresh:()=>{voice.refresh();setup?.refresh();render();renderMemory();}};
+ render();return {open,stop:()=>{chat.stop();voice.stop();},refresh:()=>{const key=characterContextKey(identity());if(key!==lastCharacter){chat.stop();lastCharacter=key;}voice.refresh();setup?.refresh();render();renderMemory();}};
 }

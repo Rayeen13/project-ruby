@@ -7,7 +7,7 @@ let request;
 const provider={async *stream(options){request=options;yield 'Hello ';yield 'Emme.';}};
 const chat=new Conversation({provider,storage,identity});
 assert.equal(await chat.send('Hi','local'),true);assert.equal(chat.messages.at(-1).content,'Hello Emme.');assert.match(request.messages[0].content,/Emme/);assert.match(request.messages[0].content,/practical/);
-await chat.send('Remember me','local');assert.equal(request.messages.length,4);assert.equal(restoreConversation(storage).length,4);
+await chat.send('Remember me','local');assert(request.messages.some(m=>m.role==='assistant'&&m.content==='Hello Emme.'));assert.equal(restoreConversation(storage).length,4);
 let release;
 chat.provider={async *stream(){yield 'partial';await new Promise(r=>{release=r;});yield 'late';}};
 const pending=chat.send('Wait','local');await new Promise(r=>setTimeout(r,0));chat.stop();assert.equal(chat.state,'idle');release();await pending;assert.equal(chat.messages.at(-1).content,'partial');assert.equal(chat.messages.at(-1).status,'cancelled');assert(!contextMessages(chat.messages,identity()).some(m=>m.content==='partial'));
@@ -23,3 +23,7 @@ let text='';for await(const chunk of new LocalChatProvider({fetcher}).stream({me
 const broken=new LocalChatProvider({fetcher:async()=>new Response('data: {bad}\n\n',{headers:{'content-type':'text/event-stream'}})});await assert.rejects(async()=>{for await(const c of broken.stream({messages:[],model:'local'})){}},/unreadable/);
 const truncated=new LocalChatProvider({fetcher:async()=>new Response('data: '+JSON.stringify({choices:[{delta:{content:'half'}}]})+'\n\n',{headers:{'content-type':'text/event-stream'}})});await assert.rejects(async()=>{for await(const c of truncated.stream({messages:[],model:'local'})){}},/before the reply finished/);
 console.log('Conversation: persona/context, persistence, interrupted restart, Stop, stale chunks, Retry, SSE boundaries and truncation passed.');
+
+const exact=new Conversation({storage,identity,provider:{async *stream(){throw Error('Literal output must not call the model');}}});
+await exact.send('say exactly `[happy] blue kite`','local');assert.equal(exact.messages.at(-1).content,'[happy] blue kite');
+await exact.send("you should say wa 'alaikumussalam",'local');assert.equal(exact.messages.at(-1).content,"wa 'alaikumussalam");

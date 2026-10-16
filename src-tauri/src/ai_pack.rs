@@ -9,8 +9,8 @@ use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter, Manager, State};
 use tokio::sync::Notify;
 
-const MODEL: &str = "qwen2.5-0.5b-instruct-q4_k_m.gguf";
-const MODEL_SHA: &str = "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db";
+const MODEL: &str = "qwen2.5-1.5b-instruct-q3_k_m.gguf";
+const MODEL_SHA: &str = "58cb5c05ecef48e82961f1a2be6544145ea26136f69dddda4bbbd092f0e4b993";
 const RUNTIME_SHA: &str = "301943380e45deae3991d42dddd03fae65c6a4963a5d882328a60208b43aa9e0";
 const TEMPLATE_SHA: &str = "cd8e9439f0570856fd70470bf8889ebd8b5d1107207f67a5efb46e342330527f";
 
@@ -51,12 +51,12 @@ fn root(app: &AppHandle) -> Result<PathBuf, String> {
         if let Some(local) = std::env::var_os("LOCALAPPDATA") {
             return Ok(PathBuf::from(local)
                 .join("ProjectRuby")
-                .join("experimental-ai"));
+                .join("companion-ai-v2"));
         }
     }
     app.path()
         .app_local_data_dir()
-        .map(|path| path.join("offline-ai-smoke"))
+        .map(|path| path.join("offline-ai-smoke-v2"))
         .map_err(|error| error.to_string())
 }
 
@@ -166,9 +166,9 @@ async fn prepare(app: &AppHandle, directory: &Path, fetch: bool) -> Result<(), S
     let model = directory.join(MODEL);
     let archive = directory.join("llama-b11433.zip");
     if fetch {
-        download(app, &client, &format!("https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/9217f5db79a29953eb74d5343926648285ec7e67/{MODEL}"), &model, Some(MODEL_SHA), 500_000_000).await?;
+        download(app, &client, &format!("https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/91cad51170dc346986eccefdc2dd33a9da36ead9/{MODEL}"), &model, Some(MODEL_SHA), 1_000_000_000).await?;
         download(app, &client, "https://github.com/ggml-org/llama.cpp/releases/download/b11433/llama-b11433-bin-win-cpu-x64.zip", &archive, Some(RUNTIME_SHA), 25_000_000).await?;
-        let upstream = "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/resolve/7ae557604adf67be50417f59c2c2f167def9a775";
+        let upstream = "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/989aa7980e4cf806f80c7fef2b1adb7bc71aa306";
         for (name, url) in [
             ("Qwen-LICENSE", format!("{upstream}/LICENSE")),
             (
@@ -221,7 +221,7 @@ async fn prepare(app: &AppHandle, directory: &Path, fetch: bool) -> Result<(), S
     // Always restore executable bytes from the verified archive before starting.
     zip.extract(directory.join("runtime"))
         .map_err(|error| error.to_string())?;
-    fs::write(directory.join("installed"), b"qwen-0.5b-b11433-v1")
+    fs::write(directory.join("installed"), b"qwen-1.5b-b11433-v2")
         .map_err(|error| error.to_string())?;
     Ok(())
 }
@@ -269,12 +269,14 @@ async fn start(app: &AppHandle, directory: &Path) -> Result<(), String> {
             "2",
             "-ngl",
             "0",
+            "--parallel",
+            "1",
             "--host",
             "127.0.0.1",
             "--port",
             "8081",
             "--alias",
-            "Qwen2.5-0.5B-Ruby",
+            "Qwen2.5-1.5B-Ruby",
             "--jinja",
             "--chat-template-file",
         ])

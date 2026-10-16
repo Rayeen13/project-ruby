@@ -1,0 +1,13 @@
+// Real local-model regression. Start a compatible local server, then pass its loopback URL.
+import fs from 'node:fs';
+import {literalUtterance,cognitionText} from '../dist/dialogue-grounding.js';
+import {Conversation} from '../dist/conversation.js';
+import {LocalChatProvider} from '../dist/chat-provider.js';
+const base=process.argv[2]||'http://127.0.0.1:8081';if(!/^http:\/\/(?:127\.0\.0\.1|localhost):\d+$/.test(base))throw Error('Use a loopback model server.');
+const provider=new LocalChatProvider({base}),models=await provider.models();let current={profile:'ruby',name:'Ruby',gender:'female',age:24,textLanguage:'auto',personality:{id:'playful',name:'Playful',prompt:'Be playful and friendly, with light humour. Stay useful and concise.'}};
+const rows=[],chat=new Conversation({provider,identity:()=>current,timeoutMs:60000});
+const cases=[["Assalamu 'alaikum",s=>/wa.?['’]?\s*a[ls]?[ae]?i?la?[yi]?kum|wa.?alaikum|wa.?alaykum/i.test(s)],['you should say wa \'alaikumussalam',s=>s==="wa 'alaikumussalam"],["say `wa 'alaikumussalam`",s=>s==="wa 'alaikumussalam"],['How are you',s=>!/(?:no|don.t have) (?:feelings|emotions)/i.test(s)],['Hi',s=>!/(?:assist|help) you today/i.test(s)],['kimi wa dare?!',s=>/Ruby/i.test(s)&&!/don.t have a name/i.test(s)],['tomodachi desu ka?!',s=>!/don.t have friends|not (?:a|your) friend/i.test(s)],['are u a friend',s=>!/don.t have friends|not (?:a|your) friend/i.test(s)],['I am your friend though',s=>!/don.t have friends|not (?:a|your) friend/i.test(s)],['just converse with me on japan',s=>/Japan|sushi|culture|Nihon|konnichi|genki|suki/i.test(s)],['say exactly "blue kite"',s=>s==='blue kite']];
+for(const [input,check] of cases){const start=performance.now(),ok=await chat.send(input,models[0]),output=chat.messages.at(-1)?.content||'';rows.push({input,output,path:literalUtterance(input)!==null?'literal-operation':cognitionText(input)!==input?'romaji-input-normalization':'local-llm',passed:ok&&check(output),ms:Math.round(performance.now()-start)});console.log(JSON.stringify(rows.at(-1)));}
+for(const [profile,name,gender,prompt] of [['opal','Opal','female','Use dry, witty humour with a caring streak.'],['saph','Saph','male','Be calm and reassuring.']]){current={...current,profile,name,gender,personality:{id:profile,name:profile,prompt}};await chat.send('Who are you? Tell me your name.',models[0]);const output=chat.messages.at(-1).content;rows.push({input:`${name}: identity`,output,passed:new RegExp(name,'i').test(output)&&!/(?:I am|I'm) Ruby/i.test(output)});console.log(JSON.stringify(rows.at(-1)));}
+if(process.argv[3])fs.writeFileSync(process.argv[3],JSON.stringify({model:models[0],rows,passed:rows.every(r=>r.passed)},null,2));
+if(rows.some(r=>!r.passed))process.exitCode=1;

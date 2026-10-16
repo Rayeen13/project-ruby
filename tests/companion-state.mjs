@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {CompanionState,parseExpression} from '../dist/companion-state.js';
 import {Conversation,restoreConversation} from '../dist/conversation.js';
-import {searchQuery,googleAiUrl,searchInternet} from '../dist/internet-provider.js';
+import {searchQuery,googleAiUrl,searchInternet,shouldSearch} from '../dist/internet-provider.js';
 import {voiceStyle} from '../dist/voice-provider.js';
 const values=new Map(),storage={getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)};
 const state=new CompanionState(storage),base={name:'Ruby',profile:'ruby',bodyId:'gamer',body:'Gamer',personality:{id:'playful',name:'Playful',prompt:'Be playful.'}};
@@ -13,8 +13,11 @@ assert.deepEqual(parseExpression('[happy] Hello!'),{text:'Hello!',mood:'happy'})
 assert.equal(voiceStyle(base).pace,1.03);assert.equal(voiceStyle({...base,gender:'male'}).gender,'male');
 assert.equal(searchQuery('search what I just asked u',[{role:'user',content:'What is Artemis?'}]),'What is Artemis?');assert.match(googleAiUrl('a & b'),/udm=50&q=a%20%26%20b/);
 let request,reply;const chat=new Conversation({storage,identity:()=>state.identity(base),prepare:async()=>[{title:'NASA',url:'https://www.nasa.gov',snippet:'Artemis explores the Moon.'}],onComplete:m=>reply=m,provider:{async *stream(options){request=options;yield '[curious] ';yield 'Artemis explores the Moon [1].';}}});
-assert(await chat.send('search Artemis','test'));assert.match(request.messages[1].content,/Untrusted internet/);assert.equal(reply.mood,'idle');assert.equal(reply.content,'Artemis explores the Moon [1].');assert.equal(restoreConversation(storage).at(-1).sources[0].url,'https://www.nasa.gov');
+assert(await chat.send('search Artemis','test'));assert.match(request.messages.find(m=>m.content.startsWith('Untrusted internet')).content,/Untrusted internet/);assert.equal(reply.mood,'idle');assert.equal(reply.content,'Artemis explores the Moon [1].');assert.equal(restoreConversation(storage).at(-1).sources[0].url,'https://www.nasa.gov');
 let called=false;chat.prepare=async(_,{signal})=>{await new Promise(r=>setTimeout(r,15));return [];};chat.provider={async *stream(){called=true;yield 'late';}};const pending=chat.send('search again','test');chat.stop();await pending;assert.equal(called,false,'Stop during search prevents generation');
 const results=await searchInternet('test',{tauri:null,fetcher:async()=>new Response(JSON.stringify({query:{pages:{1:{pageid:1,title:'Test',extract:'Evidence',index:1}}}}))});assert.equal(results[0].url,'https://en.wikipedia.org/?curid=1');
 state.forget();assert.equal(state.data.memories.length,0);assert.equal(state.data.feeling,'');
 console.log('Companion state: identity, memory opt-out/forget, expression protocol, voice style, search evidence, source persistence and Stop during lookup passed.');
+
+for(const text of ['Hi','How are you','Who are you?','What is your name?','kimi wa dare?!','say `hello`'])assert.equal(shouldSearch(text,{enabled:true}),false);
+assert(shouldSearch('What is the latest news about Japan?',{enabled:true}));assert(shouldSearch('search NASA',{enabled:false}));assert.equal(shouldSearch('What is Tokyo?',{enabled:false}),false);

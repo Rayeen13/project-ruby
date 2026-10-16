@@ -1,5 +1,8 @@
 ## Current follow-up · Setup and voice quality
 
+- v0.4.4: DDNA JSON seed and separate portable brain; stable identity roots across LLM/body changes; original/active personality; versioned export/import and recovery; relevant owner-note retrieval; grounded dialogue and sourced conversational lookup. Canonical Kurumi 1 MiB binary DDNA, cryptographic lineage, neural genome and expansive episodic retrieval remain later milestones.
+
+
 - v0.4.3: independent text/voice languages, local LangM reuse or selected local model, shared English/Chinese Kokoro and optional original Japanese/English Supertonic 3 collection. Downloads are pinned and verified; model terms travel with the pack. Language correctness, voice audition and first-audio timing remain acceptance gates.
 - Terminology: Companion = 3D character; LLM = conversation model; VoiceM = speech model; LangM = translation model. Keep inference local by default and avoid additional LangM downloads when the selected LLM can translate.
 

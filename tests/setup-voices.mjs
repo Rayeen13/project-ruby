@@ -12,7 +12,7 @@ for(const profile of ['ruby','saph','emme','amy','jasper','jet','opal']){
  assert(!/\[(?:happy|curious|neutral)\]/.test(systemMessage(identity)));
 }
 const bad=[{role:'user',content:'introduce ur self'},{role:'assistant',status:'complete',content:"I'm [neutral] and always [neutral]."}];
-assert.equal(contextMessages(bad,state.identity({profile:'ruby',personality:{prompt:''}})).length,1,'Malformed legacy replies cannot teach the next response');
+assert(!contextMessages(bad,state.identity({profile:'ruby',personality:{prompt:''}})).some(m=>m.content.includes("I'm [neutral]")),'Malformed legacy replies cannot teach the next response');
 assert.equal(parseExpression("I'm [female] from [Project Ruby].").text,"I'm female from Project Ruby.");
 assert.equal(parseExpression('Answer [1]. Use array[0].').text,'Answer [1]. Use array[0].');
 assert.deepEqual(SETUP_PRESETS.map(p=>p.id),['recommended','custom','pro','lite']);

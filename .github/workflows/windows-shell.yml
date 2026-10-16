@@ -15,15 +15,35 @@ jobs:
   format:
     name: Native formatting
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
+    outputs:
+      lock_ready: ${{ steps.lock-state.outputs.tracked }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
+      - name: Prepare reproducible application dependency lock
+        id: lock-state
+        shell: bash
+        run: |
+          if git ls-files --error-unmatch src-tauri/Cargo.lock >/dev/null 2>&1; then
+            echo 'tracked=true' >> "$GITHUB_OUTPUT"
+          else
+            cargo generate-lockfile --manifest-path src-tauri/Cargo.toml
+            echo 'tracked=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Retain initial lock for source review
+        if: steps.lock-state.outputs.tracked == 'false'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: ruby-cargo-lock
+          path: src-tauri/Cargo.lock
+          retention-days: 7
   windows:
     name: Windows x64 installer
     needs: format
+    if: needs.format.outputs.lock_ready == 'true'
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -45,7 +65,7 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
-      - run: cargo test --release --manifest-path src-tauri/Cargo.toml --bin project-ruby
+      - run: cargo test --locked --release --manifest-path src-tauri/Cargo.toml --bin project-ruby
       - run: npm run desktop:build -- --bundles nsis
       - run: npm run check:assets
       - name: Restore verified VoiceM download cache
@@ -92,6 +112,7 @@ jobs:
           Copy-Item LICENSE desktop-artifact/
           Copy-Item dist/vendor/THREE-LICENSE.txt desktop-artifact/
           Copy-Item docs/licenses/REQWEST-MIT.txt desktop-artifact/
+          Copy-Item docs/licenses/ZIP-MIT.txt desktop-artifact/
           Copy-Item docs/WINDOWS.md desktop-artifact/README.md
           Copy-Item src-tauri/Cargo.lock desktop-artifact/
           Copy-Item ruby-native-smoke.txt desktop-artifact/
