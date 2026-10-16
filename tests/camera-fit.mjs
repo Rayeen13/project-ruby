@@ -6,7 +6,7 @@ const context=new Proxy({}, {get:()=>()=>{}});
 const selection=new CharacterSelection(new T.Scene(),{createCanvas:()=>({width:0,height:0,getContext:()=>context})});
 let count=0;
 for(const model of CHARACTER_MODELS){
- const c=selection.select(model.id);
+ const c=selection.select(model.id);await c.ready;
  for(const aspect of [340/420,.5,1,1.6])for(const yaw of [0,Math.PI/2,Math.PI])for(const pitch of [.16,.85])for(const waveWeight of [0,.5,1]){
   c.update(2,{pointer:{x:1,y:1},follow:true,waveWeight,dt:1/60});c.root.updateMatrixWorld(true);
   const camera=new T.PerspectiveCamera(35,aspect,.1,100);placeCamera(camera,fitDistance(c.root,aspect,yaw,pitch),yaw,pitch);

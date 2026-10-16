@@ -1,3 +1,4 @@
+import {OPAL_OUTFITS,normalizeWardrobe,selectedOutfit,wardrobePeriod} from './wardrobe.js';
 import {CompanionPhysics} from './companion-physics.js';
 import {mountCompanionChat} from './companion-chat.js';
 import {fitDistance,placeCamera} from './camera-fit.js';
@@ -19,6 +20,7 @@ const preferenceOptions={models:CHARACTER_MODELS.map(m=>m.id),profiles:GEM_PROFI
 let storage;try{storage=window.localStorage;}catch{}
 const greeting=new Greeting(),reaction=new TouchReaction(),motion=new MascotMotion();
 const loaded=loadPreferences(storage,preferenceOptions),preferences=loaded.state;
+let wardrobe=normalizeWardrobe(preferences.wardrobe);
 let handPoses={...preferences.gestures},personalities={...preferences.personalities},saveTimer,gallery;
 const desktopHost=createDesktopHost(window.__TAURI__),grab=new GrabState();
 const reducedMotion=matchMedia('(prefers-reduced-motion:reduce)');
@@ -102,17 +104,38 @@ for(const category of [...new Set(CHARACTER_MODELS.map(m=>m.category))]){
  }modelSelect.append(group);
 }
 function updateModelUI(){
+ stage.dataset.modelReady=String(!ruby.ready||ruby.loaded===true);
+ if(ruby.ready&&!ruby.notified){ruby.notified=true;const selected=ruby;void ruby.ready.then(()=>{if(ruby===selected)updateModelUI();}).catch(()=>{});}
  document.documentElement.style.setProperty('--companion-ratio',({classic:340/390,cyber:310/430,chibi:320/430,office:310/395,gamer:360/450,opal:320/450})[selection.spec.id]);
  if(desktopHost)void desktopHost.body(selection.spec.id).catch(error=>{document.querySelector('#interaction-feedback').textContent=String(error);});
  modelSelect.value=selection.spec.id;gallery?.update();
+ updateWardrobe();
  const wave=document.querySelector('#wave');wave.disabled=!selection.capabilities.wave;
  wave.title=selection.capabilities.wave?'Wave hello':'The classic body has no hands';
  document.querySelector('#model-caption').textContent=selection.spec.name;
- document.querySelector('#model-description').textContent=selection.spec.description;
+ document.querySelector('#model-description').textContent=ruby.ready&&!ruby.loaded?'Loading Opal’s skinned anime model…':selection.spec.description;
  document.querySelector('#print-download').href='./prints/'+selection.spec.id+'-120mm.stl';
  document.querySelector('#print-download').download=selection.spec.id+'-120mm.stl';
+ document.querySelector('#print-download').hidden=selection.spec.id==='opal';document.querySelector('#opal-print-note').hidden=selection.spec.id!=='opal';
  document.querySelector('#unit-name').textContent=ruby.profile.name+' '+selection.spec.revision;
 }
+const outfitSelect=document.querySelector('#opal-outfit'),autoOutfit=document.querySelector('#opal-auto'),workOutfit=document.querySelector('#opal-work');
+for(const select of [outfitSelect,...document.querySelectorAll('[data-outfit-period]')])for(const outfit of OPAL_OUTFITS){const option=document.createElement('option');option.value=outfit.id;option.textContent=outfit.name;select.append(option);}
+function updateWardrobe(){
+ document.querySelector('#opal-wardrobe').hidden=selection.spec.id!=='opal';
+ if(!outfitSelect)return;
+ outfitSelect.value=wardrobe.outfit;autoOutfit.checked=wardrobe.automatic;workOutfit.checked=wardrobe.work;
+ outfitSelect.disabled=wardrobe.automatic||wardrobe.work;document.querySelector('#opal-schedule').hidden=!wardrobe.automatic;
+ for(const select of document.querySelectorAll('[data-outfit-period]'))select.value=wardrobe.schedule[select.dataset.outfitPeriod];
+ const id=selectedOutfit(wardrobe);ruby.setOutfit?.(id);stage.dataset.outfit=selection.spec.id==='opal'?id:'';
+ document.querySelector('#opal-outfit-status').textContent=(wardrobe.work?'Work override':wardrobe.automatic?'Automatic · '+wardrobePeriod():'Selected outfit')+' · '+OPAL_OUTFITS.find(o=>o.id===id).name;
+}
+outfitSelect.onchange=()=>{wardrobe.outfit=outfitSelect.value;updateWardrobe();saveSettings();};
+autoOutfit.onchange=()=>{wardrobe.automatic=autoOutfit.checked;updateWardrobe();saveSettings();};
+workOutfit.onchange=()=>{wardrobe.work=workOutfit.checked;updateWardrobe();saveSettings();};
+for(const select of document.querySelectorAll('[data-outfit-period]'))select.onchange=()=>{wardrobe.schedule[select.dataset.outfitPeriod]=select.value;updateWardrobe();saveSettings();};
+// Local clock only; no timer service or background network is required.
+setInterval(updateWardrobe,30000);
 const handSide=document.querySelector('#hand-side'),handGesture=document.querySelector('#hand-gesture');
 function applyHandPoses(){for(const side of [-1,1])selection.setHandGesture(handPoses[side===-1?'right':'left'],side);}
 function updateGestureUI(){
@@ -131,7 +154,7 @@ function changeProfile(id){
  document.querySelector('#unit-name').textContent=p.name+' '+selection.spec.revision;document.documentElement.style.setProperty('--accent',p.color);
  document.querySelectorAll('[data-profile]').forEach(b=>b.classList.toggle('selected',b.dataset.profile===id));chatMood=null;chatUI?.refresh();
 }
-function snapshot(){return normalizePreferences({version:1,model:selection.spec.id,profile:selection.profileId,mood:selection.mood,
+function snapshot(){return normalizePreferences({version:1,wardrobe,model:selection.spec.id,profile:selection.profileId,mood:selection.mood,
  follow:document.querySelector('#follow').checked,animate:document.querySelector('#animate').checked,
  handSide:Number(handSide.value),gestures:handPoses,personalities,camera:{yaw:T.MathUtils.euclideanModulo(yaw+Math.PI,2*Math.PI)-Math.PI,pitch,distance}},preferenceOptions);}
 function saveSettings(){
@@ -140,7 +163,7 @@ function saveSettings(){
  },160);
 }
 function applyPreferences(state){
- grab.clear();grabVisual.reset(ruby);personalities={...state.personalities};ruby=selection.select(state.model);greeting.clear();reaction.clear();motion.clear();modelMenu.close();danceUntil=0;turning=false;
+ grab.clear();grabVisual.reset(ruby);wardrobe=normalizeWardrobe(state.wardrobe);personalities={...state.personalities};ruby=selection.select(state.model);greeting.clear();reaction.clear();motion.clear();modelMenu.close();danceUntil=0;turning=false;
  handPoses={...state.gestures};handSide.value=String(state.handSide);changeMood(state.mood);changeProfile(state.profile);
  yaw=state.camera.yaw;pitch=state.camera.pitch;distance=state.camera.distance;angle.value=Math.round(yaw*180/Math.PI);
  document.querySelector('#follow').checked=state.follow;document.querySelector('#animate').checked=state.animate;
@@ -168,5 +191,5 @@ mountDesktopControls({host:desktopHost,document,
  onMode:value=>{grab.clear();grabVisual.reset(ruby);floating=value;if(value){document.querySelector('#follow').checked=true;document.querySelector('#animate').checked=true;}grid.visible=!value;platform.visible=!value;ring.visible=!value;resize();},
  onStop:()=>{chatUI?.stop();grab.clear();grabVisual.reset(ruby);stage.classList.remove('grabbing');document.querySelector('#companion-bubble').hidden=true;greeting.clear();reaction.clear();motion.clear();modelMenu.close();danceUntil=0;turning=false;document.querySelector('#animate').checked=false;document.querySelector('#follow').checked=false;saveSettings();}
 });
-function frame(now){requestAnimationFrame(frame);if(document.hidden){prev=now;return;}const fps=voiceComputing?(software||lowPower?1:15):(software||lowPower?8:30);if(now-lastPaint<1000/fps)return;lastPaint=now;const elapsed=Math.max(0,(now-prev)/1000),dt=Math.min(elapsed,.05);prev=now;const running=document.querySelector('#animate').checked;if(running){time+=elapsed;if(turning)yaw+=elapsed*.6;}const gazeBlend=1-Math.exp(-12*dt);pointer.x+=(pointerTarget.x-pointer.x)*gazeBlend;pointer.y+=(pointerTarget.y-pointer.y)*gazeBlend;ruby.setMood(reaction.moodAt(time)||(['thinking','replying','speaking'].includes(chatState)?(chatState==='thinking'?'listen':chatState==='speaking'&&chatMood&&chatMood!=='idle'?chatMood:'happy'):chatMood)||selection.mood);ruby.update(time*persona().tempo,{pointer,follow:document.querySelector('#follow').checked&&!grab.held&&!grab.dizzy(now),dance:false,waveWeight:greeting.weightAt(time),dt});reaction.apply(ruby.root,time);reaction.applyHead(ruby.head,time,{reduced:reducedMotion.matches});motion.apply(ruby,time,dt,{held:grab.held,reduced:reducedMotion.matches,edge:floating?nativeState.edge:null,peeking:nativeState.peeking});placeCamera(camera,distance,yaw,pitch);grabVisual.apply(ruby,grab,camera,stage.getBoundingClientRect(),distance,now,{native:floating,reduced:reducedMotion.matches});const contact=physics.apply(ruby,dt,{held:grab.held,enabled:!floating&&document.querySelector('#physics-enabled').checked});stage.dataset.grounded=String(contact.grounded);const fitted=Math.max(floating?8.7:distance,fitDistance(ruby.root,camera.aspect,yaw,pitch));placeCamera(camera,fitted,yaw,pitch);stage.dataset.cameraDistance=String(fitted);stage.dataset.headYaw=String(ruby.head.rotation.y);if(grab.dizzy(now))drawDizzyFace(ruby,reducedMotion.matches?0:now);stage.dataset.expression=ruby.mood;stage.dataset.personality=persona().id;document.querySelector('#stage').dataset.rootY=String(ruby.root.position.y);document.querySelector('#stage').dataset.grabbed=String(grab.held);document.querySelector('#stage').dataset.dizzy=String(grab.dizzy(now));if(now>bubbleUntil)document.querySelector('#companion-bubble').hidden=true;const deg=Math.round(T.MathUtils.euclideanModulo(yaw*180/Math.PI+180,360)-180);document.querySelector('#degrees').textContent=deg+'°';if(document.activeElement!==angle)angle.value=deg;if(software)ruby.root.traverse(o=>{if(o.isMesh&&o.geometry.type==='PlaneGeometry')o.visible=false;});renderer.render(scene,camera);if(floating)renderer.domElement.style.backgroundColor='transparent';if(software){ruby.root.traverse(o=>{if(o.isMesh&&o.geometry.type==='PlaneGeometry')o.visible=true;});renderCanvasSurfaces(renderer,ruby.root,camera);}}requestAnimationFrame(frame);stage.dataset.ready='true';
+function frame(now){requestAnimationFrame(frame);if(document.hidden){prev=now;return;}const fps=voiceComputing?(software||lowPower?1:15):(software||lowPower?8:30);if(now-lastPaint<1000/fps)return;lastPaint=now;const elapsed=Math.max(0,(now-prev)/1000),dt=Math.min(elapsed,.05);prev=now;const running=document.querySelector('#animate').checked;if(running){time+=elapsed;if(turning)yaw+=elapsed*.6;}const gazeBlend=1-Math.exp(-12*dt);pointer.x+=(pointerTarget.x-pointer.x)*gazeBlend;pointer.y+=(pointerTarget.y-pointer.y)*gazeBlend;ruby.setMood(reaction.moodAt(time)||(['thinking','replying','speaking'].includes(chatState)?(chatState==='thinking'?'listen':chatState==='speaking'&&chatMood&&chatMood!=='idle'?chatMood:'happy'):chatMood)||selection.mood);ruby.update(time*persona().tempo,{pointer,follow:document.querySelector('#follow').checked&&!grab.held&&!grab.dizzy(now),dance:false,waveWeight:greeting.weightAt(time),dt});reaction.apply(ruby.root,time);reaction.applyHead(ruby.head,time,{reduced:reducedMotion.matches});motion.apply(ruby,time,dt,{held:grab.held,reduced:reducedMotion.matches,edge:floating?nativeState.edge:null,peeking:nativeState.peeking});ruby.syncPose?.();stage.dataset.modelReady=String(!ruby.ready||ruby.loaded===true);if(ruby.loadError)document.querySelector('#interaction-feedback').textContent='Could not load Opal: '+ruby.loadError;placeCamera(camera,distance,yaw,pitch);grabVisual.apply(ruby,grab,camera,stage.getBoundingClientRect(),distance,now,{native:floating,reduced:reducedMotion.matches});const contact=physics.apply(ruby,dt,{held:grab.held,enabled:!floating&&document.querySelector('#physics-enabled').checked});stage.dataset.grounded=String(contact.grounded);const fitted=Math.max(floating?8.7:distance,fitDistance(ruby.root,camera.aspect,yaw,pitch));placeCamera(camera,fitted,yaw,pitch);stage.dataset.cameraDistance=String(fitted);stage.dataset.headYaw=String(ruby.head.rotation.y);if(grab.dizzy(now))drawDizzyFace(ruby,reducedMotion.matches?0:now);stage.dataset.expression=ruby.mood;stage.dataset.personality=persona().id;document.querySelector('#stage').dataset.rootY=String(ruby.root.position.y);document.querySelector('#stage').dataset.grabbed=String(grab.held);document.querySelector('#stage').dataset.dizzy=String(grab.dizzy(now));if(now>bubbleUntil)document.querySelector('#companion-bubble').hidden=true;const deg=Math.round(T.MathUtils.euclideanModulo(yaw*180/Math.PI+180,360)-180);document.querySelector('#degrees').textContent=deg+'°';if(document.activeElement!==angle)angle.value=deg;if(software)ruby.root.traverse(o=>{if(o.isMesh&&o.geometry.type==='PlaneGeometry')o.visible=false;});renderer.render(scene,camera);if(floating)renderer.domElement.style.backgroundColor='transparent';if(software){ruby.root.traverse(o=>{if(o.isMesh&&o.geometry.type==='PlaneGeometry')o.visible=true;});renderCanvasSurfaces(renderer,ruby.root,camera);}}requestAnimationFrame(frame);stage.dataset.ready='true';
 }catch(e){document.querySelector('#error').textContent='The 3D preview could not start. Please enable WebGL in your browser. '+e.message;}

@@ -1,7 +1,8 @@
+import {normalizeWardrobe} from './wardrobe.js';
 import {PERSONALITIES,DEFAULT_PERSONALITIES} from './personalities.js';
 export const DEFAULT_PREFERENCES=Object.freeze({
  version:1,model:'gamer',profile:'ruby',mood:'idle',follow:true,animate:true,
- handSide:1,gestures:Object.freeze({right:'relaxed',left:'relaxed'}),
+ wardrobe:Object.freeze(normalizeWardrobe()),handSide:1,gestures:Object.freeze({right:'relaxed',left:'relaxed'}),
  camera:Object.freeze({yaw:0,pitch:.16,distance:8.7}),personalities:DEFAULT_PERSONALITIES
 });
 const finite=(value,fallback,min,max)=>typeof value==='number'&&Number.isFinite(value)?Math.min(max,Math.max(min,value)):fallback;
@@ -9,7 +10,7 @@ export function normalizePreferences(value,{models,profiles,moods,gestures}){
  const d=DEFAULT_PREFERENCES,v=value?.version===1?value:{};
  const pick=(list,value,fallback)=>list.includes(value)?value:fallback;
  return {
-  version:1,model:pick(models,v.model,d.model),profile:pick(profiles,v.profile,d.profile),mood:pick(moods,v.mood,d.mood),
+  version:1,wardrobe:normalizeWardrobe(v.wardrobe),model:pick(models,v.model,d.model),profile:pick(profiles,v.profile,d.profile),mood:pick(moods,v.mood,d.mood),
   follow:typeof v.follow==='boolean'?v.follow:d.follow,animate:typeof v.animate==='boolean'?v.animate:d.animate,
   handSide:v.handSide===-1||v.handSide===1?v.handSide:d.handSide,
   gestures:{right:pick(gestures,v.gestures?.right,d.gestures.right),left:pick(gestures,v.gestures?.left,d.gestures.left)},

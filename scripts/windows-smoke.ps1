@@ -1,3 +1,4 @@
+param([switch]$VisualOnly)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
@@ -32,7 +33,10 @@ public static class RubyBounds {
   [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr window, out Rect rect);
 }
 '@
-$rubyProcess = Start-Process src-tauri/target/release/project-ruby.exe -ArgumentList '--native-smoke-test' -PassThru
+foreach ($generated in @('ruby-native-phase.txt','ruby-native-live.json','ruby-native-smoke.txt')) { if (Test-Path $generated) { Remove-Item $generated } }
+$launchArguments = @('--native-smoke-test')
+if ($VisualOnly) { $launchArguments += '--native-visual-only' }
+$rubyProcess = Start-Process src-tauri/target/release/project-ruby.exe -ArgumentList $launchArguments -PassThru
 $rubyHandle = [IntPtr]::Zero
 $seen = @{}
 $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
@@ -111,7 +115,7 @@ try {
             if (Test-Path ruby-native-smoke.txt) { Get-Content ruby-native-smoke.txt }
             throw 'Mesh carry did not move the actual native window'
           }
-        } elseif ($phase -in @('menu','float','dizzy','zoom_view','left','right','chat','chat_lab','setup','opal','languages') -and $rubyHandle -ne [IntPtr]::Zero) {
+        } elseif ($phase -in @('menu','float','dizzy','zoom_view','left','right','chat','chat_lab','setup','opal','languages','opal_classic','opal_rose','opal_evening','opal_work','dizzy_classic','dizzy_cyber','dizzy_chibi','dizzy_office','dizzy_gamer','dizzy_opal') -and $rubyHandle -ne [IntPtr]::Zero) {
           $bounds = New-Object RubyBounds+Rect
           if (-not [RubyBounds]::GetWindowRect($rubyHandle,[ref]$bounds)) { throw 'Cannot capture native window bounds' }
           $clientOrigin = New-Object RubyBounds+Point
@@ -152,6 +156,7 @@ try {
   if (-not (Test-Path ruby-native-smoke.txt)) { throw 'Native app did not report smoke results' }
   if (Test-Path ruby-native-smoke.txt) { Get-Content ruby-native-smoke.txt }
   if ($rubyProcess.ExitCode -ne 0) { throw 'Native WebView smoke checks failed' }
+  if ($VisualOnly) { return }
   if (-not (Test-Path ruby-native-carry.txt)) { throw 'Missing real native carry evidence' }
   Get-Content ruby-native-smoke.txt
   if ($rubyProcess.ExitCode -ne 0) { throw 'Native WebView smoke checks failed' }

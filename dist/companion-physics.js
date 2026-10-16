@@ -5,6 +5,7 @@ export class CompanionPhysics{
  reset(character){this.bodies.delete(character.root);}
  drop(character,height=1){this.bodies.set(character.root,{height:Math.max(.1,Math.min(2,height)),velocity:0,grounded:false});}
  apply(character,dt,{held=false,enabled=true}={}){
+  if(character.ready&&!character.loaded){this.reset(character);return {grounded:true,velocity:0,bottom:this.floor};}
   if(!enabled){this.reset(character);return {grounded:true,velocity:0};}
   const root=character.root;let state=this.bodies.get(root);if(!state){state={height:root.position.y,velocity:0,grounded:false};this.bodies.set(root,state);}
   if(held){state.height=root.position.y;state.velocity=0;state.grounded=false;}

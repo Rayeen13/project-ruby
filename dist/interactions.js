@@ -14,6 +14,7 @@ export function characterHit(root,camera,rect,x,y){
 }
 export function touchPart(character,object){
  for(let node=object;node;node=node.parent){
+  if(node.userData.touchPart)return node.userData.touchPart;
   if(node===character.head)return 'head';
   if(character.arms?.some(arm=>node===arm.hand))return 'hand';
  }

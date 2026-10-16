@@ -53,6 +53,16 @@ async fn desktop_smoke_checkpoint(phase: String, detail: Option<String>) -> Resu
             "setup",
             "opal",
             "languages",
+            "opal_classic",
+            "opal_rose",
+            "opal_evening",
+            "opal_work",
+            "dizzy_classic",
+            "dizzy_cyber",
+            "dizzy_chibi",
+            "dizzy_office",
+            "dizzy_gamer",
+            "dizzy_opal",
             "left",
             "right",
             "pin",
@@ -212,6 +222,9 @@ fn main() {
                 if std::env::args().any(|arg| arg == "--native-smoke-test") {
                     if std::env::args().any(|arg| arg == "--native-smoke-restart") {
                         let _ = window.eval("window.__RUBY_SMOKE_RESTART__=true;");
+                    }
+                    if std::env::args().any(|arg| arg == "--native-visual-only") {
+                        let _ = window.eval("window.__RUBY_VISUAL_ONLY__=true;");
                     }
                     let _ = window.eval(include_str!("../../scripts/native-smoke.js"));
                 }

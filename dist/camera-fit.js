@@ -4,7 +4,7 @@ import * as T from './vendor/three.module.js';
 // never pushes the camera through a fixed transparent viewport.
 export function fitDistance(root,aspect,yaw,pitch,{padding=.2,headroom=.45}={}){
  root.updateMatrixWorld(true);
- const box=new T.Box3().setFromObject(root).expandByScalar(padding);box.max.y+=headroom;
+ const box=new T.Box3().setFromObject(root);if(box.isEmpty())return 8.7;box.expandByScalar(padding);box.max.y+=headroom;
  const focus=new T.Vector3(0,1.45,0);
  const direction=new T.Vector3(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch));
  const inverse=new T.Quaternion().setFromRotationMatrix(new T.Matrix4().lookAt(focus.clone().add(direction),focus,new T.Vector3(0,1,0))).invert();

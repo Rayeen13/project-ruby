@@ -1,71 +1,99 @@
 import * as T from './vendor/three.module.js';
-import {RubyCharacter} from './character.js';
-// Original stylised android. No imported character, costume or animation assets.
-export class OpalCharacter extends RubyCharacter {
- build(){
-  this.head.position.y=1.9;
-  this.skin=new T.MeshToonMaterial({color:0xe0e5ef});
-  this.hair=new T.MeshToonMaterial({color:0x313449});
-  this.coat=new T.MeshToonMaterial({color:0xe5e7f0});
-  this.shell.color.set(0x323c52);this.armor.color.set(0xe5e7f0);
-  // Full, overlapping bob and swept fringe; every lock is a closed solid.
-  this.sphere(this.head,1,this.hair,[0,.04,-.075],[.54,.61,.44]);
-  this.sphere(this.head,1,this.skin,[0,-.025,.10],[.435,.52,.35]);
-  const streak=new T.MeshToonMaterial({color:0x969bc9});
-  for(const side of [-1,1]){
-   const bob=this.sphere(this.head,1,this.hair,[side*.43,-.075,-.015],[.12,.52,.32]);bob.rotation.z=-side*.09;
-   const ear=this.mesh(this.head,new T.CylinderGeometry(.105,.105,.045,24),this.shell,[side*.56,-.07,.015]);ear.rotation.z=Math.PI/2;
-   const port=this.mesh(this.head,new T.TorusGeometry(.065,.012,8,24),this.accent,[side*.587,-.07,.015]);port.rotation.y=Math.PI/2;
-   this.bar(this.head,[side*.37,-.18,.324],[side*.30,-.32,.335],.009,this.shell);
-   this.bar(this.head,[side*.30,-.32,.335],[side*.23,-.35,.35],.006,this.accent);
-  }
-  for(const [x,y,rz] of [[-.31,.32,-.28],[-.145,.35,-.35],[.035,.36,-.38],[.225,.36,-.30]]){
-   const lock=this.sphere(this.head,1,this.hair,[x,y,.335],[.155,.265,.165]);lock.rotation.z=rz;
-  }
-  const highlight=this.sphere(this.head,1,streak,[-.25,.37,.477],[.025,.17,.018]);highlight.rotation.z=-.32;
-  // Maid headband sits over the full hair volume; frills are closed solids for export.
-  for(let i=0;i<9;i++){
-   const a=.18+(Math.PI-.36)*i/8;
-   const frill=this.sphere(this.head,1,this.coat,[Math.cos(a)*.46,.24+Math.sin(a)*.40,.12],[.065,.078,.045]);frill.rotation.z=a-Math.PI/2;
-  }
-  const clasp=this.mesh(this.head,new T.OctahedronGeometry(.095),this.accent,[.46,.15,.25]);clasp.scale.z=.4;
-  const face=this.mesh(this.head,new T.PlaneGeometry(.77,.45),new T.MeshBasicMaterial({map:this.faceTex,transparent:true,depthWrite:false}),[0,-.055,.448]);face.castShadow=false;
-  this.mesh(this.body,new T.CylinderGeometry(.12,.13,.20,20),this.dark,[0,1.43,0]);
-  this.mesh(this.body,new T.TorusGeometry(.125,.018,8,24),this.accent,[0,1.40,0]).rotation.x=Math.PI/2;
-  // Original android maid uniform: dark dress, white bib/apron and mechanical boots.
-  this.sphere(this.body,1,this.dark,[0,1.04,0],[.30,.39,.23]);
-  this.box(this.body,.65,.43,.43,.10,this.dark,[0,1.13,0]);
-  this.box(this.body,.38,.33,.06,.06,this.coat,[0,1.10,.24]);
-  for(const side of [-1,1]){const collar=this.box(this.body,.13,.16,.045,.025,this.coat,[side*.09,1.33,.245]);collar.rotation.z=side*.4;}
-  this.box(this.body,.16,.06,.045,.02,this.dark,[0,1.25,.30]);
-  this.mesh(this.body,new T.OctahedronGeometry(.07),this.accent,[0,1.25,.28]);
-  this.mesh(this.body,new T.CylinderGeometry(.29,.39,.32,12),this.dark,[0,.76,0]);
-  this.box(this.body,.43,.28,.07,.06,this.coat,[0,.78,.36]);
-  this.arms=[];this.feet=[];
-  for(const side of [-1,1]){
-   const arm=new T.Group(),forearm=new T.Group(),hand=new T.Group();this.body.add(arm);arm.add(forearm);forearm.add(hand);this.arms.push({arm,forearm,hand,side});
-   const leg=new T.Group();leg.position.set(side*.18,.39,0);this.body.add(leg);
-   this.box(leg,.19,.36,.22,.05,this.armor,[0,.03,0]);
-   this.box(leg,.25,.25,.38,.07,this.shell,[0,-.25,.055]);
-   this.box(leg,.24,.035,.37,.008,this.accent,[0,-.37,.055]);this.feet.push(leg);
-  }
+import {GLTFLoader} from './vendor/GLTFLoader.js';
+import {VRMLoaderPlugin,VRMUtils} from './vendor/three-vrm.module.js';
+import {GEM_PROFILES} from './character.js';
+import {OPAL_OUTFITS} from './wardrobe.js';
+
+// A real CC0 VRoid skinned avatar; source/provenance is in docs/OPAL_ASSET.md.
+export class OpalCharacter {
+ constructor({createCanvas=()=>document.createElement('canvas')}={}){
+  this.humanoid=true;this.root=new T.Group();this.body=new T.Group();this.root.add(this.body);this.head=new T.Group();this.body.add(this.head);
+  this.profile=GEM_PROFILES.find(p=>p.id==='opal');this.mood='idle';this.gaze=new T.Vector2();this.arms=[];this.feet=[];this.handGestures={};this.outfit='classic';this.outfits=new Map();this.iris=[];
+  this.canvas=createCanvas();this.canvas.width=1024;this.canvas.height=512;this.ctx=this.canvas.getContext('2d');this.faceTex=new T.CanvasTexture(this.canvas);this.faceTex.colorSpace=T.SRGBColorSpace;this.faceTex.flipY=false;
+  this.ready=this.load();this.ready.catch(error=>{this.loadError=String(error.message||error);});
  }
- update(t,options={}){
-  super.update(t,options);
-  const c=this.ctx,gx=this.gaze.x,gy=this.gaze.y;c.clearRect(0,0,640,280);
-  const blink=Math.sin(t*1.3)>.993||this.mood==='sleep';
-  for(const side of [-1,1]){
-   const x=320+side*133,y=117;c.save();c.translate(x,y);
-   if(blink||this.mood==='happy'){c.strokeStyle='#3d3048';c.lineWidth=8;c.lineCap='round';c.beginPath();c.moveTo(-56,9);c.quadraticCurveTo(0,this.mood==='happy'?-32:17,56,7);c.stroke();}
-   else{
-    c.fillStyle='#fff5f3';c.beginPath();c.ellipse(0,0,61,61,0,0,Math.PI*2);c.fill();
-    c.fillStyle=this.eyeColor;c.beginPath();c.ellipse(gx*17,gy*-12+5,32,53,0,0,Math.PI*2);c.fill();
-    c.fillStyle='#25253b';c.beginPath();c.ellipse(gx*17,gy*-12+3,15,38,0,0,Math.PI*2);c.fill();
-    c.fillStyle='white';c.beginPath();c.ellipse(gx*17-12,gy*-12-18,10,13,-.3,0,Math.PI*2);c.fill();
-    c.strokeStyle='#3d3048';c.lineWidth=9;c.beginPath();c.moveTo(-60,0);c.quadraticCurveTo(-15,-78,63,-13);c.stroke();
+ async load(){
+  const loader=new GLTFLoader(),node=typeof window==='undefined';
+  loader.register(parser=>{if(node)parser.loadTexture=()=>Promise.resolve(new T.DataTexture(new Uint8Array([255,255,255,255]),1,1));return new VRMLoaderPlugin(parser);});
+  let gltf;
+  if(node){const moduleName='node:'+'fs/promises',fs=await import(moduleName),bytes=await fs.readFile(new URL('./models/opal-base.vrm',import.meta.url));gltf=await loader.parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');}
+  else gltf=await loader.loadAsync(new URL('models/opal-base.vrm',document.baseURI).href);
+  this.vrm=gltf.userData.vrm;if(!this.vrm)throw Error('Opal’s humanoid avatar could not be loaded.');
+  VRMUtils.rotateVRM0(this.vrm);VRMUtils.removeUnnecessaryVertices(gltf.scene);VRMUtils.combineSkeletons(gltf.scene);
+  this.body.remove(this.head);this.body.add(this.vrm.scene);this.vrm.scene.scale.setScalar(1.85);
+  const bone=id=>this.vrm.humanoid.getNormalizedBoneNode(id);this.bone=bone;this.head=bone('head');
+  this.arms=[['left',1],['right',-1]].map(([name,side])=>{const hand=bone(name+'Hand'),fingers=['Index','Middle','Ring','Little'].map(d=>({base:bone(name+d+'Proximal'),tip:bone(name+d+'Distal'),middle:bone(name+d+'Intermediate')}));hand.userData.digits={fingers,thumb:bone(name+'ThumbProximal'),thumbTip:bone(name+'ThumbDistal'),side};return {arm:bone(name+'UpperArm'),forearm:bone(name+'LowerArm'),hand,side};});
+  this.feet=[bone('leftUpperLeg'),bone('rightUpperLeg')];this.originalMaterials=[];const clothes=[];
+  gltf.scene.traverse(o=>{
+   if(!o.isMesh)return;o.frustumCulled=false;o.castShadow=true;o.receiveShadow=true;
+   if(/Face|Hair/i.test(o.name))o.userData.touchPart='head';
+   const mats=Array.isArray(o.material)?o.material:[o.material];
+   for(const m of mats){
+    if(/EyeIris/i.test(m.name))this.iris.push({material:m,map:m.map});
+    if(/HAIR/i.test(m.name)){m.color?.set(0x343348);m.shadeColorFactor?.set(0x242237);}
    }
-   c.restore();
-  }
-  c.strokeStyle='#9d596f';c.lineWidth=4;c.beginPath();c.moveTo(292,219);c.quadraticCurveTo(320,232,348,211);c.stroke();this.faceTex.needsUpdate=true;
+   if(mats.some(m=>/Tops.*CLOTH/i.test(m.name)))clothes.push(o);
+  });
+  this.vrm.scene.updateMatrixWorld(true);this.makeWardrobe(clothes);this.makeHeadband();this.loaded=true;this.setOutfit(this.outfit);this.update(0,{follow:false});return this;
  }
+ makeWardrobe(clothes){
+  for(const spec of OPAL_OUTFITS){const group=new T.Group();group.name='opal-outfit-'+spec.id;this.vrm.scene.add(group);this.outfits.set(spec.id,group);
+   for(const source of clothes){
+    source.visible=false;const dress=source.clone();dress.visible=true;dress.geometry=source.geometry.clone();dress.skeleton=source.skeleton;dress.bindMatrix.copy(source.bindMatrix);dress.bindMatrixInverse.copy(source.bindMatrixInverse);
+    const original=Array.isArray(source.material)?source.material[0]:source.material;dress.material=new T.MeshToonMaterial({map:original.map,color:({classic:0x24212e,rose:0xe9a0ba,evening:0x242035,work:0x26364c})[spec.id],side:T.DoubleSide});dress.name='Opal-skinned-dress';
+    // Preserve the artist's continuous garment topology, UVs and skin weights.
+    const positions=dress.geometry.attributes.position,box=new T.Box3().setFromBufferAttribute(positions),waist=box.min.y+(box.max.y-box.min.y)*.49;
+    for(let i=0;i<positions.count;i++)if(positions.getY(i)<waist){const weight=Math.min(1,(waist-positions.getY(i))/Math.max(.001,waist-box.min.y));positions.setY(i,positions.getY(i)-(spec.id==='evening'?.36:spec.id==='work'?.12:spec.id==='rose'?-.035:0)*weight);}
+    // The skirt hangs from the pelvis: leg weights pinch a lengthened hem into trousers.
+    const hip=source.skeleton.bones.indexOf(this.vrm.humanoid.getRawBoneNode('hips')),skinIndex=dress.geometry.attributes.skinIndex,skinWeight=dress.geometry.attributes.skinWeight;
+    if(hip<0)throw Error('Opal garment is missing its pelvis binding');
+    for(let i=0;i<positions.count;i++)if(source.geometry.attributes.position.getY(i)<waist){skinIndex.setXYZW(i,hip,0,0,0);skinWeight.setXYZW(i,1,0,0,0);}
+    skinIndex.needsUpdate=true;skinWeight.needsUpdate=true;positions.needsUpdate=true;dress.geometry.computeVertexNormals();group.add(dress);
+    // An apron cut from the actual skinned garment surface, with a sewn border.
+    let indices=dress.geometry.index?.array||Array.from({length:positions.count},(_,i)=>i);
+    if(['classic','rose'].includes(spec.id)){
+     const cut=spec.id==='classic'?.34:.285,kept=[];
+     for(let k=0;k<indices.length;k+=3){const ids=[indices[k],indices[k+1],indices[k+2]],x=ids.reduce((n,i)=>n+Math.abs(positions.getX(i)),0)/3,y=ids.reduce((n,i)=>n+positions.getY(i),0)/3;if(!(y>waist+.08&&x>cut))kept.push(...ids);}
+     dress.geometry.setIndex(kept);indices=kept;
+    }
+    const normal=dress.geometry.attributes.normal,apron=[];
+    for(let k=0;k<indices.length;k+=3){const ids=[indices[k],indices[k+1],indices[k+2]],x=ids.reduce((n,i)=>n+positions.getX(i),0)/3,y=ids.reduce((n,i)=>n+positions.getY(i),0)/3,z=ids.reduce((n,i)=>n+positions.getZ(i),0)/3;
+     const f=(waist-y)/Math.max(.001,waist-box.min.y),width=y>waist?.082:.095+Math.max(0,f)*.14;
+     if(z<-.035&&Math.abs(x)<width&&y>box.min.y+.028&&y<box.max.y-.04)apron.push(...ids);
+    }
+    if(apron.length){const mesh=dress.clone();mesh.geometry=dress.geometry.clone();mesh.geometry.setIndex(apron);const p=mesh.geometry.attributes.position;for(let i=0;i<p.count;i++)p.setXYZ(i,p.getX(i)+normal.getX(i)*.003,p.getY(i)+normal.getY(i)*.003,p.getZ(i)+normal.getZ(i)*.003);mesh.geometry.computeVertexNormals();mesh.material=new T.MeshToonMaterial({color:0xfff5ed,side:T.DoubleSide});mesh.name='Opal-skinned-apron';mesh.skeleton=dress.skeleton;mesh.bindMatrix.copy(dress.bindMatrix);mesh.bindMatrixInverse.copy(dress.bindMatrixInverse);group.add(mesh);}
+   }
+  }
+ }
+ makeHeadband(){
+  const head=this.vrm.humanoid.getRawBoneNode('head'),material=new T.MeshToonMaterial({color:0xfff7f0,side:T.DoubleSide});
+  const vertices=[],indices=[];
+  // Folded cloth ribbon over the actual scalp; no sphere/bead replacement body.
+  for(let i=0;i<=48;i++){const a=Math.PI*.12+Math.PI*.76*i/48,r=.123+.004*Math.sin(i*Math.PI/2);for(const depth of [-.008,.008])vertices.push(Math.cos(a)*r,.13+Math.sin(a)*.115,depth-.035);if(i){const n=(i-1)*2;indices.push(n,n+1,n+2,n+1,n+3,n+2);}}
+  const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vertices,3));geometry.setIndex(indices);geometry.computeVertexNormals();const band=new T.Mesh(geometry,material);band.name='Opal-lace-headband';head.add(band);this.headband=band;
+  this.glasses=new T.Group();this.glasses.visible=false;head.add(this.glasses);this.glasses.position.set(0,.061,-.093);
+  const rim=new T.MeshBasicMaterial({color:0x353349});for(const side of [-1,1]){const ring=new T.Mesh(new T.TorusGeometry(.025,.0014,6,32),rim);ring.position.x=side*.032;ring.scale.y=.70;this.glasses.add(ring);}
+ }
+ setProfile(id){this.profile=GEM_PROFILES.find(p=>p.id===id)||GEM_PROFILES[0];this.eyeColor=this.profile.color;}
+ setMood(mood){this.mood=mood;}
+ setHandGesture(pose,side=-1){if(!['relaxed','open','point','grip','fist'].includes(pose))throw Error('Unknown hand gesture');this.handGestures[side]=pose;}
+ setOutfit(id){if(!OPAL_OUTFITS.some(o=>o.id===id))return;this.outfit=id;for(const [key,group] of this.outfits)group.visible=key===id;if(this.glasses)this.glasses.visible=id==='work';}
+ poseHand(rig,pose){const curl=pose==='open'?0:pose==='relaxed'?.16:pose==='grip'?.75:1.0,d=rig.hand.userData.digits;d.fingers.forEach((f,i)=>{const angle=pose==='point'&&i===0?0:curl;for(const b of [f.base,f.middle,f.tip])if(b)b.rotation.z=-rig.side*angle;});if(d.thumb)d.thumb.rotation.y=-rig.side*curl*.45;}
+ update(t,{pointer={x:0,y:0},follow=true,wave=false,waveWeight=wave?1:0,dt=.016}={}){
+  if(!this.vrm)return;this.gaze.lerp(new T.Vector2(follow?pointer.x:0,follow?pointer.y:0),1-Math.exp(-12*dt));
+  this.body.position.y=Math.sin(t*1.8)*.006;
+  this.head.rotation.set(this.gaze.y*.08,this.gaze.x*.16,Math.sin(t*.7)*.01);
+  for(const side of ['left','right']){const eye=this.bone(side+'Eye');if(eye)eye.rotation.set(this.gaze.y*.07,this.gaze.x*.12,0);}
+  for(const rig of this.arms){const {arm,forearm,hand,side}=rig;arm.rotation.set(0,0,side*1.22);forearm.rotation.set(0,0,side*.08);hand.rotation.set(0,0,0);let pose=this.handGestures[side]||'relaxed';if(side===-1&&waveWeight>0){arm.rotation.z=T.MathUtils.lerp(arm.rotation.z,.38+Math.sin(t*3.5)*.12,waveWeight);forearm.rotation.z=T.MathUtils.lerp(forearm.rotation.z,.78,waveWeight);hand.rotation.z=Math.sin(t*3.5)*.22*waveWeight;pose='open';}this.poseHand(rig,pose);}
+  const e=this.vrm.expressionManager;if(e){for(const name of ['happy','relaxed','sad','surprised'])e.setValue(name,0);e.setValue('blink',this.mood==='sleep'?1:Math.sin(t*1.3)>.993?1:0);if(this.mood==='happy')e.setValue('happy',.65);}
+  for(const item of this.iris)if(item.material.map!==item.map)item.material.map=item.map;
+  this.vrm.update(Math.min(dt,.05));this.root.updateMatrixWorld(true);if(this.lastBounds===undefined||t<this.lastBounds||t-this.lastBounds>.18){this.root.traverse(o=>{if(o.isSkinnedMesh)o.computeBoundingBox();});this.lastBounds=t;}
+ }
+ syncPose(){this.vrm?.humanoid.update();}
+ drawDizzyEyes(ms){
+  if(!this.loaded)return;const c=this.ctx;c.clearRect(0,0,1024,512);c.fillStyle='#d5c6ec';c.strokeStyle='#51436d';c.lineWidth=13;
+  for(const x of [256,768]){c.save();c.beginPath();c.ellipse(x,256,120,140,0,0,Math.PI*2);c.clip();c.fillRect(x-122,114,244,284);c.beginPath();for(let i=0;i<=80;i++){const a=i*.19+ms*.002,r=i/80*109,px=x+Math.cos(a)*r,py=256+Math.sin(a)*r;if(i)c.lineTo(px,py);else c.moveTo(px,py);}c.stroke();c.restore();}
+  this.faceTex.needsUpdate=true;for(const item of this.iris)item.material.map=this.faceTex;
+ }
+ getHeadBounds(){if(!this.loaded)return new T.Box3().setFromCenterAndSize(new T.Vector3(0,2.7,0),new T.Vector3(.4,.5,.4));const p=new T.Vector3(0,.075,0).applyMatrix4(this.vrm.humanoid.getRawBoneNode('head').matrixWorld);return new T.Box3().setFromCenterAndSize(p,new T.Vector3(.46,.62,.44));}
 }
