@@ -24,7 +24,7 @@
   assert((await window.__TAURI__.core.invoke('desktop_status')).floating,'Executable opens directly as floating mascot');
   await window.__TAURI__.core.invoke('desktop_action',{action:'lab'});await wait(350);
   const wardrobeChange=(id,value)=>{const e=document.querySelector(id);if(e.type==='checkbox')e.checked=value;else e.value=value;e.dispatchEvent(new Event('change'));};
-  document.querySelector('[data-profile="opal"]').click();select.value='opal';select.dispatchEvent(new Event('change'));for(let i=0;i<600&&stage.dataset.modelReady!=='true';i++)await wait(100);await wait(300);
+  document.querySelector('[data-profile="opal"]').click();select.value='opal';select.dispatchEvent(new Event('change'));for(let i=0;i<300&&stage.dataset.modelReady!=='true';i++)await wait(100);assert(stage.dataset.modelReady==='true','Actual skinned Opal avatar loads: '+document.querySelector('#interaction-feedback').textContent);await wait(300);
   const wardrobeRoot=JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.opal;
   for(const outfit of ['classic','rose','evening','work']){wardrobeChange('#opal-outfit',outfit);await wait(350);assert(stage.dataset.outfit===outfit,'Opal wardrobe selects '+outfit);await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'opal_'+outfit});await wait(300);}
   wardrobeChange('#opal-auto',true);wardrobeChange('#opal-work',true);await wait(200);assert(stage.dataset.outfit==='work','Work override takes precedence over the clock');wardrobeChange('#opal-work',false);
@@ -246,5 +246,5 @@
   assert(!document.documentElement.classList.contains('floating'),'Native lab restores full controls');
   await action('float');await action('toggle_pin');await action('snap_right');await action('zoom_in');
   await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:true,details:checks.join('\n')});
- }catch(error){await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:false,details:checks.join('\n')+'\nFAIL: '+String(error.message||error)+'\nDiagnostics: '+JSON.stringify({chatState:document.querySelector('#chat-panel')?.dataset.state,status:document.querySelector('#chat-status')?.textContent,voice:document.querySelector('#voice-status')?.textContent,setup:document.querySelector('#setup-status')?.textContent,lastMessages:JSON.parse(localStorage.getItem('project-ruby.conversation.v1')||'null')?.messages?.slice(-2)})});}
+ }catch(error){await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:false,details:checks.join('\n')+'\nFAIL: '+String(error.message||error)+'\nDiagnostics: '+JSON.stringify({modelReady:document.querySelector('#stage')?.dataset.modelReady,feedback:document.querySelector('#interaction-feedback')?.textContent,chatState:document.querySelector('#chat-panel')?.dataset.state,status:document.querySelector('#chat-status')?.textContent,voice:document.querySelector('#voice-status')?.textContent,setup:document.querySelector('#setup-status')?.textContent,lastMessages:JSON.parse(localStorage.getItem('project-ruby.conversation.v1')||'null')?.messages?.slice(-2)})});}
 })();

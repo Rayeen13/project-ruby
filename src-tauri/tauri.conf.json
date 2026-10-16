@@ -27,7 +27,7 @@
       "capabilities": [
         "desktop-viewer"
       ],
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src blob: ipc: http://ipc.localhost http://127.0.0.1:8081; object-src 'none'; frame-src 'none'; base-uri 'self'; media-src 'self' blob: data:"
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' blob: ipc: http://ipc.localhost http://127.0.0.1:8081; object-src 'none'; frame-src 'none'; base-uri 'self'; media-src 'self' blob: data:"
     },
     "withGlobalTauri": true
   },

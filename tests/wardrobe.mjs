@@ -20,3 +20,5 @@ for(const spec of CHARACTER_MODELS){
  }
 }
 console.log('PASS: local-time wardrobe boundaries, work/manual overrides, costume visibility and transparent dizzy faces on every Companion.');
+
+const {readFileSync}=await import('node:fs');const policy=JSON.parse(readFileSync(new URL('../src-tauri/tauri.conf.json',import.meta.url),'utf8')).app.security.csp.split(';').find(s=>s.trim().startsWith('connect-src'));assert(policy.includes("'self'")&&policy.includes('blob:'),'Bundled avatar and embedded image fetches are permitted by native CSP');

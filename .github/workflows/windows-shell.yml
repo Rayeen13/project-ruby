@@ -82,6 +82,10 @@ jobs:
             ruby-native-smoke.txt
           if-no-files-found: ignore
           retention-days: 7
+      - name: Emit rendered avatar review in job logs
+        if: always()
+        shell: pwsh
+        run: ./scripts/print-avatar-review.ps1
       - name: Restore verified VoiceM download cache
         id: voice-cache
         uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
