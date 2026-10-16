@@ -13,6 +13,9 @@ for(const spec of CHARACTER_MODELS){
  assert.equal(fills.some(a=>a[0]===0&&a[1]===0&&a[2]===c.canvas.width&&a[3]===c.canvas.height),spec.id==='classic',spec.id+' must preserve face transparency during dizziness');
  if(spec.id==='opal'){
   for(const outfit of OPAL_OUTFITS){c.setOutfit(outfit.id);assert.equal([...c.outfits.values()].filter(g=>g.visible).length,1);assert(c.outfits.get(outfit.id).visible);assert.equal(c.glasses.visible,outfit.id==='work');}
+  let iris;c.root.traverse(o=>{if(o.material?.name?.includes('EyeIris'))iris=o;});
+  const irisCentre=()=>{const centre=new T.Vector3();for(let i=0;i<iris.geometry.attributes.position.count;i++)centre.add(iris.getVertexPosition(i,new T.Vector3()).applyMatrix4(iris.matrixWorld));return centre.divideScalar(iris.geometry.attributes.position.count);};
+  c.update(0,{pointer:{x:0,y:0},dt:1});const centre=irisCentre();c.update(0,{pointer:{x:1,y:0},dt:1});assert(irisCentre().x>centre.x,'VRoid gaze follows right');c.update(0,{pointer:{x:0,y:1},dt:1});assert(irisCentre().y>centre.y,'VRoid gaze follows up');
   c.setOutfit('classic');assert.equal(c.outfit,'classic');assert(c.getHeadBounds().getCenter(new T.Vector3()).y>2.5);let skins=0;c.root.traverse(o=>{if(o.isSkinnedMesh){skins++;assert(o.geometry.attributes.skinIndex&&o.geometry.attributes.skinWeight);}});assert(skins>10,'Opal uses a real skinned avatar');assert(c.vrm.expressionManager.getExpression('blink'));for(const bone of ['hips','spine','head','leftHand','rightHand','leftFoot','rightFoot'])assert(c.bone(bone));assert(c.arms.every(r=>r.hand.userData.digits.fingers.length===4));
  }
 }

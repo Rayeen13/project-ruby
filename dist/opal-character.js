@@ -78,8 +78,8 @@ export class OpalCharacter {
  update(t,{pointer={x:0,y:0},follow=true,wave=false,waveWeight=wave?1:0,dt=.016}={}){
   if(!this.vrm)return;this.gaze.lerp(new T.Vector2(follow?pointer.x:0,follow?pointer.y:0),1-Math.exp(-12*dt));
   this.body.position.y=Math.sin(t*1.8)*.006;
-  this.head.rotation.set(-this.gaze.y*.08,this.gaze.x*.16,Math.sin(t*.7)*.01);
-  for(const side of ['left','right']){const eye=this.bone(side+'Eye');if(eye)eye.rotation.set(-this.gaze.y*.07,this.gaze.x*.12,0);}
+  this.head.rotation.set(this.gaze.y*.08,this.gaze.x*.16,Math.sin(t*.7)*.01);
+  for(const side of ['left','right']){const eye=this.bone(side+'Eye');if(eye)eye.rotation.set(this.gaze.y*.07,this.gaze.x*.12,0);}
   for(const rig of this.arms){const {arm,forearm,hand,side}=rig;arm.rotation.set(0,0,side*1.22);forearm.rotation.set(0,0,side*.08);hand.rotation.set(0,0,0);let pose=this.handGestures[side]||'relaxed';if(side===-1&&waveWeight>0){arm.rotation.z=T.MathUtils.lerp(arm.rotation.z,.38+Math.sin(t*3.5)*.12,waveWeight);forearm.rotation.z=T.MathUtils.lerp(forearm.rotation.z,.78,waveWeight);hand.rotation.z=Math.sin(t*3.5)*.22*waveWeight;pose='open';}this.poseHand(rig,pose);}
   const e=this.vrm.expressionManager;if(e){for(const name of ['happy','relaxed','sad','surprised'])e.setValue(name,0);e.setValue('blink',this.mood==='sleep'?1:Math.sin(t*1.3)>.993?1:0);if(this.mood==='happy')e.setValue('happy',.65);}
   for(const item of this.iris)if(item.material.map!==item.map)item.material.map=item.map;
