@@ -36,10 +36,15 @@ fn desktop_smoke_report(
 }
 
 #[tauri::command]
-async fn desktop_smoke_checkpoint(phase: String, detail: Option<String>) -> Result<(), String> {
+async fn desktop_smoke_checkpoint(
+    app: tauri::AppHandle,
+    phase: String,
+    detail: Option<String>,
+) -> Result<(), String> {
     if !std::env::args().any(|arg| arg == "--native-smoke-test")
         || ![
             "trace",
+            "file_drop",
             "menu",
             "float",
             "look",
@@ -74,6 +79,20 @@ async fn desktop_smoke_checkpoint(phase: String, detail: Option<String>) -> Resu
         .contains(&phase.as_str())
     {
         return Err("Smoke checkpoints are disabled outside the test launch".into());
+    }
+    if phase == "file_drop" {
+        let position: serde_json::Value =
+            serde_json::from_str(detail.as_deref().unwrap_or("{}")).map_err(|e| e.to_string())?;
+        return app
+            .emit(
+                "ruby-text-drop",
+                serde_json::json!({
+                    "file": {"name": "native-note.txt", "size": 20, "excerpt": "A native text handoff.", "truncated": false},
+                    "x": position["x"],
+                    "y": position["y"]
+                }),
+            )
+            .map_err(|e| e.to_string());
     }
     if phase == "trace" {
         let detail = detail.unwrap_or_default();
