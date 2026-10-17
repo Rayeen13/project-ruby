@@ -1,3 +1,4 @@
+export const matchesCompanion=(model,query)=>[model.name,model.category,model.description].join(' ').toLowerCase().includes(String(query).trim().toLowerCase());
 import {PERSONALITIES,personalityFor} from './personalities.js';
 
 function portrait(id){
@@ -8,7 +9,7 @@ function portrait(id){
 }
 export function mountCompanionGallery({models,select,onModel,onPersonality,getPersonality}){
  const gallery=document.querySelector('#model-gallery'),filters=document.querySelector('#category-filter'),persona=document.querySelector('#personality-select');
- let filter='All';
+ let filter='All',query='';const search=document.querySelector('#model-search'),clear=document.querySelector('#model-search-clear');if(search)search.oninput=()=>{query=search.value;update();};if(clear)clear.onclick=()=>{query='';search.value='';filter='All';update();search.focus();};
  for(const category of ['All',...new Set(models.map(m=>m.category))]){
   const button=document.createElement('button');button.textContent=category;button.dataset.category=category;
   button.addEventListener('click',()=>{filter=category;update();});filters.append(button);
@@ -21,8 +22,9 @@ export function mountCompanionGallery({models,select,onModel,onPersonality,getPe
  for(const item of PERSONALITIES){const option=document.createElement('option');option.value=item.id;option.textContent=item.name+' · '+item.tag;persona.append(option);}
  persona.addEventListener('change',()=>onPersonality(persona.value));
  function update(){
-  for(const card of gallery.children){const model=models.find(m=>m.id===card.dataset.model);card.hidden=filter!=='All'&&model.category!==filter;card.classList.toggle('selected',card.dataset.model===select.value);card.setAttribute('aria-pressed',String(card.dataset.model===select.value));}
+  for(const card of gallery.children){const model=models.find(m=>m.id===card.dataset.model);card.hidden=(filter!=='All'&&model.category!==filter)||!matchesCompanion(model,query);card.classList.toggle('selected',card.dataset.model===select.value);card.setAttribute('aria-pressed',String(card.dataset.model===select.value));}
   for(const button of filters.children){button.classList.toggle('active',button.dataset.category===filter);button.setAttribute('aria-pressed',String(button.dataset.category===filter));}
+  const count=[...gallery.children].filter(c=>!c.hidden).length;const counter=document.querySelector('#model-count');if(counter)counter.textContent=count+' Companion'+(count===1?'':'s');const empty=document.querySelector('#model-empty');if(empty)empty.hidden=count>0;if(clear)clear.hidden=!query&&filter==='All';
   const p=personalityFor(getPersonality());persona.value=p.id;document.querySelector('#personality-tag').textContent=p.tag;
   document.querySelector('#personality-description').textContent=p.name+' reactions and idle rhythm. Saved separately for each body.';
  }

@@ -1,5 +1,9 @@
 ## Offline language choices · v0.4.3
 
+## Companion Lab v0.4.6
+
+A focused Lab with searchable Companions, separate Style/Motion/App controls, text-file chat drafts and voice-reactive Opal mouth animation. Floating mode stays minimal. See [Lab UX and feature status](docs/LAB_UX.md) for limits and the next Studio phase.
+
 ## v0.4.5 — Opal wardrobe and integrated dizzy eyes
 
 Opal now uses an actual skinned VRoid anime base (CC0), with humanoid bones, articulated hands, textured face/hair and facial morphs. The four adapted maid outfits are: Classic lace, Rose café, Midnight satin and Studio professional. Select Opal’s body, then open **Opal’s wardrobe** in the Studio controls. Pick a look, assign looks to morning/afternoon/evening/night, or enable the work override. The schedule uses the device’s local clock; it does not infer your job or calendar. Preferences and Companion backups include wardrobe choices. Clothing changes preserve DDNA identity and memory.

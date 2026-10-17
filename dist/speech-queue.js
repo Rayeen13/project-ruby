@@ -24,14 +24,14 @@ export class OrderedSpeech{
   }
  }
 }
-export async function playSpeechBuffer(context,bytes,{signal,pauseMs=0,onStart=()=>{}}={}){
+export async function playSpeechBuffer(context,bytes,{signal,pauseMs=0,onStart=()=>{},onLevel=null}={}){
  if(signal?.aborted)return;
  if(pauseMs)await new Promise(resolve=>{const finish=()=>{clearTimeout(timer);signal?.removeEventListener('abort',finish);resolve();};const timer=setTimeout(finish,pauseMs);signal?.addEventListener('abort',finish,{once:true});});
  if(signal?.aborted)return;await context.resume();
  const data=Uint8Array.from(bytes),buffer=await context.decodeAudioData(data.buffer);if(signal?.aborted)return;
  await new Promise((resolve,reject)=>{
-  const source=context.createBufferSource();source.buffer=buffer;source.connect(context.destination);let done=false;
-  const finish=error=>{if(done)return;done=true;signal?.removeEventListener('abort',abort);source.onended=null;source.disconnect();if(error)reject(error);else resolve();};
+  const source=context.createBufferSource();source.buffer=buffer;const analyser=onLevel&&context.createAnalyser?context.createAnalyser():null;let meter=null;if(analyser){analyser.fftSize=256;source.connect(analyser);analyser.connect(context.destination);const values=new Float32Array(analyser.fftSize);meter=setInterval(()=>{analyser.getFloatTimeDomainData(values);let energy=0;for(const value of values)energy+=value*value;onLevel(Math.min(1,Math.sqrt(energy/values.length)*4));},33);}else source.connect(context.destination);let done=false;
+  const finish=error=>{if(done)return;done=true;signal?.removeEventListener('abort',abort);source.onended=null;clearInterval(meter);analyser?.disconnect();onLevel?.(0);source.disconnect();if(error)reject(error);else resolve();};
   const abort=()=>{try{source.stop();}catch{}finish();};
   source.onended=()=>finish();signal?.addEventListener('abort',abort,{once:true});
   try{source.start(context.currentTime+.025,0);onStart();}catch(error){finish(error);}

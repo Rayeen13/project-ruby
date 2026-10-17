@@ -24,6 +24,7 @@
   assert((await window.__TAURI__.core.invoke('desktop_status')).floating,'Executable opens directly as floating mascot');
   await window.__TAURI__.core.invoke('desktop_action',{action:'lab'});await wait(350);
   for(let i=0;i<2;i++)stage.dispatchEvent(new WheelEvent('wheel',{deltaY:-1000,bubbles:true,cancelable:true}));await wait(600);assert(Number(stage.dataset.cameraDistance)>=2&&Number(stage.dataset.cameraDistance)<2.1,'Studio detail zoom stops at a safe close-up without whole-body auto-fit');for(let i=0;i<4;i++)stage.dispatchEvent(new WheelEvent('wheel',{deltaY:1000,bubbles:true,cancelable:true}));await wait(600);assert(Number(stage.dataset.cameraDistance)>17.9&&Number(stage.dataset.cameraDistance)<=18,'Studio wide view has a sensible maximum distance');stage.dispatchEvent(new MouseEvent('dblclick',{bubbles:true}));await wait(200);
+  document.querySelector('[data-lab-tab="style"]').click();assert(!document.querySelector('#lab-page-style').hidden&&document.querySelector('#lab-page-collection').hidden,'Lab separates style from the collection');document.querySelector('[data-lab-tab="collection"]').click();const search=document.querySelector('#model-search');search.value='gamer';search.dispatchEvent(new Event('input'));assert([...document.querySelectorAll('#model-gallery .model-card')].filter(c=>!c.hidden).length===1,'Companion search filters the collection');document.querySelector('#model-search-clear').click();document.querySelector('#lab-focus').click();assert(document.documentElement.classList.contains('lab-focus'),'Focus mode expands the preview');document.querySelector('#lab-focus').click();
   const wardrobeChange=(id,value)=>{const e=document.querySelector(id);if(e.type==='checkbox')e.checked=value;else e.value=value;e.dispatchEvent(new Event('change'));};
   document.querySelector('[data-profile="opal"]').click();select.value='opal';select.dispatchEvent(new Event('change'));for(let i=0;i<300&&stage.dataset.modelReady!=='true';i++)await wait(100);assert(stage.dataset.modelReady==='true','Actual skinned Opal avatar loads: '+document.querySelector('#interaction-feedback').textContent);await wait(300);
   const wardrobeRoot=JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.opal;
@@ -31,12 +32,13 @@
   wardrobeChange('#opal-auto',true);wardrobeChange('#opal-work',true);await wait(200);assert(stage.dataset.outfit==='work','Work override takes precedence over the clock');wardrobeChange('#opal-work',false);
   const hour=new Date().getHours(),period=hour>=6&&hour<12?'morning':hour>=12&&hour<17?'afternoon':hour>=17&&hour<22?'evening':'night';
   const scheduleSelect=document.querySelector('[data-outfit-period="'+period+'"]');const scheduled=scheduleSelect.value==='rose'?'evening':'rose';scheduleSelect.value=scheduled;scheduleSelect.dispatchEvent(new Event('change'));await wait(200);assert(stage.dataset.outfit===scheduled,'Automatic outfit follows configured local-time period');
-  assert(JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.opal===wardrobeRoot,'Clothes never replace Opal’s identity');wardrobeChange('#opal-auto',false);wardrobeChange('#opal-outfit','classic');await wait(250);localStorage.setItem('project-ruby.smoke-wardrobe',JSON.stringify(JSON.parse(localStorage.getItem('project-ruby.preferences.v1')).wardrobe));
+  assert(JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.opal===wardrobeRoot,'Clothes never replace Opal’s identity');wardrobeChange('#opal-auto',false);wardrobeChange('#opal-outfit','classic');await wait(250);
   // Real canvas pixels verify the bug: transparent face corners never become an extra black panel.
   const registry=await import('./character-registry.js'),dizzy=await import('./companion-grab.js');
   for(const spec of registry.CHARACTER_MODELS){const c=spec.create();await c.ready;c.update(0,{follow:false});dizzy.drawDizzyFace(c,1000);assert(c.ctx.getImageData(0,0,1,1).data[3]===(spec.id==='classic'?255:0),spec.id+': dizziness preserves the existing face background');
    select.value=spec.id;select.dispatchEvent(new Event('change'));for(let i=0;i<300&&stage.dataset.modelReady!=='true';i++)await wait(100);await wait(200);document.querySelector('[data-interaction="dizzy"]').click();await wait(250);await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'dizzy_'+spec.id});await wait(300);}
   await wait(4000);document.querySelector('[data-profile="ruby"]').click();select.value='gamer';select.dispatchEvent(new Event('change'));await wait(250);
+  const dropData=new DataTransfer();dropData.items.add(new File(['The shared note says blue.'],'lab-note.md',{type:'text/markdown'}));stage.dispatchEvent(new DragEvent('drop',{dataTransfer:dropData,bubbles:true,cancelable:true}));for(let i=0;i<100&&document.querySelector('#chat-attachment').hidden;i++)await wait(50);assert(!document.querySelector('#chat-attachment').hidden&&document.querySelector('#chat-attachment-name').textContent==='lab-note.md','Dropped text becomes a removable chat draft');assert(!document.querySelector('#chat-log').textContent.includes('The shared note says blue.'),'Dropping never auto-sends a file');document.querySelector('#chat-attachment-remove').click();assert(document.querySelector('#chat-attachment').hidden,'Attachment removal clears the draft');const dropRect=stage.getBoundingClientRect();await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'file_drop',detail:JSON.stringify({x:dropRect.left+dropRect.width/2,y:dropRect.top+dropRect.height/2})});for(let i=0;i<100&&document.querySelector('#chat-attachment').hidden;i++)await wait(50);assert(document.querySelector('#chat-attachment-name').textContent==='native-note.txt','Native text handoff reaches the same review draft');document.querySelector('#chat-attachment-remove').click();document.querySelector('#chat-close').click();await wait(300);
   if(window.__RUBY_VISUAL_ONLY__){await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:true,details:checks.join('\n')});return;}
   document.querySelector('[data-chat-open]').click();await wait(150);
   assert(!document.querySelector('#chat-panel').hidden,'Companion opens independent conversation');
@@ -45,7 +47,7 @@
   assert(!document.querySelector('#settings-panel').hidden,'Chat gear opens separate Settings');
   document.querySelector('[data-settings-tab="llm"]').click();
   assert(document.querySelector('[data-chat-open]'),'Windows lab has an explicit Conversation entry point');
-  document.querySelector('#chat-clear').click();
+  document.querySelector('#chat-clear').click();assert(!document.querySelector('#chat-clear-confirm').hidden,'Chat clear requires an explicit confirmation');document.querySelector('#chat-clear-yes').click();
   let progressed=false;const unlistenPack=await window.__TAURI__.event.listen('ruby-ai-pack',event=>{if(event.payload.phase==='downloading'&&event.payload.downloaded>0)progressed=true;});
   document.querySelector('#ai-pack-download').click();
   for(let i=0;i<1200&&!progressed;i++)await wait(50);
@@ -150,6 +152,11 @@
   assert((await window.__TAURI__.core.invoke('ai_pack_status')).phase==='stopped','Stop AI unloads the owned model process');
   document.querySelector('#settings-close').click();await wait(150);
   document.querySelector('#reset-preferences').click();await wait(300);
+  assert(!document.querySelector('#opal-auto').checked&&document.querySelector('#opal-outfit').value==='classic','Reset preferences restores the default wardrobe');
+  // Reset deliberately cleared the earlier wardrobe fixture; set a fresh custom
+  // choice and schedule before checking persistence on the next native launch.
+  wardrobeChange('#opal-outfit','rose');scheduleSelect.value=scheduled;scheduleSelect.dispatchEvent(new Event('change'));await wait(300);
+  localStorage.setItem('project-ruby.smoke-wardrobe',JSON.stringify(JSON.parse(localStorage.getItem('project-ruby.preferences.v1')).wardrobe));
   document.querySelector('#physics-drop').click();await wait(1500);assert(stage.dataset.grounded==='true','Rigid Companion drops and lands on the Studio platform');
   assert(document.querySelectorAll('#model-gallery [data-model]').length===6,'Gallery preserves five robots and adds the original Opal android');
   document.querySelector('[data-category="Professional"]').click();
