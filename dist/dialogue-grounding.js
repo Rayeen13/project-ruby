@@ -19,6 +19,14 @@ export function dialogueExamples(identity){
  return [{role:'user',content:'Hi'},{role:'assistant',content:greetings[identity.personality?.id]||greetings.curious},{role:'user',content:'How are you?'},{role:'assistant',content:'I am here and ready for some company. How is your day going?'},{role:'user',content:'Who are you?'},{role:'assistant',content:`I am ${identity.name}, your AI companion from Project Ruby. I can keep you company and talk things through with you.`}];
 }
 export function normalizeDialogue(text,input,identity){
+ // The canonical name is DDNA data, even when a compact LLM omits it.
+ const direct=input.trim().toLowerCase().replace(/[’]/g,"'").replace(/[!?？！.]+$/g,'');
+ const identityQuestion=/^(?:what(?:'s| is) your name|who (?:are|r) (?:you|u)|introduce (?:your ?self|ur ?self)|your name)$/.test(direct)||/^(?:kimi|anata) wa dare/.test(direct);
+ if(identityQuestion&&identity.name){
+  text=text.replace(/\b(I(?: am|'m|’m)|My name is)\s+(Ruby|Saph|Emme|Amy|Jasper|Jet|Opal)\b/gi,(_,prefix)=>prefix+' '+identity.name);
+  const name=String(identity.name).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  if(!new RegExp(name,'i').test(text)){const prefix=identity.textLanguage==='ja'?'私は'+identity.name+'です。':identity.textLanguage==='zh'?'我是'+identity.name+'。':"I'm "+identity.name+'.';text=prefix+' '+text;}
+ }
  if(/^(?:hi|hey|hello|how are you|are (?:you|u) (?:a |my )?friend|i am your friend)\b/i.test(input))text=text.replace(/\s*How (?:can|may) I (?:help|assist|be of help)(?: you)?(?: today)?\s*\??/gi,' ').trim();
  // The Companion's name is not the owner's name unless the owner explicitly supplied it.
  if(!identity.memories?.some(n=>new RegExp('Owner name: '+identity.name+'\\b','i').test(n)))text=text.replace(new RegExp(',\\s*'+identity.name+'(?=[?!.,])','gi'),'');

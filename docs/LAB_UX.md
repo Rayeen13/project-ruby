@@ -10,6 +10,7 @@ The supplied `hakko_ai_feature_list.md` is a product reference, not verified sou
 - Multiline chat (Enter sends, Shift+Enter adds a line), copy reply, and confirmation before clearing conversation history.
 - Text file sharing: attach or drop one UTF-8 `.txt`, `.md` or `.json`, up to 256 KB. Review/remove the draft before sending. At most 1,600 characters enter the compact LLM context. File excerpts remain conversation data, separate from owner memory; optional search receives the question rather than the file.
 - Windows handles native file-drop events with a bounded background reader. Browser drop and the file chooser use the same draft flow. Unsupported documents/images show a clear message.
+- Direct identity questions retain the canonical DDNA name. If a compact LLM omits or substitutes a gem name, the final response repairs that name while retaining generated dialogue. This is application grounding, not a claim that every raw LLM response is reliable.
 - Opal uses a real mouth morph driven by the volume of playing VoiceM audio. It returns to rest on completion/stop. This is amplitude-based animation, not timed phoneme/viseme alignment. No microphone recording is involved.
 
 ## Next implementation stages
