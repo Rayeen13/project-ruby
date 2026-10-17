@@ -9,9 +9,13 @@ assert.deepEqual(normalizePreferences(JSON.parse(JSON.stringify(saved)),options)
 map.set(PREFERENCES_KEY,'broken-json');assert.deepEqual(loadPreferences(storage,options).state,defaults);
 assert.deepEqual(normalizePreferences({...saved,version:99},options),defaults);
 const bad=normalizePreferences({version:1,model:'removed',profile:'bad',mood:'bad',handSide:0,animate:'false',gestures:{right:'attack'},camera:{yaw:Infinity,pitch:100,distance:-5}},options);
-assert.equal(bad.model,'gamer');assert.equal(bad.profile,'ruby');assert.equal(bad.handSide,1);assert.equal(bad.animate,true);assert.equal(bad.gestures.right,'relaxed');assert.deepEqual(bad.camera,{yaw:0,pitch:.85,distance:4.5});
+assert.equal(bad.model,'gamer');assert.equal(bad.profile,'ruby');assert.equal(bad.handSide,1);assert.equal(bad.animate,true);assert.equal(bad.gestures.right,'relaxed');assert.deepEqual(bad.camera,{yaw:0,pitch:.85,distance:2});
 const blocked={getItem:()=>{throw new Error('blocked');},setItem:()=>{throw new Error('quota');}};
 assert.equal(loadPreferences(blocked,options).available,false);assert.equal(savePreferences(blocked,saved,options),false);
 assert.equal(savePreferences(null,saved,options),false);assert.deepEqual(loadPreferences(null,options).state,defaults);
 saved.gestures.left='open';assert.equal(defaults.gestures.left,'relaxed');
 console.log('PASS: saved preference round-trip, bounds, corrupt/future data and unavailable storage.');
+
+for(const distance of [2,3,12,18])assert.equal(normalizePreferences({...saved,camera:{...saved.camera,distance}},options).camera.distance,distance,'Studio detail zoom persists within its useful range');
+
+assert.equal(normalizePreferences({...saved,camera:{distance:.01}},options).camera.distance,2);assert.equal(normalizePreferences({...saved,camera:{distance:250}},options).camera.distance,18);
