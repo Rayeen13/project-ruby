@@ -79,6 +79,8 @@ jobs:
           path: |
             ruby-native-opal_*.png
             ruby-native-dizzy_*.png
+            ruby-native-workspace_*.png
+            ruby-native-prism_*.png
             ruby-native-smoke.txt
           if-no-files-found: ignore
           retention-days: 7
@@ -134,7 +136,7 @@ jobs:
           Copy-Item ruby-native-smoke.txt desktop-artifact/
           Copy-Item ruby-native-*.wav,ruby-native-voice.txt desktop-artifact/
           Copy-Item docs/licenses/SUPERTONIC3-OPENRAIL-M.txt desktop-artifact/
-          Copy-Item ruby-native-menu.png,ruby-native-float.png,ruby-native-dizzy.png,ruby-native-chat.png,ruby-native-chat_lab.png,ruby-native-setup.png,ruby-native-opal.png,ruby-native-languages.png,ruby-native-voice_library.png desktop-artifact/
+          Copy-Item ruby-native-menu.png,ruby-native-float.png,ruby-native-dizzy.png,ruby-native-chat.png,ruby-native-chat_lab.png,ruby-native-setup.png,ruby-native-opal.png,ruby-native-languages.png,ruby-native-voice_library.png,ruby-native-workspace_ametrine.png,ruby-native-workspace_obsidian.png,ruby-native-workspace_sakura.png,ruby-native-workspace_cyberpunk.png,ruby-native-prism_review.png,ruby-native-prism_active.png desktop-artifact/
           Copy-Item ruby-native-carry.txt,ruby-native-pin.txt,ruby-native-zoom.txt,ruby-native-frame.txt desktop-artifact/
           Copy-Item ruby-native-opal_*.png,ruby-native-dizzy_*.png desktop-artifact/
           Copy-Item ruby-native-left.png,ruby-native-right.png,ruby-native-zoom_view.png desktop-artifact/

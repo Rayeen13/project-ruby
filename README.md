@@ -1,3 +1,11 @@
+## v0.4.9 — a clearer Prismy workspace
+
+A calmer ametrine-accented workspace with readable navigation, beginner setup/customize shortcuts, clearer model-selection status and eight saved appearances: Ametrine Jewel, Obsidian Indigo, Cyber-Slate, Alabaster Light, MeshForge Graphite, Ruby Crimson, Cyberpunk 3090 and Cozy Matcha. App → Workspace appearance changes the UI independently of your Companion, gem, personality and memory. Floating mode keeps its minimal presentation. See [workspace UX](docs/WORKSPACE_UX.md) for the four reviewed design references, implemented journeys and validation limits.
+
+### Prisms · opt-in extensions
+
+App → Prisms supports reviewing, installing, applying and removing local data-only theme Prisms. Nothing optional installs or activates automatically. An Ametrine Night example is available to download explicitly. The trusted lifecycle host supports dependency ordering and cleanup; executable third-party plugins and the full mesh builder are future work. See [Prisms architecture and limits](docs/PRISMS.md).
+
 ## v0.4.8 — Prismy Studio Voice Library
 
 Browse matching voices in Settings → Voice & language, preview a speaker, set a default per Companion/body/language, or restore automatic personality matching. Download/repair/cancel a shared voice collection from the library. Add volume, clean/gentle robot finish and a cached once-per-launch greeting. Existing downloads, application identifiers and user data are retained.
@@ -6,7 +14,7 @@ This adds selection and playback infrastructure around the existing Kokoro/Super
 
 ## Prismy Studio — next product milestone
 
-**Prismy Studio** is the chosen name for the upcoming Studio application in the proposed Companion Labs Ecosystem. Project Ruby remains the current companion prototype. The next milestone targets original anime and gentle robot voice presets, a Voice Library and cached launch greetings. See the [product/voice blueprint](docs/PRISMY_STUDIO_BLUEPRINT.md). These new voice features are planned; v0.4.7 is unchanged.
+**Prismy Studio** is the chosen name for the upcoming Studio application in the proposed Companion Labs Ecosystem. Project Ruby remains the current companion prototype. Voice Library and cached launch greetings shipped in v0.4.8. Original anime and gentle robot voice assets still require audition and redistribution-rights checks. See the [product/voice blueprint](docs/PRISMY_STUDIO_BLUEPRINT.md).
 
 ## v0.4.7 — available AI ports and humanoid gestures
 

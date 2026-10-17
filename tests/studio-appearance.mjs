@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {APPEARANCE_KEY,normalizeTheme,readStudioTheme,saveStudioTheme,mountStudioAppearance} from '../dist/studio-appearance.js';
+const data=new Map(),storage={getItem:key=>data.get(key),setItem:(key,value)=>data.set(key,value)};
+assert.equal(normalizeTheme('sakura'),'sakura');assert.equal(normalizeTheme('not-a-theme'),'ametrine');
+assert.equal(readStudioTheme(storage),'ametrine');data.set(APPEARANCE_KEY,'broken');assert.equal(readStudioTheme(storage),'ametrine');
+assert(saveStudioTheme(storage,'cyberpunk'));assert.equal(readStudioTheme(storage),'cyberpunk');
+assert(!saveStudioTheme({setItem(){throw Error('blocked');}},'sakura'));
+assert(!saveStudioTheme(undefined,'sakura'));
+const nodes=new Map();for(const id of ['studio-theme','studio-theme-description','studio-theme-status'])nodes.set('#'+id,{value:'',textContent:'',children:[],replaceChildren(){this.children=[];},append(v){this.children.push(v);}});
+const document={documentElement:{dataset:{},style:{removeProperty(){},setProperty(){}}},querySelector:key=>nodes.get(key),createElement:()=>({})};
+const controller=mountStudioAppearance({document,storage});assert.equal(nodes.get('#studio-theme').children.length,8);assert.equal(document.documentElement.dataset.studioTheme,'cyberpunk');
+const select=nodes.get('#studio-theme');select.value='sakura';select.onchange();assert.equal(readStudioTheme(storage),'sakura');assert.equal(document.documentElement.dataset.studioTheme,'sakura');
+assert.equal(controller.apply('external-script'),'ametrine');
+const blocked={getItem(){throw Error('private');},setItem(){throw Error('quota');}};
+mountStudioAppearance({document,storage:blocked});select.value='sakura';select.onchange();assert.equal(document.documentElement.dataset.studioTheme,'sakura');assert.match(nodes.get('#studio-theme-status').textContent,/session/);
+console.log('PASS: workspace theme validation, actual selector changes, persistence/reload, invalid data and blocked-storage fallback.');

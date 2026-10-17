@@ -1,3 +1,4 @@
+import {createStudioPrisms} from './studio-prisms.js';
 import {mountLabShell} from './lab-shell.js';
 import {OPAL_OUTFITS,normalizeWardrobe,selectedOutfit,wardrobePeriod} from './wardrobe.js';
 import {CompanionPhysics} from './companion-physics.js';
@@ -186,6 +187,7 @@ document.querySelector('#export-preferences').onclick=()=>{
 gallery=mountCompanionGallery({models:CHARACTER_MODELS,select:modelSelect,onModel:id=>{modelSelect.value=id;modelSelect.dispatchEvent(new Event('change'));},getPersonality:()=>personalities[selection.spec.id],onPersonality:id=>{personalities[selection.spec.id]=id;gallery.update();chatUI?.refresh();say(persona().pat);saveSettings();}});
 applyPreferences(preferences);
 chatUI=mountCompanionChat({document,storage,onAttachmentHover:value=>{if(value&&selection.capabilities.wave)greeting.trigger(time);},getPreferences:snapshot,applyPreferences:value=>{applyPreferences(normalizePreferences(value,preferenceOptions));saveSettings();},identity:()=>({name:ruby.profile.name,body:selection.spec.name,personality:persona(),profile:selection.profileId,bodyId:selection.spec.id}),onExpression:mood=>{chatMood=mood;},onClose:async()=>{if(desktopHost)await nativeAction('chat_close');},onState:state=>{chatState=state;stage.dataset.chatState=state;},onOpen:async()=>{modelMenu.close();if(desktopHost)await nativeAction('chat_open');},onExpand:async()=>{if(floating)await nativeAction('lab');}});
+const studioPrisms=createStudioPrisms({document,storage});await studioPrisms.start();window.addEventListener('pagehide',event=>{if(!event.persisted)void studioPrisms.stopAll().catch(()=>{});},{once:true});
 mountLabShell({document,act:interactionAction,capabilities:()=>selection.capabilities});
 document.querySelector('#preference-status').textContent=loaded.available?'Preferences stay on this device.':'Saving is unavailable; controls still work. You can export preferences.';
 mountDesktopControls({host:desktopHost,document,
