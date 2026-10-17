@@ -2,7 +2,7 @@
 
 Research date: 2026-10-17 UTC. Scope: offline character acting, commercial distribution, and low-resource deployment for Project Ruby / Prismy Studio.
 
-**Decision:** reuse an existing synthesis engine and build Ruby's own performance/voice-pack layer. Do not train a new foundation TTS model. First audition Japanese Style-Bert-VITS2 voices; compare CosyVoice 3 for multilingual acting. Keep heavier engines optional. No candidate is approved for release by this document, and no new anime voice has been installed or acoustically evaluated in this research pass.
+**Decision, updated after the owner's licensing-risk preference:** use the MIT-licensed Chatterbox family as the first integration/audition candidate, with original, explicitly consented character recordings. Multilingual Chatterbox is the candidate for English/Japanese/Chinese; Nano/Turbo are English-only options, not interchangeable multilingual upgrades. Build Ruby's performance/voice-pack layer around adapters; do not train a new foundation model. This changes the earlier Japanese-first Style-Bert-VITS2 audition order to reduce copyleft/custom-model-term complexity. It is not a guarantee of zero legal risk or a performance/quality approval. No new voice has been installed or acoustically evaluated.
 
 ## What the reference services establish
 
@@ -75,7 +75,7 @@ Suggested event shape (design only, not a shipped API):
 
 ## Bounded audition and release gates
 
-Start with two female/two male JVNV Japanese speakers and compare neutral, happy and sad delivery. Then audition a cleared stylized Japanese voice against that baseline. Compare one multilingual CosyVoice configuration on the same English/Japanese/Chinese scripts. Add an English Nano experiment only if the size budget permits. Avoid downloading/training every project at once.
+Start with one pinned official multilingual Chatterbox configuration and original, permission-cleared female/male performance references. Evaluate the same English/Japanese/Chinese scripts. Compare neutral and expressive delivery without assuming every emotional or nonverbal tag transfers between Chatterbox variants. Evaluate Nano/Turbo separately for English only if the complete footprint fits. Keep CosyVoice as the secondary comparison if necessary. Earlier JVNV/Aivis findings remain research references, not default pack approvals. Avoid downloading/training every project at once.
 
 Use identical sentences with different requested emotions; otherwise wording can disguise absent emotion control. Include a warm greeting, excited success, dry sarcasm, gentle concern, a quiet reply, a long response and a real laugh/sigh where supported. Test neutral-to-emotional transitions and preserved voice identity. Original audition lines:
 
@@ -95,3 +95,13 @@ Human listening must judge anime styling, pronunciation, emotion contrast, natur
 Completed: reference-page study, source/model licensing shortlist, size pitfalls, current-code gap analysis and an audition/framework specification.
 
 Not completed: audio audition, target-laptop benchmarks, newly trained voices, new engine integration or an updated Windows binary. Current v0.4.8 remains unchanged.
+
+## Selected commercial-distribution direction
+
+The owner's priority is avoiding licensing and voice-rights trouble, rather than selecting the strongest demo regardless of terms. [Chatterbox's official code licence](https://github.com/resemble-ai/chatterbox/blob/master/LICENSE) and [official multilingual model card](https://huggingface.co/ResembleAI/chatterbox) publish MIT licensing. Retain required notices and inspect the complete pinned dependency/weight inventory before packaging. A model-card licence is evidence of the publisher's grant, not a warranty that every training-data or personality right is resolved.
+
+Use original anime-style performances with written permission covering AI synthesis, training/adaptation, commercial output and downloadable voice/model redistribution. Do not use named anime/actor clones, scraped dialogue or paid-service demo recordings. No existing actor recording is approved by this decision. Until suitable recordings and an audible audition are available, do not ship an anime-labelled replacement or claim the voice roster is complete.
+
+Keep AGPL Style-Bert-VITS2/JVNV and custom-restricted Aivis voices out of the default-distribution shortlist for now. This is a product simplicity choice, not a statement that those projects prohibit commercial use. CosyVoice remains a secondary permissively licensed option if the selected route fails hardware or listening checks; reassess explicitly rather than silently switching engines.
+
+The first prototype must measure total download size, CPU/GPU memory and warm/cold first-audio latency with Ruby's LLM loaded. Chatterbox is optional and may exceed the desired voice-pack budget; it is not a promised sub-100 MB or universal low-end default. Self-recorded/volunteered voices can avoid voice-licensing royalties with appropriate permission, but production and compute still have costs. Existing v0.4.8 voices remain in place during evaluation.
