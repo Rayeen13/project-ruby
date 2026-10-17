@@ -44,7 +44,10 @@ fn client(seconds: u64) -> Result<reqwest::Client, String> {
 }
 
 #[tauri::command]
-pub async fn local_ai_models(app: AppHandle, engine: Option<String>) -> Result<Vec<String>, String> {
+pub async fn local_ai_models(
+    app: AppHandle,
+    engine: Option<String>,
+) -> Result<Vec<String>, String> {
     let base = endpoint(engine.as_deref(), crate::ai_pack::active_port(&app)?)?;
     let mut response = client(10)?
         .get(format!("{base}/v1/models"))
@@ -263,10 +266,19 @@ mod tests {
 
     #[test]
     fn engines_are_restricted_to_known_loopback_endpoints() {
-        assert_eq!(endpoint(Some("ruby"), Some(49152)).unwrap(), "http://127.0.0.1:49152");
+        assert_eq!(
+            endpoint(Some("ruby"), Some(49152)).unwrap(),
+            "http://127.0.0.1:49152"
+        );
         assert!(endpoint(Some("ruby"), None).is_err());
-        assert_eq!(endpoint(Some("ollama"), None).unwrap(), "http://127.0.0.1:11434");
-        assert_eq!(endpoint(Some("lmstudio"), None).unwrap(), "http://127.0.0.1:1234");
+        assert_eq!(
+            endpoint(Some("ollama"), None).unwrap(),
+            "http://127.0.0.1:11434"
+        );
+        assert_eq!(
+            endpoint(Some("lmstudio"), None).unwrap(),
+            "http://127.0.0.1:1234"
+        );
         assert!(endpoint(Some("https://example.com"), None).is_err());
         assert!(endpoint(Some("file:///secret"), None).is_err());
     }

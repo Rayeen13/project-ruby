@@ -499,7 +499,6 @@ mod tests {
         assert!(alternate.local_addr().unwrap().ip().is_loopback());
     }
 
-
     #[test]
     fn detects_corrupt_cached_model_bytes() {
         let path = std::env::temp_dir().join(format!("ruby-hash-{}.bin", std::process::id()));
