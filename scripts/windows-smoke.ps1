@@ -34,6 +34,9 @@ public static class RubyBounds {
 }
 '@
 foreach ($generated in @('ruby-native-phase.txt','ruby-native-live.json','ruby-native-smoke.txt')) { if (Test-Path $generated) { Remove-Item $generated } }
+# A raw TCP listener (no HTTP health response) must not block Ruby's AI.
+$occupiedAiPort = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback,8081)
+$occupiedAiPort.Start()
 $launchArguments = @('--native-smoke-test')
 if ($VisualOnly) { $launchArguments += '--native-visual-only' }
 $rubyProcess = Start-Process src-tauri/target/release/project-ruby.exe -ArgumentList $launchArguments -PassThru
@@ -115,7 +118,7 @@ try {
             if (Test-Path ruby-native-smoke.txt) { Get-Content ruby-native-smoke.txt }
             throw 'Mesh carry did not move the actual native window'
           }
-        } elseif ($phase -in @('menu','float','dizzy','zoom_view','left','right','chat','chat_lab','setup','opal','languages','opal_classic','opal_rose','opal_evening','opal_work','dizzy_classic','dizzy_cyber','dizzy_chibi','dizzy_office','dizzy_gamer','dizzy_opal') -and $rubyHandle -ne [IntPtr]::Zero) {
+        } elseif ($phase -in @('menu','float','dizzy','zoom_view','left','right','chat','chat_lab','setup','opal','languages','opal_classic','opal_rose','opal_evening','opal_work','opal_wave_0','opal_wave_1','opal_wave_2','dizzy_classic','dizzy_cyber','dizzy_chibi','dizzy_office','dizzy_gamer','dizzy_opal') -and $rubyHandle -ne [IntPtr]::Zero) {
           $bounds = New-Object RubyBounds+Rect
           if (-not [RubyBounds]::GetWindowRect($rubyHandle,[ref]$bounds)) { throw 'Cannot capture native window bounds' }
           $clientOrigin = New-Object RubyBounds+Point
@@ -172,5 +175,6 @@ try {
   $restartReport | Add-Content ruby-native-smoke.txt
   Get-Content ruby-native-smoke.txt
 } finally {
+  $occupiedAiPort.Stop()
   if (-not $rubyProcess.HasExited) { Stop-Process -Id $rubyProcess.Id -Force }
 }

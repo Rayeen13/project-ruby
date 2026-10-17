@@ -152,3 +152,9 @@ On 13 October Riyan broadened model eligibility from MIT-only to commercially us
 ## Companion Lab UX · v0.4.6
 
 Ship the focused Lab, searchable collection, review-before-send text files and audio-reactive mouth animation. Follow with the Studio creator. See [feature status and next stages](docs/LAB_UX.md); screen capture, image/document parsing, microphone recognition and timed visemes remain separate work.
+
+## v0.4.7 stability pass
+
+- Managed AI port allocation and native chat/LangM endpoint routing; preserve unrelated servers.
+- Opal outward-palm wave, mirrored hand/finger flexion, VRM0/1 normalized pose adapter and reusable Three.js clips.
+- Real Windows acceptance with a non-HTTP listener occupying 8081, plus wave captures and quaternion/clearance/mixer tests.

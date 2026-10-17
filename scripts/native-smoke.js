@@ -28,6 +28,7 @@
   const wardrobeChange=(id,value)=>{const e=document.querySelector(id);if(e.type==='checkbox')e.checked=value;else e.value=value;e.dispatchEvent(new Event('change'));};
   document.querySelector('[data-profile="opal"]').click();select.value='opal';select.dispatchEvent(new Event('change'));for(let i=0;i<300&&stage.dataset.modelReady!=='true';i++)await wait(100);assert(stage.dataset.modelReady==='true','Actual skinned Opal avatar loads: '+document.querySelector('#interaction-feedback').textContent);await wait(300);
   const wardrobeRoot=JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.opal;
+  for(const offset of [0,1,2]){document.querySelector('[data-interaction="wave"]').click();await wait(1100+offset*170);await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'opal_wave_'+offset});await wait(250);}
   for(const outfit of ['classic','rose','evening','work']){wardrobeChange('#opal-outfit',outfit);await wait(350);assert(stage.dataset.outfit===outfit,'Opal wardrobe selects '+outfit);await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'opal_'+outfit});await wait(300);}
   wardrobeChange('#opal-auto',true);wardrobeChange('#opal-work',true);await wait(200);assert(stage.dataset.outfit==='work','Work override takes precedence over the clock');wardrobeChange('#opal-work',false);
   const hour=new Date().getHours(),period=hour>=6&&hour<12?'morning':hour>=12&&hour<17?'afternoon':hour>=17&&hour<22?'evening':'night';
@@ -58,6 +59,7 @@
   document.querySelector('#ai-pack-download').click();
   for(let i=0;i<1500&&!document.querySelector('#chat-model').value;i++)await wait(100);
   assert(document.querySelector('#ai-pack-section').dataset.phase==='ready','Windows app downloads, verifies, extracts and starts its own AI without Python');
+  const activeAi=await window.__TAURI__.core.invoke('ai_pack_status');assert(/^http:\/\/127\.0\.0\.1:\d+$/.test(activeAi.endpoint)&&!activeAi.endpoint.endsWith(':8081'),'Managed AI selects another loopback port while 8081 is occupied');
   unlistenPack();
   for(let i=0;i<150&&!document.querySelector('#chat-model').value;i++)await wait(100);
   assert(document.querySelector('#chat-model').value,'Actual WebView connects to CPU model through restricted native AI bridge');

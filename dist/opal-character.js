@@ -3,6 +3,7 @@ import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {VRMLoaderPlugin,VRMUtils} from './vendor/three-vrm.module.js';
 import {GEM_PROFILES} from './character.js';
 import {OPAL_OUTFITS} from './wardrobe.js';
+import {sampleHumanoidArmPose,applyHumanoidArmPose} from './humanoid-gestures.js';
 
 // A real CC0 VRoid skinned avatar; source/provenance is in docs/OPAL_ASSET.md.
 export class OpalCharacter {
@@ -79,13 +80,12 @@ export class OpalCharacter {
  setSpeechLevel(value){this.speechTarget=T.MathUtils.clamp(Number.isFinite(value)?value:0,0,1);}
  setHandGesture(pose,side=-1){if(!['relaxed','open','point','grip','fist'].includes(pose))throw Error('Unknown hand gesture');this.handGestures[side]=pose;}
  setOutfit(id){if(!OPAL_OUTFITS.some(o=>o.id===id))return;this.outfit=id;for(const [key,group] of this.outfits)group.visible=key===id;if(this.glasses)this.glasses.visible=id==='work';}
- poseHand(rig,pose){const curl=pose==='open'?0:pose==='relaxed'?.16:pose==='grip'?.75:1.0,d=rig.hand.userData.digits;d.fingers.forEach((f,i)=>{const angle=pose==='point'&&i===0?0:curl;for(const b of [f.base,f.middle,f.tip])if(b)b.rotation.z=-rig.side*angle;});if(d.thumb)d.thumb.rotation.y=-rig.side*curl*.45;}
  update(t,{pointer={x:0,y:0},follow=true,wave=false,waveWeight=wave?1:0,dt=.016}={}){
   if(!this.vrm)return;this.gaze.lerp(new T.Vector2(follow?pointer.x:0,follow?pointer.y:0),1-Math.exp(-12*dt));
   this.body.position.y=Math.sin(t*1.8)*.006;
   this.head.rotation.set(this.gaze.y*.08,this.gaze.x*.16,Math.sin(t*.7)*.01);
   for(const side of ['left','right']){const eye=this.bone(side+'Eye');if(eye)eye.rotation.set(this.gaze.y*.07,this.gaze.x*.12,0);}
-  for(const rig of this.arms){const {arm,forearm,hand,side}=rig;arm.rotation.set(0,0,side*1.22);forearm.rotation.set(0,0,side*.08);hand.rotation.set(0,0,0);let pose=this.handGestures[side]||'relaxed';if(side===-1&&waveWeight>0){arm.rotation.z=T.MathUtils.lerp(arm.rotation.z,.38+Math.sin(t*3.5)*.12,waveWeight);forearm.rotation.z=T.MathUtils.lerp(forearm.rotation.z,.78,waveWeight);hand.rotation.z=Math.sin(t*3.5)*.22*waveWeight;pose='open';}this.poseHand(rig,pose);}
+  for(const rig of this.arms)applyHumanoidArmPose(this.vrm,sampleHumanoidArmPose(t,{side:rig.side===1?'left':'right',gesture:this.handGestures[rig.side]||'relaxed',waveWeight:rig.side===-1?waveWeight:0}));
   const e=this.vrm.expressionManager;if(e){for(const name of ['happy','relaxed','sad','surprised'])e.setValue(name,0);this.speechWeight=(this.speechWeight||0)+((this.speechTarget||0)-(this.speechWeight||0))*(1-Math.exp(-22*dt));e.setValue('aa',this.speechWeight*.8);e.setValue('blink',this.mood==='sleep'?1:Math.sin(t*1.3)>.993?1:0);if(this.mood==='happy')e.setValue('happy',.65);}
   for(const item of this.iris)if(item.material.map!==item.map)item.material.map=item.map;
   this.vrm.update(Math.min(dt,.05));this.root.updateMatrixWorld(true);if(this.lastBounds===undefined||t<this.lastBounds||t-this.lastBounds>.18){this.root.traverse(o=>{if(o.isSkinnedMesh)o.computeBoundingBox();});this.lastBounds=t;}

@@ -1,3 +1,7 @@
+## v0.4.7 — available AI ports and humanoid gestures
+
+Ruby's managed AI chooses another loopback port when 8081 is occupied, and native chat/LangM follow the chosen endpoint automatically. Other local processes remain running. Opal's wave now turns the open palm outward, with forearm twist, wrist deviation and corrected finger flexion. The shared pose sampler can produce game-playable Three.js clips; see [humanoid gestures](docs/HUMANOID_GESTURES.md).
+
 ## Offline language choices · v0.4.3
 
 ## Companion Lab v0.4.6
