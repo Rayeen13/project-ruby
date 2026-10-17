@@ -27,3 +27,13 @@ try {
     for ($offset=0; $offset -lt $encoded.Length; $offset+=3000) { Write-Host ('RUBY_PREVIEW_DATA '+$encoded.Substring($offset,[Math]::Min(3000,$encoded.Length-$offset))) }
   } finally { $stream.Dispose() }
 } finally { $font.Dispose(); $graphics.Dispose(); $sheet.Dispose() }
+# A full Lab image supplements the avatar-only sheet for UI review.
+if (Test-Path 'ruby-native-opal_classic.png') {
+  $labImage = [System.Drawing.Image]::FromFile((Join-Path $PWD 'ruby-native-opal_classic.png'))
+  $labStream = [System.IO.MemoryStream]::new()
+  try {
+    $labImage.Save($labStream,[System.Drawing.Imaging.ImageFormat]::Jpeg)
+    $labEncoded = [Convert]::ToBase64String($labStream.ToArray())
+    for ($offset=0; $offset -lt $labEncoded.Length; $offset+=3000) { Write-Host ('RUBY_LAB_DATA '+$labEncoded.Substring($offset,[Math]::Min(3000,$labEncoded.Length-$offset))) }
+  } finally { $labStream.Dispose(); $labImage.Dispose() }
+}

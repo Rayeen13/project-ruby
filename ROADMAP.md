@@ -148,3 +148,7 @@ Public repository: `Rayeen13/project-ruby`. Default branch: `main`. Stable relea
 Keep Ruby's application package under 1 GB. Riyan approved optional larger model downloads outside that package; under-1 GB models remain preferred when useful. Expose pack size, RAM needs and licences before an explicit user-selected install. Model weights must allow commercial use and selling Ruby without mandatory model royalties; MIT is no longer required. Colibri is an optional existing-server connection preset (not installed or benchmarked by Ruby); Soup remains a future training/studio evaluation. Neither is a model. See `docs/OFFLINE_MODELS.md` for the audit, GPT-family options and rejected candidates.
 
 On 13 October Riyan broadened model eligibility from MIT-only to commercially usable licences with no mandatory model royalty. MIT and Apache-2.0 are the first reviewed licence families for experiments; other licences require their exact terms to be reviewed. Keep licence/copyright notices and any required attribution. Ruby source remains GPL-2.0-only.
+
+## Companion Lab UX · v0.4.6
+
+Ship the focused Lab, searchable collection, review-before-send text files and audio-reactive mouth animation. Follow with the Studio creator. See [feature status and next stages](docs/LAB_UX.md); screen capture, image/document parsing, microphone recognition and timed visemes remain separate work.

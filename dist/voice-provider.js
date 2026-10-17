@@ -10,9 +10,9 @@ export function mountVoice({document,state,identity,onSpeaking=()=>{},onCue=()=>
  const queue=new OrderedSpeech({
   cancel:()=>tauri?tauri.core.invoke('voice_stop'):Promise.resolve(),
   synthesize:async(text,voice,signal)=>{let spoken=text;if(needsTranslation(text,voice.language,voice.textLanguage)){if(!translate)throw Error('Connect a local LangM for this voice language.');el('voice-status').textContent='Preparing '+({ja:'Japanese',zh:'Chinese',en:'English'}[voice.language])+' speech…';spoken=await translate(text,voice.language,{signal});}if(signal.aborted)throw new DOMException('Stopped','AbortError');return tauri.core.invoke('voice_synthesize',{text:spoken,gender:voice.gender,voice:voice.voice,pace:voice.pace,pack:voice.pack,language:voice.language});},
-  play:(bytes,{signal,cue})=>playSpeechBuffer(audioContext(),bytes,{signal,pauseMs:cue?.pauseMs||0,onStart:()=>{if(cue)onCue(cue);onSpeaking(true);el('voice-status').textContent='Speaking · offline VoiceM';}})
+  play:(bytes,{signal,cue})=>playSpeechBuffer(audioContext(),bytes,{signal,onLevel:level=>document.dispatchEvent(new CustomEvent('ruby-speech-level',{detail:level})),pauseMs:cue?.pauseMs||0,onStart:()=>{if(cue)onCue(cue);onSpeaking(true);el('voice-status').textContent='Speaking · offline VoiceM';}})
  });
- function stop(){generation++;const stopped=queue.stop();onSpeaking(false);return stopped;}
+ function stop(){document.dispatchEvent(new CustomEvent('ruby-speech-level',{detail:0}));generation++;const stopped=queue.stop();onSpeaking(false);return stopped;}
  async function speak(text,{textLanguage}={}){
   const token=++generation,current=identity(),voice={...voiceStyle(current),pack:voicePackFor(current),language:current.voiceLanguage||'en',textLanguage:textLanguage||current.textLanguage||'auto',voice:selectedVoice(current,state.data.voiceChoices).id};unlock();
   try{

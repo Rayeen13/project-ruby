@@ -5,6 +5,7 @@ mod desktop;
 mod desktop_layout;
 mod internet;
 mod local_ai;
+mod text_drop;
 mod voice;
 
 use desktop::{perform, set_shortcut_ready, DesktopAction, DesktopState, RECOVERY_SHORTCUT};
@@ -231,6 +232,9 @@ fn main() {
             }
         })
         .on_window_event(|window, event| {
+            if let WindowEvent::DragDrop(event) = event {
+                text_drop::handle(window, event);
+            }
             if let WindowEvent::CloseRequested { api, .. } = event {
                 if window.label() == "main" {
                     api.prevent_close();
