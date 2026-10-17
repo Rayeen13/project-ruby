@@ -1,3 +1,7 @@
+## Prismy Studio — next product milestone
+
+**Prismy Studio** is the chosen name for the upcoming Studio application in the proposed Companion Labs Ecosystem. Project Ruby remains the current companion prototype. The next milestone targets original anime and gentle robot voice presets, a Voice Library and cached launch greetings. See the [product/voice blueprint](docs/PRISMY_STUDIO_BLUEPRINT.md). These new voice features are planned; v0.4.7 is unchanged.
+
 ## v0.4.7 — available AI ports and humanoid gestures
 
 Ruby's managed AI chooses another loopback port when 8081 is occupied, and native chat/LangM follow the chosen endpoint automatically. Other local processes remain running. Opal's wave now turns the open palm outward, with forearm twist, wrist deviation and corrected finger flexion. The shared pose sampler can produce game-playable Three.js clips; see [humanoid gestures](docs/HUMANOID_GESTURES.md).
