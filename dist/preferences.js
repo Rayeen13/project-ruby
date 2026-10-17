@@ -14,7 +14,7 @@ export function normalizePreferences(value,{models,profiles,moods,gestures}){
   follow:typeof v.follow==='boolean'?v.follow:d.follow,animate:typeof v.animate==='boolean'?v.animate:d.animate,
   handSide:v.handSide===-1||v.handSide===1?v.handSide:d.handSide,
   gestures:{right:pick(gestures,v.gestures?.right,d.gestures.right),left:pick(gestures,v.gestures?.left,d.gestures.left)},
-  camera:{yaw:finite(v.camera?.yaw,d.camera.yaw,-Math.PI,Math.PI),pitch:finite(v.camera?.pitch,d.camera.pitch,-.15,.85),distance:finite(v.camera?.distance,d.camera.distance,4.5,12)},
+  camera:{yaw:finite(v.camera?.yaw,d.camera.yaw,-Math.PI,Math.PI),pitch:finite(v.camera?.pitch,d.camera.pitch,-.15,.85),distance:Math.max(.01,Number.isFinite(v.camera?.distance)?v.camera.distance:d.camera.distance)},
   personalities:Object.fromEntries(models.map(id=>[id,pick(PERSONALITIES.map(p=>p.id),v.personalities?.[id],DEFAULT_PERSONALITIES[id]||'curious')]))
  };
 }

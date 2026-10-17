@@ -23,6 +23,7 @@
   assert(stage.dataset.ready==='true','Actual WebView renderer initialized');
   assert((await window.__TAURI__.core.invoke('desktop_status')).floating,'Executable opens directly as floating mascot');
   await window.__TAURI__.core.invoke('desktop_action',{action:'lab'});await wait(350);
+  for(let i=0;i<2;i++)stage.dispatchEvent(new WheelEvent('wheel',{deltaY:-1000,bubbles:true,cancelable:true}));await wait(250);assert(Number(stage.dataset.cameraDistance)<2,'Studio permits close-up zoom without whole-body auto-fit');for(let i=0;i<4;i++)stage.dispatchEvent(new WheelEvent('wheel',{deltaY:1000,bubbles:true,cancelable:true}));await wait(250);assert(Number(stage.dataset.cameraDistance)>12,'Studio zoom-out is not capped at the old distance');stage.dispatchEvent(new MouseEvent('dblclick',{bubbles:true}));await wait(200);
   const wardrobeChange=(id,value)=>{const e=document.querySelector(id);if(e.type==='checkbox')e.checked=value;else e.value=value;e.dispatchEvent(new Event('change'));};
   document.querySelector('[data-profile="opal"]').click();select.value='opal';select.dispatchEvent(new Event('change'));for(let i=0;i<300&&stage.dataset.modelReady!=='true';i++)await wait(100);assert(stage.dataset.modelReady==='true','Actual skinned Opal avatar loads: '+document.querySelector('#interaction-feedback').textContent);await wait(300);
   const wardrobeRoot=JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.opal;
