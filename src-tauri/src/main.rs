@@ -63,6 +63,8 @@ async fn desktop_smoke_checkpoint(
             "workspace_obsidian",
             "workspace_sakura",
             "workspace_cyberpunk",
+            "prism_review",
+            "prism_active",
             "opal_classic",
             "opal_rose",
             "opal_evening",

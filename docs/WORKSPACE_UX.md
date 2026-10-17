@@ -2,9 +2,9 @@
 
 ## Direction
 
-Use a calm Obsidian workspace with ametrine accents by default, a persistent Companion preview, clear daily actions, and progressive disclosure of setup/advanced controls. Sakura light and Cyberpunk are optional workspace appearances. The workspace palette is independent of gem colour, character identity, outfit, personality and memory. Fonts/assets remain local; no CDN dependencies were added.
+Use a calm Obsidian workspace with the owner’s ametrine violet/gold signature by default, a persistent Companion preview, clear daily actions, and progressive disclosure of setup/advanced controls. Sakura light and Cyberpunk are optional workspace appearances. The workspace palette is independent of gem colour, character identity, outfit, personality and memory. Fonts/assets remain local; no CDN dependencies were added.
 
-The owner supplied four Gemini HTML concepts. All four were reviewed as design references, not production implementations:
+The owner supplied four Gemini HTML concepts. All four were reviewed as design references, not production implementations. The later `prismy_studio_modular_production_hub_pluggable_mesh_builder(1).html` attachment was byte-identical to the modular hub reference; its violet/gold Ametrine Jewel treatment is the principal branding reference:
 
 | Reference | Ideas retained | Deferred |
 | --- | --- | --- |
