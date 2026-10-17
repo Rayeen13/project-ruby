@@ -27,7 +27,7 @@ Desktop navigation uses readable labels when space permits; narrower desktops us
 
 ## Implementation
 
-`studio-appearance.js` owns a validated three-theme catalogue, local persistence and a usable session-only fallback when storage is blocked. It is independent of DDNA and pack downloads. `lab-shell.js` mounts appearance and routes beginner shortcuts to existing panels. CSS variables control the workspace palette; floating mode is explicitly excluded. Selected/hover states and keyboard focus use workspace accents, while gem identity colours remain independent.
+[Prisms](PRISMS.md) provides the explicit extension lifecycle and local opt-in theme pack flow. The host receives small interfaces through the composition root; it does not import Tauri, rendering or inference. `studio-appearance.js` owns a validated three-theme catalogue, local persistence and a usable session-only fallback when storage is blocked. It is independent of DDNA and pack downloads. `studio-prisms.js` composes appearance and the Prism library; `lab-shell.js` routes beginner shortcuts to existing panels. CSS variables control the workspace palette; floating mode is explicitly excluded. Selected/hover states and keyboard focus use workspace accents, while gem identity colours remain independent.
 
 Persistent key: `project-ruby.studio-appearance.v1`, with a small versioned `{version:1,theme}` value. Unknown/corrupt entries fall back to Obsidian. Theme changes do not download assets or call cloud services. The theme selector is reachable through App using mouse or keyboard.
 

@@ -6,8 +6,8 @@ assert.equal(readStudioTheme(storage),'obsidian');data.set(APPEARANCE_KEY,'broke
 assert(saveStudioTheme(storage,'cyberpunk'));assert.equal(readStudioTheme(storage),'cyberpunk');
 assert(!saveStudioTheme({setItem(){throw Error('blocked');}},'sakura'));
 assert(!saveStudioTheme(undefined,'sakura'));
-const nodes=new Map();for(const id of ['studio-theme','studio-theme-description','studio-theme-status'])nodes.set('#'+id,{value:'',textContent:'',children:[],append(v){this.children.push(v);}});
-const document={documentElement:{dataset:{}},querySelector:key=>nodes.get(key),createElement:()=>({})};
+const nodes=new Map();for(const id of ['studio-theme','studio-theme-description','studio-theme-status'])nodes.set('#'+id,{value:'',textContent:'',children:[],replaceChildren(){this.children=[];},append(v){this.children.push(v);}});
+const document={documentElement:{dataset:{},style:{removeProperty(){},setProperty(){}}},querySelector:key=>nodes.get(key),createElement:()=>({})};
 const controller=mountStudioAppearance({document,storage});assert.equal(nodes.get('#studio-theme').children.length,3);assert.equal(document.documentElement.dataset.studioTheme,'cyberpunk');
 const select=nodes.get('#studio-theme');select.value='sakura';select.onchange();assert.equal(readStudioTheme(storage),'sakura');assert.equal(document.documentElement.dataset.studioTheme,'sakura');
 assert.equal(controller.apply('external-script'),'obsidian');

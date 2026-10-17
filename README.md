@@ -2,6 +2,10 @@
 
 A calmer ametrine-accented workspace with readable navigation, beginner setup/customize shortcuts, clearer model-selection status and three saved appearances: Obsidian, Sakura light and Cyberpunk. App → Workspace appearance changes the UI independently of your Companion, gem, personality and memory. Floating mode keeps its minimal presentation. See [workspace UX](docs/WORKSPACE_UX.md) for the four reviewed design references, implemented journeys and validation limits.
 
+### Prisms · opt-in extensions
+
+App → Prisms supports reviewing, installing, applying and removing local data-only theme Prisms. Nothing optional installs or activates automatically. An Ametrine Night example is available to download explicitly. The trusted lifecycle host supports dependency ordering and cleanup; executable third-party plugins and the full mesh builder are future work. See [Prisms architecture and limits](docs/PRISMS.md).
+
 ## v0.4.8 — Prismy Studio Voice Library
 
 Browse matching voices in Settings → Voice & language, preview a speaker, set a default per Companion/body/language, or restore automatic personality matching. Download/repair/cancel a shared voice collection from the library. Add volume, clean/gentle robot finish and a cached once-per-launch greeting. Existing downloads, application identifiers and user data are retained.

@@ -2,6 +2,8 @@
 
 The Lab now offers beginner setup/customize shortcuts and a calmer default layout. Open **App → Workspace appearance** for Obsidian, Sakura light or Cyberpunk. This changes the workspace only; Companion identity and memories stay intact.
 
+**App → Prisms** lets you review and explicitly install a local theme Prism. Use theme applies it; Remove restores Obsidian if needed. The example download is optional. V1 accepts theme data only; executable, mesh and voice plugin installation is not enabled.
+
 Open Settings → Voice & language for the **Voice Library**. Change voice language/collection above it, accept the selected model terms when required, then download once. Every voice in that collection shares the model files. Listen to a card, set its default, or restore personality matching. Your selection is scoped to Companion, robot/humanoid body family, language and engine; older saved choices still work.
 
 Enable spoken replies and **Greet on launch** for a short greeting on the next app launch. Preview & cache greeting warms its local audio now; the next launch reuses it. Volume zero, Stop, or physical mouse/keyboard input suppresses/cancels automatic greeting. No LLM or internet is used for the greeting. The web library browses settings, while matched local VoiceM playback/downloads require the Windows app. Existing packs are not newly verified anime acting.

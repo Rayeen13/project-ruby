@@ -1,7 +1,5 @@
-import {mountStudioAppearance} from './studio-appearance.js';
 const TABS=['collection','style','motion','app'];
-export function mountLabShell({document,storage,act,capabilities}){
- mountStudioAppearance({document,storage});
+export function mountLabShell({document,act,capabilities}){
  const html=document.documentElement,tabs=[...document.querySelectorAll('[data-lab-tab]')];
  function select(id,{focus=false}={}){if(!TABS.includes(id))return;if(html.classList.contains('chat-open'))document.querySelector('#chat-close').click();if(html.classList.contains('settings-open'))document.querySelector('#settings-close').click();html.classList.remove('lab-focus');document.querySelector('#lab-focus').setAttribute('aria-pressed','false');document.querySelector('#lab-focus').textContent='Focus';for(const tab of tabs){const active=tab.dataset.labTab===id;tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;if(active&&focus)tab.focus();}for(const page of document.querySelectorAll('[data-lab-page]'))page.hidden=page.dataset.labPage!==id;}
  for(const tab of tabs){tab.onclick=()=>select(tab.dataset.labTab);tab.onkeydown=e=>{if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const i=tabs.indexOf(tab),next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(i+(['ArrowUp','ArrowLeft'].includes(e.key)?-1:1)+tabs.length)%tabs.length;select(tabs[next].dataset.labTab,{focus:true});};}
