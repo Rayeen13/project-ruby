@@ -1,3 +1,7 @@
+## v0.4.9 — a clearer Prismy workspace
+
+A calmer ametrine-accented workspace with readable navigation, beginner setup/customize shortcuts, clearer model-selection status and three saved appearances: Obsidian, Sakura light and Cyberpunk. App → Workspace appearance changes the UI independently of your Companion, gem, personality and memory. Floating mode keeps its minimal presentation. See [workspace UX](docs/WORKSPACE_UX.md) for the four reviewed design references, implemented journeys and validation limits.
+
 ## v0.4.8 — Prismy Studio Voice Library
 
 Browse matching voices in Settings → Voice & language, preview a speaker, set a default per Companion/body/language, or restore automatic personality matching. Download/repair/cancel a shared voice collection from the library. Add volume, clean/gentle robot finish and a cached once-per-launch greeting. Existing downloads, application identifiers and user data are retained.
@@ -6,7 +10,7 @@ This adds selection and playback infrastructure around the existing Kokoro/Super
 
 ## Prismy Studio — next product milestone
 
-**Prismy Studio** is the chosen name for the upcoming Studio application in the proposed Companion Labs Ecosystem. Project Ruby remains the current companion prototype. The next milestone targets original anime and gentle robot voice presets, a Voice Library and cached launch greetings. See the [product/voice blueprint](docs/PRISMY_STUDIO_BLUEPRINT.md). These new voice features are planned; v0.4.7 is unchanged.
+**Prismy Studio** is the chosen name for the upcoming Studio application in the proposed Companion Labs Ecosystem. Project Ruby remains the current companion prototype. Voice Library and cached launch greetings shipped in v0.4.8. Original anime and gentle robot voice assets still require audition and redistribution-rights checks. See the [product/voice blueprint](docs/PRISMY_STUDIO_BLUEPRINT.md).
 
 ## v0.4.7 — available AI ports and humanoid gestures
 

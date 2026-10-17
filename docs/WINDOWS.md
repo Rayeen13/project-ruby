@@ -1,4 +1,6 @@
-# Prismy Studio · Project Ruby v0.4.8
+# Prismy Studio · Project Ruby v0.4.9
+
+The Lab now offers beginner setup/customize shortcuts and a calmer default layout. Open **App → Workspace appearance** for Obsidian, Sakura light or Cyberpunk. This changes the workspace only; Companion identity and memories stay intact.
 
 Open Settings → Voice & language for the **Voice Library**. Change voice language/collection above it, accept the selected model terms when required, then download once. Every voice in that collection shares the model files. Listen to a card, set its default, or restore personality matching. Your selection is scoped to Companion, robot/humanoid body family, language and engine; older saved choices still work.
 
