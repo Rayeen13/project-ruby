@@ -82,10 +82,6 @@ jobs:
             ruby-native-smoke.txt
           if-no-files-found: ignore
           retention-days: 7
-      - name: Emit rendered avatar review in job logs
-        if: always()
-        shell: pwsh
-        run: ./scripts/print-avatar-review.ps1
       - name: Restore verified VoiceM download cache
         id: voice-cache
         uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
@@ -133,11 +129,12 @@ jobs:
           Copy-Item docs/licenses/REQWEST-MIT.txt desktop-artifact/
           Copy-Item docs/licenses/ZIP-MIT.txt desktop-artifact/
           Copy-Item docs/WINDOWS.md desktop-artifact/README.md
+          Copy-Item docs/HUMANOID_GESTURES.md,docs/PRISMY_STUDIO_BLUEPRINT.md desktop-artifact/
           Copy-Item src-tauri/Cargo.lock desktop-artifact/
           Copy-Item ruby-native-smoke.txt desktop-artifact/
           Copy-Item ruby-native-*.wav,ruby-native-voice.txt desktop-artifact/
           Copy-Item docs/licenses/SUPERTONIC3-OPENRAIL-M.txt desktop-artifact/
-          Copy-Item ruby-native-menu.png,ruby-native-float.png,ruby-native-dizzy.png,ruby-native-chat.png,ruby-native-chat_lab.png,ruby-native-setup.png,ruby-native-opal.png,ruby-native-languages.png desktop-artifact/
+          Copy-Item ruby-native-menu.png,ruby-native-float.png,ruby-native-dizzy.png,ruby-native-chat.png,ruby-native-chat_lab.png,ruby-native-setup.png,ruby-native-opal.png,ruby-native-languages.png,ruby-native-voice_library.png desktop-artifact/
           Copy-Item ruby-native-carry.txt,ruby-native-pin.txt,ruby-native-zoom.txt,ruby-native-frame.txt desktop-artifact/
           Copy-Item ruby-native-opal_*.png,ruby-native-dizzy_*.png desktop-artifact/
           Copy-Item ruby-native-left.png,ruby-native-right.png,ruby-native-zoom_view.png desktop-artifact/

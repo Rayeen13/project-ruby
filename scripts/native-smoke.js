@@ -17,6 +17,7 @@
    document.querySelector('#ai-pack-start').click();
    for(let i=0;i<300&&!document.querySelector('#chat-model').value;i++)await wait(100);
    assert(document.querySelector('#chat-model').value,'Installed AI restarts through offline-only path without downloading');
+   for(let i=0;i<200&&document.documentElement.dataset.launchGreeting!=='complete';i++)await wait(100);assert(document.documentElement.dataset.launchGreeting==='complete'&&document.documentElement.dataset.greetingCache==='hit','Launch greeting reuses cached audio after native restart');
    await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:true,details:checks.join('\n')});return;
   }
   const stage=document.querySelector('#stage'),menu=document.querySelector('#model-menu'),select=document.querySelector('#model-select');
@@ -112,6 +113,7 @@
   document.querySelector('#memory-input').value='Owner enjoys building Ruby';document.querySelector('#memory-form').dispatchEvent(new Event('submit',{cancelable:true}));await wait(100);
   assert(document.querySelector('#memory-list').textContent.includes('Owner enjoys building Ruby'),'Owner memory can be added and reviewed in Settings');
   assert(document.querySelector('#identity-summary').textContent.includes('female'),'Ruby identity includes gender');
+  document.querySelector('[data-settings-tab="voice"]').click();for(let i=0;i<100&&!document.querySelector('#voice-library-list').children.length;i++)await wait(50);assert(document.querySelector('#voice-library-list').children.length>=4,'Voice Library renders real matching speakers');document.querySelector('#voice-library-search').value='Heart';document.querySelector('#voice-library-search').dispatchEvent(new Event('input'));await wait(150);assert(document.querySelector('#voice-library-list').children.length===1,'Voice Library search filters speakers');document.querySelector('#voice-library-search').value='';document.querySelector('#voice-library-search').dispatchEvent(new Event('input'));await wait(150);await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'voice_library'});
   const results=await window.__TAURI__.core.invoke('internet_search',{query:'NASA Artemis program'});
   assert(results.length>0&&results.every(s=>s.url.startsWith('https://')),'Native internet search returns bounded real HTTPS sources');
   document.querySelector('[data-settings-tab="voice"]').click();
@@ -255,6 +257,7 @@
   await window.__TAURI__.core.invoke('desktop_action',{action:'lab'});await wait(250);
   assert(!document.documentElement.classList.contains('floating'),'Native lab restores full controls');
   await action('float');await action('toggle_pin');await action('snap_right');await action('zoom_in');
+  document.querySelector('#voice-greeting-preview').click();for(let i=0;i<300&&stage.dataset.speaking!=='true';i++)await wait(100);assert(stage.dataset.speaking==='true','Greeting preview plays real audio');for(let i=0;i<300&&stage.dataset.speaking==='true';i++)await wait(100);assert(stage.dataset.speaking==='false','Greeting audio finishes before native restart');
   await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:true,details:checks.join('\n')});
  }catch(error){await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:false,details:checks.join('\n')+'\nFAIL: '+String(error.message||error)+'\nDiagnostics: '+JSON.stringify({modelReady:document.querySelector('#stage')?.dataset.modelReady,feedback:document.querySelector('#interaction-feedback')?.textContent,chatState:document.querySelector('#chat-panel')?.dataset.state,status:document.querySelector('#chat-status')?.textContent,voice:document.querySelector('#voice-status')?.textContent,setup:document.querySelector('#setup-status')?.textContent,lastMessages:JSON.parse(localStorage.getItem('project-ruby.conversation.v1')||'null')?.messages?.slice(-2)})});}
 })();

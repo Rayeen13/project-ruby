@@ -16,7 +16,7 @@ export class OrderedSpeech{
   const chunks=speechPlan(text,voice?.language&&voice.language!=='en'?{first:70,rest:100}:undefined);if(!chunks.length)return;
   let bytes=await synth(chunks[0]);
   for(let i=0;i<chunks.length&&current();i++){
-   const playing=this.play(bytes,{signal:controller.signal,text:chunks[i].text,cue:chunks[i].cue,index:i});
+   const playing=this.play(bytes,{signal:controller.signal,text:chunks[i].text,cue:chunks[i].cue,index:i,voice});
    // Only one phrase is prepared ahead. Synthesizing it cannot replace the currently playing buffer.
    const next=i+1<chunks.length?synth(chunks[i+1]).then(bytes=>({bytes}),error=>({error})):null;
    await playing;if(!current())return;
@@ -24,14 +24,17 @@ export class OrderedSpeech{
   }
  }
 }
-export async function playSpeechBuffer(context,bytes,{signal,pauseMs=0,onStart=()=>{},onLevel=null}={}){
+export async function playSpeechBuffer(context,bytes,{signal,pauseMs=0,onStart=()=>{},onLevel=null,volume=1,effect='clean'}={}){
  if(signal?.aborted)return;
  if(pauseMs)await new Promise(resolve=>{const finish=()=>{clearTimeout(timer);signal?.removeEventListener('abort',finish);resolve();};const timer=setTimeout(finish,pauseMs);signal?.addEventListener('abort',finish,{once:true});});
  if(signal?.aborted)return;await context.resume();
  const data=Uint8Array.from(bytes),buffer=await context.decodeAudioData(data.buffer);if(signal?.aborted)return;
  await new Promise((resolve,reject)=>{
-  const source=context.createBufferSource();source.buffer=buffer;const analyser=onLevel&&context.createAnalyser?context.createAnalyser():null;let meter=null;if(analyser){analyser.fftSize=256;source.connect(analyser);analyser.connect(context.destination);const values=new Float32Array(analyser.fftSize);meter=setInterval(()=>{analyser.getFloatTimeDomainData(values);let energy=0;for(const value of values)energy+=value*value;onLevel(Math.min(1,Math.sqrt(energy/values.length)*4));},33);}else source.connect(context.destination);let done=false;
-  const finish=error=>{if(done)return;done=true;signal?.removeEventListener('abort',abort);source.onended=null;clearInterval(meter);analyser?.disconnect();onLevel?.(0);source.disconnect();if(error)reject(error);else resolve();};
+  const source=context.createBufferSource();source.buffer=buffer;
+  const nodes=[],gain=context.createGain?.();let tail=source;if(gain){gain.gain.value=Math.max(0,Math.min(1,volume));source.connect(gain);nodes.push(gain);tail=gain;}
+  if(effect==='gentle-robot'&&context.createDelay&&context.createGain){const mix=context.createGain(),delay=context.createDelay(.03),wet=context.createGain();delay.delayTime.value=.013;wet.gain.value=.08;tail.connect(mix);tail.connect(delay);delay.connect(wet);wet.connect(mix);nodes.push(mix,delay,wet);tail=mix;}
+  const analyser=onLevel&&context.createAnalyser?context.createAnalyser():null;let meter=null;if(analyser){analyser.fftSize=256;tail.connect(analyser);analyser.connect(context.destination);const values=new Float32Array(analyser.fftSize);meter=setInterval(()=>{analyser.getFloatTimeDomainData(values);let energy=0;for(const value of values)energy+=value*value;onLevel(Math.min(1,Math.sqrt(energy/values.length)*4));},33);}else tail.connect(context.destination);let done=false;
+  const finish=error=>{if(done)return;done=true;signal?.removeEventListener('abort',abort);source.onended=null;clearInterval(meter);analyser?.disconnect();onLevel?.(0);source.disconnect();nodes.forEach(node=>node.disconnect());if(error)reject(error);else resolve();};
   const abort=()=>{try{source.stop();}catch{}finish();};
   source.onended=()=>finish();signal?.addEventListener('abort',abort,{once:true});
   try{source.start(context.currentTime+.025,0);onStart();}catch(error){finish(error);}

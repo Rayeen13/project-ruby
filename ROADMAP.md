@@ -162,3 +162,11 @@ Ship the focused Lab, searchable collection, review-before-send text files and a
 ## Prismy Studio — next voice milestone
 
 Studio product name: **Prismy Studio**, in the proposed Companion Labs Ecosystem. Next work: audition original anime and gentle robot voices, capability-based personality acting, a downloadable Voice Library, persistent matched defaults and a cached once-per-launch greeting. See [the product and voice blueprint](docs/PRISMY_STUDIO_BLUEPRINT.md) for acceptance criteria, revised 2% buyer fee and honest shipping/filing boundaries. This planning pass changes no app runtime or Windows build.
+
+## v0.4.8 — Voice Library delivery
+
+- Actual matching speaker cards, search, shared collection download/cancel/repair, previews and saved per-body defaults.
+- Personality-matched Supertonic speaker selection; legacy selections migrate without deleting settings.
+- Volume, optional gentle digital doubling for robot bodies and clean humanoid playback.
+- Short local greeting cache (8 entries, 1.5 MB per item), once-per-launch greeting after setup, input/mute/Stop cancellation, no LLM dependency.
+- Outstanding: licensed original anime assets, listening/acting quality acceptance, model comparison and target-laptop benchmarks. Existing voices are not relabeled as proven anime acting.
