@@ -81,7 +81,7 @@ Typed input remains available. Additional languages, continuous wake-word listen
 | v0.6 — platform expansion | Linux/macOS desktop hosts, mobile app and platform-specific widget/overlay hosts | Each supported host has real-device tests and a capability matrix; unsupported OS actions are disabled; mobile widgets use suitable native state snapshots rather than promising arbitrary live overlays. |
 | v0.7 — companion world | Small interactive space, reach animation, prop grip/release and persistence | Objects have colliders and grip anchors; fingers follow contacts; objects attach/release predictably; saving restores the scene; this is distinct from OS automation. |
 | v0.8 — creator studio | Import/preview characters, rigs, skins, personalities and task-specific configurations | Versioned packages declare capabilities and ownership/licence; packages validate before loading; user data stays portable; training is a separate opt-in workflow. |
-| v1.x — marketplace | Free/premium packages, purchases and creator payouts | The free tier remains useful; restore/refund/update flows exist; the proposed 5% platform share and 80% free/20% premium split have explicit feature and payout definitions. |
+| v1.x — marketplace | Free/premium packages, purchases and creator payouts | The free tier remains useful; restore/refund/update flows exist; the revised 2% buyer-side fee, creator listing-price payout and 80% free/20% premium split have explicit feature and settlement definitions (superseding the earlier 5% share). |
 
 Milestones are dependency-ordered, not calendar promises. Marketplace and a large world are outside the desktop assistant MVP.
 
@@ -158,3 +158,7 @@ Ship the focused Lab, searchable collection, review-before-send text files and a
 - Managed AI port allocation and native chat/LangM endpoint routing; preserve unrelated servers.
 - Opal outward-palm wave, mirrored hand/finger flexion, VRM0/1 normalized pose adapter and reusable Three.js clips.
 - Real Windows acceptance with a non-HTTP listener occupying 8081, plus wave captures and quaternion/clearance/mixer tests.
+
+## Prismy Studio — next voice milestone
+
+Studio product name: **Prismy Studio**, in the proposed Companion Labs Ecosystem. Next work: audition original anime and gentle robot voices, capability-based personality acting, a downloadable Voice Library, persistent matched defaults and a cached once-per-launch greeting. See [the product and voice blueprint](docs/PRISMY_STUDIO_BLUEPRINT.md) for acceptance criteria, revised 2% buyer fee and honest shipping/filing boundaries. This planning pass changes no app runtime or Windows build.
