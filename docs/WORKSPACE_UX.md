@@ -2,7 +2,7 @@
 
 ## Direction
 
-Use a calm Obsidian workspace with the owner’s ametrine violet/gold signature by default, a persistent Companion preview, clear daily actions, and progressive disclosure of setup/advanced controls. Sakura light and Cyberpunk are optional workspace appearances. The workspace palette is independent of gem colour, character identity, outfit, personality and memory. Fonts/assets remain local; no CDN dependencies were added.
+Use the owner’s Ametrine Jewel violet/gold signature by default, a persistent Companion preview, clear daily actions, and progressive disclosure of setup/advanced controls. All six modular-hub themes are included, plus Cyberpunk and Cozy Matcha from the earlier suite, in one appearance selector. The workspace palette is independent of gem colour, character identity, outfit, personality and memory. Fonts/assets remain local; no CDN dependencies were added.
 
 The owner supplied four Gemini HTML concepts. All four were reviewed as design references, not production implementations. The later `prismy_studio_modular_production_hub_pluggable_mesh_builder(1).html` attachment was byte-identical to the modular hub reference; its violet/gold Ametrine Jewel treatment is the principal branding reference:
 
@@ -27,12 +27,12 @@ Desktop navigation uses readable labels when space permits; narrower desktops us
 
 ## Implementation
 
-[Prisms](PRISMS.md) provides the explicit extension lifecycle and local opt-in theme pack flow. The host receives small interfaces through the composition root; it does not import Tauri, rendering or inference. `studio-appearance.js` owns a validated three-theme catalogue, local persistence and a usable session-only fallback when storage is blocked. It is independent of DDNA and pack downloads. `studio-prisms.js` composes appearance and the Prism library; `lab-shell.js` routes beginner shortcuts to existing panels. CSS variables control the workspace palette; floating mode is explicitly excluded. Selected/hover states and keyboard focus use workspace accents, while gem identity colours remain independent.
+[Prisms](PRISMS.md) provides the explicit extension lifecycle and local opt-in theme pack flow. The host receives small interfaces through the composition root; it does not import Tauri, rendering or inference. `studio-appearance.js` owns a validated eight-theme catalogue, local persistence and a usable session-only fallback when storage is blocked. It is independent of DDNA and pack downloads. `studio-prisms.js` composes appearance and the Prism library; `lab-shell.js` routes beginner shortcuts to existing panels. CSS variables control the workspace palette; floating mode is explicitly excluded. Selected/hover states and keyboard focus use workspace accents, while gem identity colours remain independent.
 
-Persistent key: `project-ruby.studio-appearance.v1`, with a small versioned `{version:1,theme}` value. Unknown/corrupt entries fall back to Obsidian. Theme changes do not download assets or call cloud services. The theme selector is reachable through App using mouse or keyboard.
+Persistent key: `project-ruby.studio-appearance.v1`, with a small versioned `{version:1,theme}` value. Unknown/corrupt entries fall back to Ametrine. Theme changes do not download assets or call cloud services. The theme selector is reachable through App using mouse or keyboard.
 
 ## Validation and limits
 
-Shared checks cover real theme-selector changes, persistence/reload, unknown/corrupt input and blocked storage. Windows smoke coverage cycles all three themes, captures actual native app screenshots, checks page overflow and unchanged Companion selection, follows the beginner shortcuts and checks persistence on restart. Existing speech, memory, gesture, grab/docking and conversation checks remain in the suite.
+Shared checks cover real theme-selector changes, persistence/reload, unknown/corrupt input and blocked storage. Windows smoke coverage cycles all eight themes, captures actual native app screenshots, checks page overflow and unchanged Companion selection, follows the beginner shortcuts and checks persistence on restart. Existing speech, memory, gesture, grab/docking and conversation checks remain in the suite.
 
 Native screenshots still require review before visual acceptance. There is no browser-control plugin in this environment, so browser/mobile visual QA must not be claimed from a static asset check. This is an implemented UX improvement, not evidence that the product is commercially launch-ready or that user testing has passed. Team acceptance should test whether a new user can choose a Companion, find setup, start a real conversation and change voice without assistance.

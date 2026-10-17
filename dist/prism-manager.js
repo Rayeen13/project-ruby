@@ -7,7 +7,7 @@ export function mountPrismManager({document,themePrisms},appearance){
   const card=document.createElement('article');card.className='prism-card';const name=document.createElement('strong'),detail=document.createElement('small'),actions=document.createElement('div'),use=document.createElement('button'),remove=document.createElement('button');
   name.textContent=prism.name;detail.textContent=prism.author+' · '+prism.version+' · Theme';use.textContent='Use theme';remove.textContent='Remove';remove.setAttribute('aria-label','Remove '+prism.name);
   use.onclick=()=>{appearance.apply(themeIdForPrism(prism.id),{save:true});render();say('Using '+prism.name+'.');};
-  remove.onclick=()=>{try{themePrisms.remove(prism.id);const old=appearance.current();appearance.refresh(old);if(old===themeIdForPrism(prism.id))appearance.apply('obsidian',{save:true});render();say(prism.name+' removed. Companion data is unchanged.');}catch(error){say(error.message);}};
+  remove.onclick=()=>{try{themePrisms.remove(prism.id);const old=appearance.current();appearance.refresh(old);if(old===themeIdForPrism(prism.id))appearance.apply('ametrine',{save:true});render();say(prism.name+' removed. Companion data is unchanged.');}catch(error){say(error.message);}};
   actions.append(use,remove);card.append(name,detail,actions);list.append(card);
  }el('prism-empty').hidden=themePrisms.list().length>0;}
  const choose=()=>file.click();el('prism-choose').onclick=choose;

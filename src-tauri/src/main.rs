@@ -60,6 +60,7 @@ async fn desktop_smoke_checkpoint(
             "opal",
             "languages",
             "voice_library",
+            "workspace_ametrine",
             "workspace_obsidian",
             "workspace_sakura",
             "workspace_cyberpunk",

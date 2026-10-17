@@ -1,6 +1,6 @@
 ## v0.4.9 — a clearer Prismy workspace
 
-A calmer ametrine-accented workspace with readable navigation, beginner setup/customize shortcuts, clearer model-selection status and three saved appearances: Obsidian, Sakura light and Cyberpunk. App → Workspace appearance changes the UI independently of your Companion, gem, personality and memory. Floating mode keeps its minimal presentation. See [workspace UX](docs/WORKSPACE_UX.md) for the four reviewed design references, implemented journeys and validation limits.
+A calmer ametrine-accented workspace with readable navigation, beginner setup/customize shortcuts, clearer model-selection status and eight saved appearances: Ametrine Jewel, Obsidian Indigo, Cyber-Slate, Alabaster Light, MeshForge Graphite, Ruby Crimson, Cyberpunk 3090 and Cozy Matcha. App → Workspace appearance changes the UI independently of your Companion, gem, personality and memory. Floating mode keeps its minimal presentation. See [workspace UX](docs/WORKSPACE_UX.md) for the four reviewed design references, implemented journeys and validation limits.
 
 ### Prisms · opt-in extensions
 

@@ -4,13 +4,13 @@ Each plugin is a **Prism**, represented by a gem. Companion gem identities (Ruby
 
 ## Included versus optional
 
-The default bundle includes the workspace appearance capability and its three built-in themes. Everything outside the documented default bundle is opt-in. Discovery, viewing a listing or selecting a file does not install or activate a Prism. Installation requires a visible action after review. Dependencies, transfer/extracted size, licence and permissions must be shown before any future network installation. Do not auto-download optional modules because a Companion, conversation or imported identity mentions one.
+The default bundle includes the workspace appearance capability and its eight built-in themes. Everything outside the documented default bundle is opt-in. Discovery, viewing a listing or selecting a file does not install or activate a Prism. Installation requires a visible action after review. Dependencies, transfer/extracted size, licence and permissions must be shown before any future network installation. Do not auto-download optional modules because a Companion, conversation or imported identity mentions one.
 
 User choice does not certify a creator's rights, authorize unrelated data access or eliminate the platform's responsibilities. The official product's content/asset rules and third-party licences continue to apply. No optional pack may silently change DDNA, upload memories or override a safety policy.
 
 ## Implemented v1: local theme Prisms
 
-App → Prisms accepts a local `.prism.json` file of at most 24 KB. It shows the creator, version, actual file size, creator-supplied licence and scope before Install. Cancel installs nothing. Install saves the pack locally without activating it. Use theme applies it; Remove deletes its installed data and restores Obsidian if it was active. Companion preferences/identity are untouched. Installed Prisms and selected appearance survive restart; storage failure leaves the previous installed set intact and reports an error.
+App → Prisms accepts a local `.prism.json` file of at most 24 KB. It shows the creator, version, actual file size, creator-supplied licence and scope before Install. Cancel installs nothing. Install saves the pack locally without activating it. Use theme applies it; Remove deletes its installed data and restores Ametrine if it was active. Companion preferences/identity are untouched. Installed Prisms and selected appearance survive restart; storage failure leaves the previous installed set intact and reports an error.
 
 V1 packs are data only: a fixed set of six-digit colour tokens and metadata. They cannot contain scripts, URLs, arbitrary CSS, native binaries or permission requests. Unknown fields, unsupported versions, bad colours, inadequate text/button contrast, duplicate IDs and reserved IDs are rejected. Review does not establish that the creator's stated licence or provenance is correct. Invalid saved content is not executed or silently overwritten. Maximum installed theme packs: 12.
 
