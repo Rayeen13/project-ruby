@@ -20,13 +20,15 @@ export const VOICES=Object.freeze([
  ...['female','male'].flatMap((gender,g)=>Array.from({length:5},(_,i)=>({id:'st_'+(g?'m':'f')+(i+1),name:'Character '+(i+1),gender,accent:'Japanese / English',style:'Original character preset',sid:g*5+i,pack:'supertonic3',language:'multi'})))
 ].map(v=>Object.freeze({pack:'kokoro',language:'en',...v})));
 export const voicesFor=identity=>VOICES.filter(v=>v.gender===(identity.gender==='male'?'male':'female')&&v.pack===voicePackFor(identity)&&(v.language==='multi'||v.language===(identity.voiceLanguage||'en')));
-export const voiceChoiceKey=identity=>[identity.profile,identity.voiceLanguage||'en',voicePackFor(identity)].join(':');
+export const voiceBodyFamily=identity=>identity.bodyId==='opal'?'humanoid':'robot';
+export const legacyVoiceChoiceKey=identity=>[identity.profile,identity.voiceLanguage||'en',voicePackFor(identity)].join(':');
+export const voiceChoiceKey=identity=>[identity.profile,voiceBodyFamily(identity),identity.voiceLanguage||'en',voicePackFor(identity)].join(':');
 const ACTING_VOICES={calm:['bf_emma','bm_george'],focused:['af_sarah','bm_george'],playful:['af_heart','am_puck'],sarcastic:['af_bella','am_michael'],deredere:['af_heart','am_puck'],tsundere:['af_bella','am_fenrir'],kuudere:['af_sarah','bm_george'],dandere:['bf_emma','am_michael'],yandere:['af_bella','am_michael'],himedere:['bf_emma','bm_george'],oujidere:['bf_emma','bm_george'],kamidere:['af_bella','am_fenrir'],bakadere:['af_heart','am_puck'],hajidere:['bf_emma','am_michael'],shundere:['af_sarah','bm_george'],nyandere:['af_heart','am_puck']};
 export function defaultVoice(identity){
- const available=voicesFor(identity);if(voicePackFor(identity)==='supertonic3'||identity.voiceLanguage==='zh')return available[0];
+ const available=voicesFor(identity);if(voicePackFor(identity)==='supertonic3'){const index=({playful:1,deredere:1,bakadere:1,sarcastic:2,tsundere:2,yandere:2,focused:3,kuudere:3,calm:4,dandere:4,shundere:4})[identity.personality?.id]??0;return available[index]||available[0];}if(identity.voiceLanguage==='zh')return available[0];
  const acting=ACTING_VOICES[identity.personality?.id];
  if(acting)return voicesFor(identity).find(v=>v.id===acting[identity.gender==='male'?1:0]);
  const id=identity.gender==='male'?({jasper:'am_puck',jet:'bm_george',saph:'am_michael'}[identity.profile]||'am_fenrir'):({ruby:'af_heart',emme:'bf_emma',amy:'af_sarah',opal:'af_bella'}[identity.profile]||'af_heart');
  return voicesFor(identity).find(v=>v.id===id)||voicesFor(identity)[0];
 }
-export function selectedVoice(identity,choices={}){return voicesFor(identity).find(v=>v.id===(choices[voiceChoiceKey(identity)]||choices[identity.profile]))||defaultVoice(identity);}
+export function selectedVoice(identity,choices={}){return voicesFor(identity).find(v=>v.id===(choices[voiceChoiceKey(identity)]||choices[legacyVoiceChoiceKey(identity)]||choices[identity.profile]))||defaultVoice(identity);}

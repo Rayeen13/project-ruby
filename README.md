@@ -1,3 +1,9 @@
+## v0.4.8 — Prismy Studio Voice Library
+
+Browse matching voices in Settings → Voice & language, preview a speaker, set a default per Companion/body/language, or restore automatic personality matching. Download/repair/cancel a shared voice collection from the library. Add volume, clean/gentle robot finish and a cached once-per-launch greeting. Existing downloads, application identifiers and user data are retained.
+
+This adds selection and playback infrastructure around the existing Kokoro/Supertonic collections. It does not ship a newly trained or audition-approved anime VoiceM; full expressive anime acting remains a separate voice/asset evaluation. See [the voice milestone](docs/PRISMY_STUDIO_BLUEPRINT.md).
+
 ## Prismy Studio — next product milestone
 
 **Prismy Studio** is the chosen name for the upcoming Studio application in the proposed Companion Labs Ecosystem. Project Ruby remains the current companion prototype. The next milestone targets original anime and gentle robot voice presets, a Voice Library and cached launch greetings. See the [product/voice blueprint](docs/PRISMY_STUDIO_BLUEPRINT.md). These new voice features are planned; v0.4.7 is unchanged.

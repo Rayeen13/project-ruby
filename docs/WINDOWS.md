@@ -1,3 +1,9 @@
+# Prismy Studio · Project Ruby v0.4.8
+
+Open Settings → Voice & language for the **Voice Library**. Change voice language/collection above it, accept the selected model terms when required, then download once. Every voice in that collection shares the model files. Listen to a card, set its default, or restore personality matching. Your selection is scoped to Companion, robot/humanoid body family, language and engine; older saved choices still work.
+
+Enable spoken replies and **Greet on launch** for a short greeting on the next app launch. Preview & cache greeting warms its local audio now; the next launch reuses it. Volume zero, Stop, or physical mouse/keyboard input suppresses/cancels automatic greeting. No LLM or internet is used for the greeting. The web library browses settings, while matched local VoiceM playback/downloads require the Windows app. Existing packs are not newly verified anime acting.
+
 # Windows v0.4.7
 
 Ruby's managed AI tries port 8081, then allocates an available loopback port automatically. Settings → LLM shows the active endpoint; native conversation and LangM use it automatically. Ruby only stops its own model process. If another process takes the chosen port during startup, it retries with a new port. External Ollama/LM Studio/other engine connections retain their configured default ports. The website's separate local-server connection still uses its selected engine's default endpoint.

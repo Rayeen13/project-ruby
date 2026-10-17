@@ -67,3 +67,9 @@ Trademark classification does not create a utility patent, protect the functiona
 - Supertonic publisher model card: https://huggingface.co/Supertone/supertonic-3
 - USPTO trademark/patent/copyright distinction: https://www.uspto.gov/trademarks/basics/trademark-patent-copyright
 - USPTO goods/services and international classes: https://www.uspto.gov/trademarks/basics/goods-and-services
+
+## v0.4.8 implementation checkpoint
+
+The Voice Library, body/language-scoped defaults, personality-specific Supertonic matching, volume/optional gentle robot doubling and cached launch greeting are implemented around the existing engines. The cache stores only short synthetic greetings in local IndexedDB, bounded to eight entries of at most 1.5 MB each; cache failure falls back to synthesis. Preview a greeting to warm it; subsequent launches reuse it without an LLM. Spoken replies, an installed selected pack, greeting enabled and nonzero volume are required. Physical input before automatic playback suppresses the launch greeting; Stop cancels active speech. Native pin/peek/Studio transitions do not retrigger it.
+
+Engine/asset audition and anime performance acceptance remain outstanding. No new trained VoiceM or actor-style asset is bundled in this checkpoint. The gentle robot finish is subtle digital doubling, not a claim that a new expressive model has been trained.

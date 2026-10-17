@@ -59,6 +59,7 @@ async fn desktop_smoke_checkpoint(
             "setup",
             "opal",
             "languages",
+            "voice_library",
             "opal_classic",
             "opal_rose",
             "opal_evening",
