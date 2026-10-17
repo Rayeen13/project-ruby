@@ -32,7 +32,7 @@
   wardrobeChange('#opal-auto',true);wardrobeChange('#opal-work',true);await wait(200);assert(stage.dataset.outfit==='work','Work override takes precedence over the clock');wardrobeChange('#opal-work',false);
   const hour=new Date().getHours(),period=hour>=6&&hour<12?'morning':hour>=12&&hour<17?'afternoon':hour>=17&&hour<22?'evening':'night';
   const scheduleSelect=document.querySelector('[data-outfit-period="'+period+'"]');const scheduled=scheduleSelect.value==='rose'?'evening':'rose';scheduleSelect.value=scheduled;scheduleSelect.dispatchEvent(new Event('change'));await wait(200);assert(stage.dataset.outfit===scheduled,'Automatic outfit follows configured local-time period');
-  assert(JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.opal===wardrobeRoot,'Clothes never replace Opal’s identity');wardrobeChange('#opal-auto',false);wardrobeChange('#opal-outfit','classic');await wait(250);localStorage.setItem('project-ruby.smoke-wardrobe',JSON.stringify(JSON.parse(localStorage.getItem('project-ruby.preferences.v1')).wardrobe));
+  assert(JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.opal===wardrobeRoot,'Clothes never replace Opal’s identity');wardrobeChange('#opal-auto',false);wardrobeChange('#opal-outfit','classic');await wait(250);
   // Real canvas pixels verify the bug: transparent face corners never become an extra black panel.
   const registry=await import('./character-registry.js'),dizzy=await import('./companion-grab.js');
   for(const spec of registry.CHARACTER_MODELS){const c=spec.create();await c.ready;c.update(0,{follow:false});dizzy.drawDizzyFace(c,1000);assert(c.ctx.getImageData(0,0,1,1).data[3]===(spec.id==='classic'?255:0),spec.id+': dizziness preserves the existing face background');
@@ -152,6 +152,11 @@
   assert((await window.__TAURI__.core.invoke('ai_pack_status')).phase==='stopped','Stop AI unloads the owned model process');
   document.querySelector('#settings-close').click();await wait(150);
   document.querySelector('#reset-preferences').click();await wait(300);
+  assert(!document.querySelector('#opal-auto').checked&&document.querySelector('#opal-outfit').value==='classic','Reset preferences restores the default wardrobe');
+  // Reset deliberately cleared the earlier wardrobe fixture; set a fresh custom
+  // choice and schedule before checking persistence on the next native launch.
+  wardrobeChange('#opal-outfit','rose');scheduleSelect.value=scheduled;scheduleSelect.dispatchEvent(new Event('change'));await wait(300);
+  localStorage.setItem('project-ruby.smoke-wardrobe',JSON.stringify(JSON.parse(localStorage.getItem('project-ruby.preferences.v1')).wardrobe));
   document.querySelector('#physics-drop').click();await wait(1500);assert(stage.dataset.grounded==='true','Rigid Companion drops and lands on the Studio platform');
   assert(document.querySelectorAll('#model-gallery [data-model]').length===6,'Gallery preserves five robots and adds the original Opal android');
   document.querySelector('[data-category="Professional"]').click();
