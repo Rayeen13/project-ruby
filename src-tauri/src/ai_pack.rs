@@ -2,6 +2,7 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::fs::{self, File};
 use std::io::{Read, Write};
+use std::net::TcpListener;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Mutex};
@@ -22,6 +23,7 @@ pub struct PackStatus {
     downloaded: u64,
     total: u64,
     detail: String,
+    endpoint: Option<String>,
 }
 
 impl Default for PackStatus {
@@ -32,6 +34,7 @@ impl Default for PackStatus {
             downloaded: 0,
             total: 0,
             detail: "Download the local AI once, then use it offline.".into(),
+            endpoint: None,
         }
     }
 }
@@ -40,6 +43,7 @@ impl Default for PackStatus {
 struct Inner {
     status: PackStatus,
     child: Option<Child>,
+    port: Option<u16>,
     cancel: Arc<Notify>,
 }
 
@@ -241,62 +245,74 @@ fn executable(directory: &Path) -> Option<PathBuf> {
     None
 }
 
-async fn start(app: &AppHandle, directory: &Path) -> Result<(), String> {
-    let client = reqwest::Client::builder()
-        .no_proxy()
-        .timeout(Duration::from_secs(2))
-        .build()
-        .map_err(|error| error.to_string())?;
-    if client
-        .get("http://127.0.0.1:8081/health")
-        .send()
-        .await
-        .is_ok()
-    {
-        return Err("Another model server is using port 8081. Choose Connect to use it, or close it before starting Ruby's AI.".into());
-    }
-    publish(app, "starting", 0, 0, "Loading your local AI…");
-    let exe = executable(&directory.join("runtime")).ok_or("CPU runtime is missing")?;
-    let log = File::create(directory.join("server.log")).map_err(|error| error.to_string())?;
-    let mut command = Command::new(exe);
-    command
-        .arg("-m")
-        .arg(directory.join(MODEL))
-        .args([
-            "-c",
-            "2048",
-            "-t",
-            "2",
-            "-ngl",
-            "0",
-            "--parallel",
-            "1",
-            "--host",
-            "127.0.0.1",
-            "--port",
-            "8081",
-            "--alias",
-            "Qwen2.5-1.5B-Ruby",
-            "--jinja",
-            "--chat-template-file",
-        ])
-        .arg(directory.join("chat-template.jinja"))
-        .stdin(Stdio::null())
-        .stdout(log.try_clone().map_err(|error| error.to_string())?)
-        .stderr(log);
-    #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        command.creation_flags(0x08000000);
-    }
-    let child = command.spawn().map_err(|error| error.to_string())?;
-    app.state::<PackState>()
+// Keep the selected socket reserved until immediately before spawning llama.cpp.
+// Never probe HTTP to decide whether an unrelated process owns a port.
+fn available_listener(preferred: u16) -> Result<TcpListener, String> {
+    TcpListener::bind(("127.0.0.1", preferred))
+        .or_else(|_| TcpListener::bind(("127.0.0.1", 0)))
+        .map_err(|error| format!("Could not allocate a local AI port: {error}"))
+}
+
+pub fn active_port(app: &AppHandle) -> Result<Option<u16>, String> {
+    let state = app.state::<PackState>();
+    let inner = state
         .inner()
         .0
         .lock()
-        .map_err(|_| "AI manager is unavailable")?
-        .child = Some(child);
-    for _ in 0..150 {
+        .map_err(|_| "AI manager is unavailable")?;
+    Ok(inner.port)
+}
+
+async fn start(app: &AppHandle, directory: &Path) -> Result<(), String> {
+    let client = reqwest::Client::builder()
+        .no_proxy()
+        .redirect(reqwest::redirect::Policy::none())
+        .timeout(Duration::from_secs(2))
+        .build()
+        .map_err(|error| error.to_string())?;
+    for attempt in 0..3 {
+        let listener = available_listener(if attempt == 0 { 8081 } else { 0 })?;
+        let port = listener
+            .local_addr()
+            .map_err(|error| error.to_string())?
+            .port();
+        let base = format!("http://127.0.0.1:{port}");
+        publish(app, "starting", 0, 0, "Loading your local AI…");
+        let exe = executable(&directory.join("runtime")).ok_or("CPU runtime is missing")?;
+        let log = File::create(directory.join("server.log")).map_err(|error| error.to_string())?;
+        let mut command = Command::new(exe);
+        command
+            .arg("-m")
+            .arg(directory.join(MODEL))
+            .args([
+                "-c",
+                "2048",
+                "-t",
+                "2",
+                "-ngl",
+                "0",
+                "--parallel",
+                "1",
+                "--host",
+                "127.0.0.1",
+                "--port",
+                &port.to_string(),
+                "--alias",
+                "Qwen2.5-1.5B-Ruby",
+                "--jinja",
+                "--chat-template-file",
+            ])
+            .arg(directory.join("chat-template.jinja"))
+            .stdin(Stdio::null())
+            .stdout(log.try_clone().map_err(|error| error.to_string())?)
+            .stderr(log);
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            command.creation_flags(0x08000000);
+        }
+        drop(listener);
+        let child = command.spawn().map_err(|error| error.to_string())?;
         {
             let state = app.state::<PackState>();
             let mut inner = state
@@ -304,36 +320,75 @@ async fn start(app: &AppHandle, directory: &Path) -> Result<(), String> {
                 .0
                 .lock()
                 .map_err(|_| "AI manager is unavailable")?;
-            if inner
-                .child
-                .as_mut()
-                .and_then(|child| child.try_wait().ok())
-                .flatten()
-                .is_some()
+            inner.child = Some(child);
+            inner.port = Some(port);
+            inner.status.endpoint = Some(base.clone());
+        }
+        let mut retry_port = false;
+        for _ in 0..150 {
             {
-                return Err(
-                    "Local AI exited while loading. Choose Download / repair or try another CPU."
-                        .into(),
-                );
+                let state = app.state::<PackState>();
+                let mut inner = state
+                    .inner()
+                    .0
+                    .lock()
+                    .map_err(|_| "AI manager is unavailable")?;
+                if inner
+                    .child
+                    .as_mut()
+                    .and_then(|child| child.try_wait().ok())
+                    .flatten()
+                    .is_some()
+                {
+                    inner.child = None;
+                    inner.port = None;
+                    inner.status.endpoint = None;
+                    if TcpListener::bind(("127.0.0.1", port)).is_err() {
+                        retry_port = true;
+                        break;
+                    }
+                    return Err(
+                        "Local AI exited while loading. Choose Download / repair or try another CPU."
+                            .into(),
+                    );
+                }
             }
+            if client
+                .get(format!("{base}/health"))
+                .send()
+                .await
+                .is_ok_and(|response| response.status().is_success())
+            {
+                // A health reply is accepted only while our own child is still alive.
+                let state = app.state::<PackState>();
+                let mut inner = state
+                    .inner()
+                    .0
+                    .lock()
+                    .map_err(|_| "AI manager is unavailable")?;
+                if inner
+                    .child
+                    .as_mut()
+                    .is_some_and(|child| matches!(child.try_wait(), Ok(None)))
+                {
+                    return Ok(());
+                }
+            }
+            tokio::time::sleep(Duration::from_millis(200)).await;
         }
-        if client
-            .get("http://127.0.0.1:8081/health")
-            .send()
-            .await
-            .is_ok_and(|response| response.status().is_success())
-        {
-            return Ok(());
+        if !retry_port {
+            return Err("Local AI startup timed out".into());
         }
-        tokio::time::sleep(Duration::from_millis(200)).await;
     }
-    Err("Local AI startup timed out".into())
+    Err("Local AI could not reserve a port after three attempts. Please try Start AI again.".into())
 }
 
 pub fn shutdown(app: &AppHandle) {
     let state = app.state::<PackState>();
     if let Ok(mut inner) = state.inner().0.lock() {
         inner.cancel.notify_one();
+        inner.port = None;
+        inner.status.endpoint = None;
         if let Some(mut child) = inner.child.take() {
             let _ = child.kill();
             let _ = child.wait();
@@ -364,6 +419,8 @@ pub fn ai_pack_status(app: AppHandle, state: State<'_, PackState>) -> Result<Pac
             .is_some()
         {
             inner.child = None;
+            inner.port = None;
+            inner.status.endpoint = None;
             inner.status.phase = "stopped".into();
         }
     }
@@ -430,7 +487,18 @@ pub fn ai_pack_stop(app: AppHandle) {
 
 #[cfg(test)]
 mod tests {
-    use super::checksum;
+    use super::{available_listener, checksum};
+
+    #[test]
+    fn occupied_ports_are_skipped_without_touching_the_listener() {
+        let occupied = available_listener(0).unwrap();
+        let port = occupied.local_addr().unwrap().port();
+        let alternate = available_listener(port).unwrap();
+        assert_ne!(alternate.local_addr().unwrap().port(), port);
+        assert!(std::net::TcpStream::connect(("127.0.0.1", port)).is_ok());
+        assert!(alternate.local_addr().unwrap().ip().is_loopback());
+    }
+
 
     #[test]
     fn detects_corrupt_cached_model_bytes() {

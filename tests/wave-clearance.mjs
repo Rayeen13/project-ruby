@@ -7,7 +7,7 @@ let checked=0;
 for(const spec of CHARACTER_MODELS){const angles=[];const c=spec.create();await c.ready;c.setProfile('ruby');if(!spec.canWave)continue;
  for(const dance of [false,true])for(const [x,y] of [[0,0],[-1,-1],[-1,1],[1,-1],[1,1]])for(let i=0;i<48;i++){
   c.update(i/8,{wave:true,dance,pointer:{x,y},dt:1});c.root.updateMatrixWorld(true);
-  const right=c.arms.find(a=>a.side===-1);angles.push(c.humanoid?right.hand.rotation.z:right.arm.rotation.z);const limb=c.humanoid?new T.Box3().setFromPoints([right.forearm.getWorldPosition(new T.Vector3()),right.hand.getWorldPosition(new T.Vector3())]).expandByScalar(.055):new T.Box3().setFromObject(right.forearm,true);
+  const right=c.arms.find(a=>a.side===-1);angles.push(c.humanoid?right.hand.rotation.y:right.arm.rotation.z);const limb=c.humanoid?new T.Box3().setFromPoints([right.forearm.getWorldPosition(new T.Vector3()),right.hand.getWorldPosition(new T.Vector3())]).expandByScalar(.055):new T.Box3().setFromObject(right.forearm,true);
   const palm=new T.Vector3(),shoulder=new T.Vector3();right.hand.getWorldPosition(palm);right.arm.getWorldPosition(shoulder);assert(palm.y>shoulder.y,`${spec.id}: hand not raised`);
   let collision=c.humanoid&&c.getHeadBounds().intersectsBox(limb);c.head.traverse(o=>{if(o.isMesh&&o.geometry.type!=='PlaneGeometry'&&new T.Box3().setFromObject(o,true).intersectsBox(limb))collision=true;});
   assert(!collision,`${spec.id}: collision t=${i/8} pointer=${x},${y} dance=${dance}`);checked++;

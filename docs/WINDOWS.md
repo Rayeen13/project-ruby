@@ -1,3 +1,9 @@
+# Windows v0.4.7
+
+Ruby's managed AI tries port 8081, then allocates an available loopback port automatically. Settings → LLM shows the active endpoint; native conversation and LangM use it automatically. Ruby only stops its own model process. If another process takes the chosen port during startup, it retries with a new port. External Ollama/LM Studio/other engine connections retain their configured default ports. The website's separate local-server connection still uses its selected engine's default endpoint.
+
+In the Lab, choose **Style** to edit gems, personality and Opal's wardrobe. Opal's hand wave and finger poses now use normalized humanoid joints, including the VRM0/1 orientation conversion. See [reusable humanoid gestures](HUMANOID_GESTURES.md).
+
 ## v0.4.5 wardrobe
 
 Choose the **Opal · maid android** body in Studio, then open **Opal’s wardrobe** below the gem buttons. Select Classic lace, Rose café, Midnight satin or Studio professional. Automatic mode has separate morning (06–12), afternoon (12–17), evening (17–22) and night (22–06) choices in device local time. Work override temporarily takes precedence. Turn it off to resume the saved selection/schedule. The anime body is an actual CC0 VRoid beta sample; clothing is adapted with skinned apron surfaces, sleeve cuts, hem lengths and accessories inspired by the supplied references. Floating mode uses the same saved wardrobe; open Studio to edit it. Existing LLM/VoiceM downloads are reused.
