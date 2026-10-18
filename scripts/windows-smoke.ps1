@@ -133,11 +133,22 @@ try {
           if ($phase -in @('zoom_view','chat_lab') -and ($bounds.Left -lt $screen.WorkingArea.Left -or $bounds.Top -lt $screen.WorkingArea.Top -or $bounds.Right -gt $screen.WorkingArea.Right -or $bounds.Bottom -gt $screen.WorkingArea.Bottom)) { throw 'Zoomed canvas extends beyond usable screen' }
           if ($phase -eq 'left' -and $bounds.Left -ge $screen.WorkingArea.Left) { throw 'Left peek is not at the actual screen edge' }
           if ($phase -eq 'right' -and $bounds.Right -le $screen.WorkingArea.Right) { throw 'Right peek is not at the actual screen edge' }
-          $captureLeft = [Math]::Max($bounds.Left,$screen.Bounds.Left)
-          $captureTop = [Math]::Max($bounds.Top,$screen.Bounds.Top)
-          $width = [Math]::Min($bounds.Right,$screen.Bounds.Right)-$captureLeft
-          $height = [Math]::Min($bounds.Bottom,$screen.Bounds.Bottom)-$captureTop
-          $bitmap = New-Object System.Drawing.Bitmap($width,$height)
+          # Desktop/session metrics can briefly report a zero-sized display.
+          # Re-query boundedly; never allocate a bitmap from invalid dimensions.
+          $width = 0
+          $height = 0
+          for ($captureAttempt=0; $captureAttempt -lt 20; $captureAttempt++) {
+            if (-not [RubyBounds]::GetWindowRect($rubyHandle,[ref]$bounds)) { throw 'Cannot refresh capture bounds' }
+            $screen = [System.Windows.Forms.Screen]::FromRectangle([System.Drawing.Rectangle]::FromLTRB($bounds.Left,$bounds.Top,$bounds.Right,$bounds.Bottom))
+            $captureLeft = [int][Math]::Max($bounds.Left,$screen.Bounds.Left)
+            $captureTop = [int][Math]::Max($bounds.Top,$screen.Bounds.Top)
+            $width = [int]([Math]::Min($bounds.Right,$screen.Bounds.Right)-$captureLeft)
+            $height = [int]([Math]::Min($bounds.Bottom,$screen.Bounds.Bottom)-$captureTop)
+            if ($width -gt 0 -and $height -gt 0) { break }
+            Start-Sleep -Milliseconds 100
+          }
+          if ($width -le 0 -or $height -le 0) { throw "Invalid screenshot area for ${phase}: window=$bounds screen=$($screen.Bounds) width=$width height=$height" }
+          $bitmap = [System.Drawing.Bitmap]::new([int]$width,[int]$height)
           $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
           try {
             $graphics.CopyFromScreen($captureLeft,$captureTop,0,0,$bitmap.Size)
