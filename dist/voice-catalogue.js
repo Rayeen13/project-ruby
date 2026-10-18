@@ -1,5 +1,5 @@
 import {voicePackFor} from './languages.js';
-import {companionFor} from './companion-identities.js';
+import {companionFor,entityForBody} from './companion-identities.js';
 // Explicit speaker metadata from the Kokoro publisher and Sherpa v1.0 voice table.
 export const VOICES=Object.freeze([
  {id:'af_heart',name:'Heart',gender:'female',accent:'US',style:'Warm · expressive',sid:3},
@@ -21,7 +21,7 @@ export const VOICES=Object.freeze([
  ...['female','male'].flatMap((gender,g)=>Array.from({length:5},(_,i)=>({id:'st_'+(g?'m':'f')+(i+1),name:'Character '+(i+1),gender,accent:'Japanese / English',style:'Original character preset',sid:g*5+i,pack:'supertonic3',language:'multi'})))
 ].map(v=>Object.freeze({pack:'kokoro',language:'en',...v})));
 export const voicesFor=identity=>VOICES.filter(v=>v.gender===(identity.gender==='male'?'male':'female')&&v.pack===voicePackFor(identity)&&(v.language==='multi'||v.language===(identity.voiceLanguage||'en')));
-export const voiceBodyFamily=identity=>identity.bodyId==='opal'?'humanoid':'robot';
+export const voiceBodyFamily=identity=>entityForBody(identity.bodyId)?'humanoid':'robot';
 export const legacyVoiceChoiceKey=identity=>[identity.profile,identity.voiceLanguage||'en',voicePackFor(identity)].join(':');
 export const voiceChoiceKey=identity=>[identity.profile,voiceBodyFamily(identity),identity.voiceLanguage||'en',voicePackFor(identity)].join(':');
 const ACTING_VOICES={calm:['bf_emma','bm_george'],focused:['af_sarah','bm_george'],playful:['af_heart','am_puck'],sarcastic:['af_bella','am_michael'],deredere:['af_heart','am_puck'],tsundere:['af_bella','am_fenrir'],kuudere:['af_sarah','bm_george'],dandere:['bf_emma','am_michael'],yandere:['af_bella','am_michael'],himedere:['bf_emma','bm_george'],oujidere:['bf_emma','bm_george'],kamidere:['af_bella','am_fenrir'],bakadere:['af_heart','am_puck'],hajidere:['bf_emma','am_michael'],shundere:['af_sarah','bm_george'],nyandere:['af_heart','am_puck']};

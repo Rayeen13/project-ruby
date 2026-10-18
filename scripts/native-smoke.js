@@ -204,12 +204,12 @@
   document.querySelector('[data-category="Professional"]').click();
   assert([...document.querySelectorAll('#model-gallery [data-model]')].filter(card=>!card.hidden).length===1,'Category filter shows matching bodies');
   document.querySelector('[data-model="office"]').click();
-  assert(select.value==='office'&&document.querySelector('#personality-select').value==='focused','Gallery changes body and its default personality');
+  assert(select.value==='office'&&document.querySelector('#personality-select').value==='playful','Gallery changes robot shell without replacing Ruby’s personality');
   const persona=document.querySelector('#personality-select');persona.value='calm';persona.dispatchEvent(new Event('change'));await wait(300);
   document.querySelector('[data-category="All"]').click();document.querySelector('[data-model="gamer"]').click();
-  assert(persona.value==='playful','Another body keeps its own personality');document.querySelector('[data-model="office"]').click();
+  assert(persona.value==='calm','Ruby keeps her customised personality in another robot shell');document.querySelector('[data-model="office"]').click();
   assert(persona.value==='calm','Personality override survives body switching');
-  assert(JSON.parse(localStorage.getItem('project-ruby.preferences.v1')).personalities.office==='calm','Personality override is saved');
+  assert(JSON.parse(localStorage.getItem('project-ruby.preferences.v1')).identityPersonalities.ruby==='calm','Personality override is saved for Ruby’s identity');
 
   for(const id of ['classic','cyber','chibi','office','gamer']){
    select.value=id;select.dispatchEvent(new Event('change',{bubbles:true}));await wait(300);
