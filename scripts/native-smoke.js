@@ -23,7 +23,7 @@
    await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:true,details:checks.join('\n')});return;
   }
   const stage=document.querySelector('#stage'),menu=document.querySelector('#model-menu'),select=document.querySelector('#model-select');
-  assert(stage.dataset.ready==='true','Actual WebView renderer initialized');
+  assert(stage.dataset.ready==='true','Actual WebView renderer initialized');assert([...document.querySelectorAll('[data-lab-page]')].every(page=>page.parentElement.tagName==='ASIDE'),'Every workspace screen is independently navigable');
   assert((await window.__TAURI__.core.invoke('desktop_status')).floating,'Executable opens directly as floating mascot');
   await window.__TAURI__.core.invoke('desktop_action',{action:'lab'});await wait(350);
   document.querySelector('[data-lab-tab="app"]').click();

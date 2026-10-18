@@ -671,7 +671,9 @@ pub fn studio_window_action(
         }
         StudioWindowAction::FullscreenToggle => {
             let fullscreen = window.is_fullscreen().map_err(|e| e.to_string())?;
-            window.set_fullscreen(!fullscreen).map_err(|e| e.to_string())?;
+            window
+                .set_fullscreen(!fullscreen)
+                .map_err(|e| e.to_string())?;
         }
         StudioWindowAction::FullscreenExit => {
             window.set_fullscreen(false).map_err(|e| e.to_string())?;

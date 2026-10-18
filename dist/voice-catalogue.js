@@ -1,4 +1,5 @@
 import {voicePackFor} from './languages.js';
+import {companionFor} from './companion-identities.js';
 // Explicit speaker metadata from the Kokoro publisher and Sherpa v1.0 voice table.
 export const VOICES=Object.freeze([
  {id:'af_heart',name:'Heart',gender:'female',accent:'US',style:'Warm · expressive',sid:3},
@@ -26,6 +27,8 @@ export const voiceChoiceKey=identity=>[identity.profile,voiceBodyFamily(identity
 const ACTING_VOICES={calm:['bf_emma','bm_george'],focused:['af_sarah','bm_george'],playful:['af_heart','am_puck'],sarcastic:['af_bella','am_michael'],deredere:['af_heart','am_puck'],tsundere:['af_bella','am_fenrir'],kuudere:['af_sarah','bm_george'],dandere:['bf_emma','am_michael'],yandere:['af_bella','am_michael'],himedere:['bf_emma','bm_george'],oujidere:['bf_emma','bm_george'],kamidere:['af_bella','am_fenrir'],bakadere:['af_heart','am_puck'],hajidere:['bf_emma','am_michael'],shundere:['af_sarah','bm_george'],nyandere:['af_heart','am_puck']};
 export function defaultVoice(identity){
  const available=voicesFor(identity);if(voicePackFor(identity)==='supertonic3'){const index=({playful:1,deredere:1,bakadere:1,sarcastic:2,tsundere:2,yandere:2,focused:3,kuudere:3,calm:4,dandere:4,shundere:4})[identity.personality?.id]??0;return available[index]||available[0];}if(identity.voiceLanguage==='zh')return available[0];
+ const signature={ruby:'af_heart',saph:'am_michael',emme:'bf_emma',amy:'af_sarah',jasper:'am_puck',jet:'bm_george',opal:'af_bella'}[identity.profile];
+ if(signature&&identity.personality?.id===companionFor(identity.profile).personality)return available.find(v=>v.id===signature)||available[0];
  const acting=ACTING_VOICES[identity.personality?.id];
  if(acting)return voicesFor(identity).find(v=>v.id===acting[identity.gender==='male'?1:0]);
  const id=identity.gender==='male'?({jasper:'am_puck',jet:'bm_george',saph:'am_michael'}[identity.profile]||'am_fenrir'):({ruby:'af_heart',emme:'bf_emma',amy:'af_sarah',opal:'af_bella'}[identity.profile]||'af_heart');
