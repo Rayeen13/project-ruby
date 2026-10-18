@@ -75,7 +75,7 @@ export class OpalCharacter {
   this.glasses=new T.Group();this.glasses.visible=false;head.add(this.glasses);this.glasses.position.set(0,.061,-.093);
   const rim=new T.MeshBasicMaterial({color:0x353349});for(const side of [-1,1]){const ring=new T.Mesh(new T.TorusGeometry(.025,.0014,6,32),rim);ring.position.x=side*.032;ring.scale.y=.70;this.glasses.add(ring);}
  }
- setProfile(id){this.profile=GEM_PROFILES.find(p=>p.id===id)||GEM_PROFILES[0];this.eyeColor=this.profile.color;}
+ setProfile(){this.profile=GEM_PROFILES.find(p=>p.id==='opal');this.eyeColor=this.profile.color;}
  setMood(mood){this.mood=mood;}
  setSpeechLevel(value){this.speechTarget=T.MathUtils.clamp(Number.isFinite(value)?value:0,0,1);}
  setHandGesture(pose,side=-1){if(!['relaxed','open','point','grip','fist'].includes(pose))throw Error('Unknown hand gesture');this.handGestures[side]=pose;}

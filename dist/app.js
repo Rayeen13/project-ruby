@@ -1,3 +1,5 @@
+import {mountWindowFrame} from './window-frame.js';
+import {entityForBody} from './companion-identities.js';
 import {createStudioPrisms} from './studio-prisms.js';
 import {mountLabShell} from './lab-shell.js';
 import {OPAL_OUTFITS,normalizeWardrobe,selectedOutfit,wardrobePeriod} from './wardrobe.js';
@@ -23,12 +25,12 @@ let storage;try{storage=window.localStorage;}catch{}
 const greeting=new Greeting(),reaction=new TouchReaction(),motion=new MascotMotion();
 const loaded=loadPreferences(storage,preferenceOptions),preferences=loaded.state;
 let wardrobe=normalizeWardrobe(preferences.wardrobe);
-let handPoses={...preferences.gestures},personalities={...preferences.personalities},saveTimer,gallery;
+let handPoses={...preferences.gestures},personalities={...preferences.personalities},identityPersonalities={...preferences.identityPersonalities},saveTimer,gallery;
 const desktopHost=createDesktopHost(window.__TAURI__),grab=new GrabState();
 const reducedMotion=matchMedia('(prefers-reduced-motion:reduce)');
 let speechLevel=0;document.addEventListener('ruby-speech-level',event=>{speechLevel=Number.isFinite(event.detail)?Math.max(0,Math.min(1,event.detail)):0;});
 let voiceComputing=false;if(window.__TAURI__)void window.__TAURI__.event.listen('ruby-voice-compute',event=>{voiceComputing=event.payload===true;}).then(unlisten=>window.addEventListener('pagehide',unlisten,{once:true}));
-const persona=()=>personalityFor(personalities[selection.spec.id]);
+const persona=()=>personalityFor(identityPersonalities[selection.profileId]);
 
 const stage=document.querySelector('#stage'),{renderer,software,lowPower}=createRenderer();const mobile=matchMedia('(pointer:coarse)').matches;renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.25:1.75));if(!software){renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;}else{document.querySelector('#render-mode').textContent='Software 3D · reduced frame rate';}stage.append(renderer.domElement);const scene=new T.Scene(),camera=new T.PerspectiveCamera(35,1,.005,100);scene.add(new T.HemisphereLight(0xcceeff,0x242235,software?.65:3));const key=new T.DirectionalLight(0xffe7da,software?.8:4);key.position.set(3,7,5);key.castShadow=true;key.shadow.mapSize.set(1024,1024);scene.add(key);const fill=new T.DirectionalLight(0x9ad8ff,software?.45:2);fill.position.set(-4,3,-3);scene.add(fill);const grid=new T.GridHelper(18,36,0x29434c,0x152630);grid.position.y=-.2;scene.add(grid);const selection=new CharacterSelection(scene);let ruby=selection.active;const platform=new T.Mesh(new T.CylinderGeometry(1.85,1.95,.13,80),new T.MeshStandardMaterial({color:0x2d3c49,roughness:.75}));platform.position.y=-.12;platform.receiveShadow=true;scene.add(platform);const ring=new T.Mesh(new T.TorusGeometry(1.79,.012,8,100),new T.MeshBasicMaterial({color:0xff5278}));ring.rotation.x=Math.PI/2;ring.position.y=-.05;scene.add(ring);
 const grabVisual=new GrabVisual(scene),physics=new CompanionPhysics();
@@ -95,7 +97,7 @@ stage.addEventListener('wheel',e=>{e.preventDefault();if(floating){if(performanc
 document.querySelector('#physics-drop').onclick=()=>{document.querySelector('#animate').checked=true;physics.drop(ruby,1.2);};document.querySelector('#reset').onclick=reset;angle.oninput=()=>{turning=false;yaw=Number(angle.value)*Math.PI/180;saveSettings()};document.querySelector('#turn').onclick=()=>{turning=!turning;if(!turning)saveSettings()};document.querySelector('#dance').onclick=()=>interactionAction('dance');document.querySelectorAll('[data-mood]').forEach(b=>b.onclick=()=>{changeMood(b.dataset.mood);saveSettings();});
 document.querySelector('#wave').onclick=()=>interactionAction('wave');
 const swatches=document.querySelector('.swatches');swatches.replaceChildren();for(const profile of GEM_PROFILES){const button=document.createElement('button');button.dataset.profile=profile.id;button.textContent=profile.name;button.style.setProperty('--c',profile.color);const dot=document.createElement('i');dot.style.background=profile.color;button.prepend(dot);swatches.append(button);}
-document.querySelectorAll('[data-profile]').forEach(b=>b.onclick=()=>{const id=b.dataset.profile;const preset={jasper:{body:'gamer',personality:'playful'},jet:{body:'office',personality:'focused'},opal:{body:'opal',personality:'sarcastic'}}[id];if(preset){personalities[preset.body]=preset.personality;modelSelect.value=preset.body;modelSelect.dispatchEvent(new Event('change'));}changeProfile(id);saveSettings();});
+document.querySelectorAll('[data-profile]').forEach(b=>b.onclick=()=>{const id=b.dataset.profile;if(id==='opal'||entityForBody(selection.spec.id)){modelSelect.value=id==='opal'?'opal':selection.robotModelId;modelSelect.dispatchEvent(new Event('change'));}changeProfile(id);saveSettings();});
 
 const modelSelect=document.querySelector('#model-select');
 // Build categories from the registry so new designs are added, not substituted.
@@ -152,12 +154,12 @@ function changeMood(mood){
  document.querySelector('#status').textContent='● '+document.querySelector(`[data-mood="${mood}"]`).textContent;
 }
 function changeProfile(id){
- const p=GEM_PROFILES.find(p=>p.id===id);selection.setProfile(id);ring.material.color.set(p.color);
- document.querySelector('#character-name').textContent=p.name;document.querySelector('#gem-name').textContent=p.gem+' / GEM SERIES';document.querySelector('#companion-bubble').hidden=true;
+ selection.setProfile(id);id=selection.profileId;const p=GEM_PROFILES.find(p=>p.id===id);ring.material.color.set(p.color);
+ stage.dataset.companionProfile=id;stage.dataset.identityKind=entityForBody(selection.spec.id)?'humanoid':'gem';document.querySelector('#character-name').textContent=p.name;document.querySelector('#gem-name').textContent=p.gem+' / GEM SERIES';document.querySelector('#companion-bubble').hidden=true;
  document.querySelector('#unit-name').textContent=p.name+' '+selection.spec.revision;document.documentElement.style.setProperty('--accent',p.color);
- document.querySelectorAll('[data-profile]').forEach(b=>b.classList.toggle('selected',b.dataset.profile===id));chatMood=null;chatUI?.refresh();
+ document.querySelectorAll('[data-profile]').forEach(b=>b.classList.toggle('selected',b.dataset.profile===id));gallery?.update();chatMood=null;chatUI?.refresh();
 }
-function snapshot(){return normalizePreferences({version:1,wardrobe,model:selection.spec.id,profile:selection.profileId,mood:selection.mood,
+function snapshot(){return normalizePreferences({version:1,wardrobe,model:selection.spec.id,profile:selection.profileId,robotProfile:selection.robotProfileId,robotModel:selection.robotModelId,identityPersonalities,mood:selection.mood,
  follow:document.querySelector('#follow').checked,animate:document.querySelector('#animate').checked,
  handSide:Number(handSide.value),gestures:handPoses,personalities,camera:{yaw:T.MathUtils.euclideanModulo(yaw+Math.PI,2*Math.PI)-Math.PI,pitch,distance}},preferenceOptions);}
 function saveSettings(){
@@ -166,13 +168,13 @@ function saveSettings(){
  },160);
 }
 function applyPreferences(state){
- grab.clear();grabVisual.reset(ruby);wardrobe=normalizeWardrobe(state.wardrobe);personalities={...state.personalities};ruby=selection.select(state.model);greeting.clear();reaction.clear();motion.clear();modelMenu.close();danceUntil=0;turning=false;
+ grab.clear();grabVisual.reset(ruby);wardrobe=normalizeWardrobe(state.wardrobe);personalities={...state.personalities};identityPersonalities={...state.identityPersonalities};selection.robotProfileId=state.robotProfile;selection.robotModelId=state.robotModel;ruby=selection.select(state.model);greeting.clear();reaction.clear();motion.clear();modelMenu.close();danceUntil=0;turning=false;
  handPoses={...state.gestures};handSide.value=String(state.handSide);changeMood(state.mood);changeProfile(state.profile);
  yaw=state.camera.yaw;pitch=state.camera.pitch;distance=state.camera.distance;angle.value=Math.round(yaw*180/Math.PI);
  document.querySelector('#follow').checked=state.follow;document.querySelector('#animate').checked=state.animate;
  applyHandPoses();updateModelUI();updateGestureUI();
 }
-modelSelect.onchange=e=>{grab.clear();grabVisual.reset(ruby);ruby=selection.select(e.target.value);greeting.clear();reaction.clear();motion.clear();modelMenu.close();danceUntil=0;applyHandPoses();updateModelUI();updateGestureUI();chatMood=null;chatUI?.refresh();saveSettings();};
+modelSelect.onchange=e=>{grab.clear();grabVisual.reset(ruby);ruby=selection.select(e.target.value);changeProfile(selection.profileId);greeting.clear();reaction.clear();motion.clear();modelMenu.close();danceUntil=0;applyHandPoses();updateModelUI();updateGestureUI();chatMood=null;chatUI?.refresh();saveSettings();};
 handSide.onchange=()=>{updateGestureUI();saveSettings();};
 handGesture.onchange=()=>{
  const side=Number(handSide.value);if(selection.setHandGesture(handGesture.value,side))handPoses[side===-1?'right':'left']=handGesture.value;
@@ -184,10 +186,11 @@ document.querySelector('#export-preferences').onclick=()=>{
  const blob=new Blob([JSON.stringify(snapshot(),null,2)+'\n'],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download='project-ruby-preferences.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
-gallery=mountCompanionGallery({models:CHARACTER_MODELS,select:modelSelect,onModel:id=>{modelSelect.value=id;modelSelect.dispatchEvent(new Event('change'));},getPersonality:()=>personalities[selection.spec.id],onPersonality:id=>{personalities[selection.spec.id]=id;gallery.update();chatUI?.refresh();say(persona().pat);saveSettings();}});
+gallery=mountCompanionGallery({models:CHARACTER_MODELS,select:modelSelect,onModel:id=>{modelSelect.value=id;modelSelect.dispatchEvent(new Event('change'));},getPersonality:()=>identityPersonalities[selection.profileId],onPersonality:id=>{identityPersonalities[selection.profileId]=id;gallery.update();chatUI?.refresh();say(persona().pat);saveSettings();}});
 applyPreferences(preferences);
 chatUI=mountCompanionChat({document,storage,onAttachmentHover:value=>{if(value&&selection.capabilities.wave)greeting.trigger(time);},getPreferences:snapshot,applyPreferences:value=>{applyPreferences(normalizePreferences(value,preferenceOptions));saveSettings();},identity:()=>({name:ruby.profile.name,body:selection.spec.name,personality:persona(),profile:selection.profileId,bodyId:selection.spec.id}),onExpression:mood=>{chatMood=mood;},onClose:async()=>{if(desktopHost)await nativeAction('chat_close');},onState:state=>{chatState=state;stage.dataset.chatState=state;},onOpen:async()=>{modelMenu.close();if(desktopHost)await nativeAction('chat_open');},onExpand:async()=>{if(floating)await nativeAction('lab');}});
-const studioPrisms=createStudioPrisms({document,storage});await studioPrisms.start();window.addEventListener('pagehide',event=>{if(!event.persisted)void studioPrisms.stopAll().catch(()=>{});},{once:true});
+const windowFrame=mountWindowFrame({document,window,host:desktopHost});window.addEventListener('pagehide',()=>windowFrame.dispose(),{once:true});
+const studioPrisms=createStudioPrisms({document,storage,workspaceSnapshot:()=>({name:ruby.profile.name,body:selection.spec.name,personality:persona().name,identityKind:entityForBody(selection.spec.id)?'humanoid':'gem'})});await studioPrisms.start();window.addEventListener('pagehide',event=>{if(!event.persisted)void studioPrisms.stopAll().catch(()=>{});},{once:true});
 mountLabShell({document,act:interactionAction,capabilities:()=>selection.capabilities});
 document.querySelector('#preference-status').textContent=loaded.available?'Preferences stay on this device.':'Saving is unavailable; controls still work. You can export preferences.';
 mountDesktopControls({host:desktopHost,document,

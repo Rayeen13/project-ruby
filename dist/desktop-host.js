@@ -3,6 +3,7 @@ export function createDesktopHost(tauri) {
  if(typeof tauri?.core?.invoke!=='function'||typeof tauri?.event?.listen!=='function')return null;
  const allowed=new Set(['float','lab','drag','click_through','hide','stop','toggle_pin','snap_left','snap_right','undock','peek','reveal','release','zoom_in','zoom_out','size_reset','chat_open','chat_close','size_small','size_medium','size_large','size_extra_large']);
  return Object.freeze({
+  window:action=>['status','minimize','maximize_toggle','fullscreen_toggle','fullscreen_exit','close'].includes(action)?tauri.core.invoke('studio_window_action',{action}):Promise.reject(new Error('Unsupported window action')),
   body:body=>tauri.core.invoke('desktop_body',{body}),
   status:()=>tauri.core.invoke('desktop_status'),
   move:(dx,dy)=>{

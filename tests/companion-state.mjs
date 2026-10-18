@@ -5,7 +5,7 @@ import {searchQuery,googleAiUrl,searchInternet,shouldSearch} from '../dist/inter
 import {voiceStyle} from '../dist/voice-provider.js';
 const values=new Map(),storage={getItem:k=>values.get(k),setItem:(k,v)=>values.set(k,v)};
 const state=new CompanionState(storage),base={name:'Ruby',profile:'ruby',bodyId:'gamer',body:'Gamer',personality:{id:'playful',name:'Playful',prompt:'Be playful.'}};
-assert.equal(state.identity(base).gender,'female');assert.equal(state.identity({...base,profile:'saph'}).gender,'male');assert.equal(state.identity({...base,bodyId:'chibi'}).age,8);
+assert.equal(state.identity(base).gender,'female');assert.equal(state.identity({...base,profile:'saph'}).gender,'male');assert.equal(state.identity({...base,bodyId:'chibi'}).age,24);
 state.observe('My name is Riyan');state.observe('Remember I like coding');state.observe('I feel stressed today');
 assert.equal(state.data.memories.length,2);assert.match(state.data.feeling,/stressed/);assert.equal(state.data.emotion,'listen');assert.equal(new CompanionState(storage).data.memories.length,2);
 state.data.remember=false;assert.deepEqual(state.identity(base).memories,[]);state.observe('Remember a hidden note');assert.equal(state.data.memories.length,2);

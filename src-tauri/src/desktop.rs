@@ -254,6 +254,7 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
                     .map_err(|e| e.to_string())?;
                 state.status.click_through = false;
                 if !state.status.floating {
+                    window.set_fullscreen(false).map_err(|e| e.to_string())?;
                     state.lab_bounds = Some((
                         window.outer_position().map_err(|e| e.to_string())?,
                         window.inner_size().map_err(|e| e.to_string())?,
@@ -289,7 +290,7 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
                 }
                 window.set_always_on_top(false).map_err(|e| e.to_string())?;
                 window.set_skip_taskbar(false).map_err(|e| e.to_string())?;
-                window.set_decorations(true).map_err(|e| e.to_string())?;
+                window.set_decorations(false).map_err(|e| e.to_string())?;
                 window.set_resizable(true).map_err(|e| e.to_string())?;
                 window
                     .set_min_size(Some(LogicalSize::new(640.0, 600.0)))
@@ -298,7 +299,7 @@ pub fn perform(app: &AppHandle, action: DesktopAction) -> Result<DesktopStatus, 
                     window.set_size(size).map_err(|e| e.to_string())?;
                     window.set_position(position).map_err(|e| e.to_string())?;
                 }
-                // Restoring client bounds after adding native chrome must still fit the monitor.
+                // Restored custom-frame bounds must still fit the monitor.
                 let area = work_area(&window)?;
                 let outer = window.outer_size().map_err(|e| e.to_string())?;
                 let inner = window.inner_size().map_err(|e| e.to_string())?;
@@ -614,4 +615,72 @@ pub fn desktop_body(window: WebviewWindow, body: String) -> Result<(), String> {
         position_float(&window, &mut state, true, true)?;
     }
     Ok(())
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StudioWindowAction {
+    Status,
+    Minimize,
+    MaximizeToggle,
+    FullscreenToggle,
+    FullscreenExit,
+    Close,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StudioWindowStatus {
+    fullscreen: bool,
+    maximized: bool,
+    decorated: bool,
+}
+
+#[tauri::command]
+pub fn studio_window_action(
+    window: WebviewWindow,
+    action: StudioWindowAction,
+) -> Result<StudioWindowStatus, String> {
+    if window.label() != "main" {
+        return Err("Only the studio can control its window".into());
+    }
+    let floating = {
+        let handle = window.state::<Mutex<DesktopState>>();
+        let state = handle.lock().map_err(|_| "Desktop state is unavailable")?;
+        state.status.floating
+    };
+    if floating
+        && !matches!(
+            action,
+            StudioWindowAction::Status | StudioWindowAction::Minimize | StudioWindowAction::Close
+        )
+    {
+        return Err("Open the studio before changing its window layout".into());
+    }
+    match action {
+        StudioWindowAction::Status => {}
+        StudioWindowAction::Minimize => window.minimize().map_err(|e| e.to_string())?,
+        StudioWindowAction::MaximizeToggle => {
+            if window.is_fullscreen().map_err(|e| e.to_string())? {
+                window.set_fullscreen(false).map_err(|e| e.to_string())?;
+            } else if window.is_maximized().map_err(|e| e.to_string())? {
+                window.unmaximize().map_err(|e| e.to_string())?;
+            } else {
+                window.maximize().map_err(|e| e.to_string())?;
+            }
+        }
+        StudioWindowAction::FullscreenToggle => {
+            let fullscreen = window.is_fullscreen().map_err(|e| e.to_string())?;
+            window.set_fullscreen(!fullscreen).map_err(|e| e.to_string())?;
+        }
+        StudioWindowAction::FullscreenExit => {
+            window.set_fullscreen(false).map_err(|e| e.to_string())?;
+        }
+        StudioWindowAction::Close => window.close().map_err(|e| e.to_string())?,
+    }
+    Ok(StudioWindowStatus {
+        fullscreen: window.is_fullscreen().map_err(|e| e.to_string())?,
+        maximized: window.is_maximized().map_err(|e| e.to_string())?,
+        decorated: window.is_decorated().map_err(|e| e.to_string())?,
+    })
 }

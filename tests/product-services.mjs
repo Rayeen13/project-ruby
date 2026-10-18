@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {UserProfileStore,parseUserProfile,USER_PROFILE_KEY} from '../dist/user-profile.js';
+import {bundledShopCatalogue} from '../dist/shop-catalogue.js';
+import {parseThemePrism,ThemePrismStore} from '../dist/theme-prisms.js';
+import {serializeThemePrism} from '../dist/theme-sharing.js';
+const data=new Map(),storage={getItem:key=>data.get(key),setItem:(key,value)=>data.set(key,value)};
+const profile=new UserProfileStore(storage);assert.equal(profile.read().displayName,'');profile.save({displayName:' Riyan ',bio:'A local profile.'});assert.equal(new UserProfileStore(storage).read().displayName,'Riyan');assert.deepEqual(parseUserProfile(profile.export()),profile.read());assert.equal(data.size,1);assert(data.has(USER_PROFILE_KEY));
+assert.throws(()=>parseUserProfile('x'.repeat(5000)),/4 KB/);assert.throws(()=>parseUserProfile('{"version":9}'),/Unsupported/);assert.throws(()=>parseUserProfile('{'),/JSON/);
+const broken=new UserProfileStore({getItem:()=>'{broken',setItem(){throw Error('quota');}});assert.throws(()=>broken.save({displayName:'Unsaved'}),/unchanged/);assert.equal(broken.read().displayName,'');
+const shop=await bundledShopCatalogue.list(),store=new ThemePrismStore(storage);assert.equal(shop.length,3);assert.equal(new Set(shop.map(item=>item.theme.id)).size,shop.length);assert.equal(store.list().length,0,'Browsing never installs');for(const item of shop){assert.equal(item.price,'Free');assert.deepEqual(parseThemePrism(serializeThemePrism(item.theme)),item.theme);}store.install(shop[0].theme);assert.equal(store.list().length,1);assert.equal(new ThemePrismStore(storage).list()[0].id,shop[0].theme.id);
+console.log('PASS: local profile persistence/export/validation/quota safety and real optional Shop manifests with explicit installation.');

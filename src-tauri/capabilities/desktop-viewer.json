@@ -28,6 +28,7 @@
     "allow-voice-pack-download",
     "allow-voice-synthesize",
     "allow-voice-stop",
-    "allow-desktop-body"
+    "allow-desktop-body",
+    "allow-studio-window-action"
   ]
 }

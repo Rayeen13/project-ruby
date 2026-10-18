@@ -1,3 +1,4 @@
+import {entityForBody,robotProfile,effectiveProfile} from './companion-identities.js';
 import {OpalCharacter} from './opal-character.js';
 import {characterCapabilities} from './character-capabilities.js';
 import {RubyCharacter} from './character.js';
@@ -16,9 +17,9 @@ export const CHARACTER_MODELS=Object.freeze([
  {id:'opal',name:'Opal · maid android',category:'Anime originals',revision:'006',capabilities:characterCapabilities({hands:true}),description:'Skinned VRoid anime maid with facial expressions, humanoid bones, articulated hands and four adapted outfits. Dry wit, warm intentions.',create:options=>new OpalCharacter(options)}
 ].map(spec=>Object.freeze({...spec,canWave:spec.capabilities.wave})));
 export class CharacterSelection {
- constructor(scene,options={}){this.scene=scene;this.options=options;this.cache=new Map();this.profileId='ruby';this.mood='idle';this.select('gamer');}
- select(id){const spec=CHARACTER_MODELS.find(m=>m.id===id);if(!spec)throw new Error('Unknown character model');if(this.active)this.scene.remove(this.active.root);if(!this.cache.has(id))this.cache.set(id,spec.create(this.options));this.active=this.cache.get(id);this.spec=spec;this.active.setProfile(this.profileId);this.active.setMood(this.mood);this.scene.add(this.active.root);return this.active;}
- setProfile(id){this.profileId=id;this.active.setProfile(id);}
+ constructor(scene,options={}){this.scene=scene;this.options=options;this.cache=new Map();this.profileId='ruby';this.robotProfileId='ruby';this.robotModelId='gamer';this.mood='idle';this.select('gamer');}
+ select(id){const spec=CHARACTER_MODELS.find(m=>m.id===id);if(!spec)throw new Error('Unknown character model');if(this.active)this.scene.remove(this.active.root);if(!this.cache.has(id))this.cache.set(id,spec.create(this.options));this.active=this.cache.get(id);this.spec=spec;if(!entityForBody(id))this.robotModelId=id;this.profileId=effectiveProfile(id,this.robotProfileId);this.active.setProfile(this.profileId);this.active.setMood(this.mood);this.scene.add(this.active.root);return this.active;}
+ setProfile(id){if(!entityForBody(this.spec.id))this.robotProfileId=robotProfile(id);this.profileId=effectiveProfile(this.spec.id,this.robotProfileId);this.active.setProfile(this.profileId);}
  setMood(mood){this.mood=mood;this.active.setMood(mood);}
  get capabilities(){return this.spec.capabilities;}
  setHandGesture(pose,side=-1){
