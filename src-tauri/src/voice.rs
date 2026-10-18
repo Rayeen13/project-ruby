@@ -822,7 +822,7 @@ pub fn shutdown(app: &AppHandle) {
     state.0.cancelled.store(true, Ordering::SeqCst);
     if let Ok(mut worker) = state.0.anime.lock() {
         worker.take();
-    }
+    };
 }
 
 async fn anime_smoke(app: AppHandle) -> Result<(), String> {
