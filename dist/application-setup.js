@@ -5,7 +5,7 @@ export const SETUP_PRESETS=Object.freeze([
  {id:'recommended',name:'Recommended',tag:'Ready to chat',detail:'Compact offline LLM + Kokoro voices. About 1,260 MB to download on Windows; installed files are reused.'},
  {id:'custom',name:'Custom',tag:'Your own combination',detail:'Choose an LLM engine, connect a model and select a matching VoiceM. You control what gets installed.'},
  {id:'pro',name:'Pro',tag:'Bring a stronger LLM',detail:'Connect your existing Ollama or LM Studio model, paired with Kokoro voices. Larger LLMs need more memory. No Ruby subscription.'},
- {id:'lite',name:'Lite',tag:'Keep it light',detail:'Compact offline LLM with text chat. Add voices later. About 944 MB on Windows.'}
+ {id:'lite',name:'Lite',tag:'Keep it light',detail:'Compact offline LLM with text chat. Add voices later. About 960 MB on Windows.'}
 ]);
 export function mountApplicationSetup({document,storage,tauri,state,identity,engines,engineSelect,modelSelect,connect,onBusy=()=>{},refreshVoice=()=>{}}){
  const el=id=>document.getElementById(id);let preset='recommended',busy=false,cancelled=false;
@@ -34,7 +34,7 @@ export function mountApplicationSetup({document,storage,tauri,state,identity,eng
    if(cancelled)return;
    if(preset!=='lite'){
     if(!tauri)throw new Error('LLM connected. Matched VoiceM requires the Windows app.');
-    status('Preparing selected VoiceM · verified installed files are reused…');const voiceStatus=await tauri.core.invoke('voice_pack_status',{pack:voicePackFor(identity())});if(cancelled)return;if(!voiceStatus.installed)await tauri.core.invoke('voice_pack_download',{pack:voicePackFor(identity()),acceptLicense:state.data.supertonicTerms});if(cancelled)return;
+    status('Preparing selected VoiceM · verified installed files are reused…');const voiceStatus=await tauri.core.invoke('voice_pack_status',{pack:voicePackFor(identity())});if(cancelled)return;if(!voiceStatus.installed)await tauri.core.invoke('voice_pack_download',{pack:voicePackFor(identity()),acceptLicense:voicePackFor(identity())==='irodori'?state.data.irodoriTerms:state.data.supertonicTerms});if(cancelled)return;
     if(['custom','pro'].includes(preset))state.data.voiceChoices[voiceChoiceKey(identity())]=chosenVoice;
    }
    if(cancelled)return;state.data.speak=preset!=='lite';state.save();el('voice-enabled').checked=state.data.speak;refreshVoice();

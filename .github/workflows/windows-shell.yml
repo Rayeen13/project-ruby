@@ -139,7 +139,7 @@ jobs:
           Copy-Item docs/licenses/REQWEST-MIT.txt desktop-artifact/
           Copy-Item docs/licenses/ZIP-MIT.txt desktop-artifact/
           Copy-Item docs/WINDOWS.md desktop-artifact/README.md
-          Copy-Item docs/HUMANOID_GESTURES.md,docs/PRISMY_STUDIO_BLUEPRINT.md desktop-artifact/
+          Copy-Item docs/HUMANOID_GESTURES.md,docs/PRISMY_STUDIO_BLUEPRINT.md,docs/VOICE_M_IRODORI.md,docs/OPAL_WARDROBE.md desktop-artifact/
           Copy-Item src-tauri/Cargo.lock desktop-artifact/
           Copy-Item ruby-native-smoke.txt desktop-artifact/
           Copy-Item ruby-native-*.wav,ruby-native-voice.txt desktop-artifact/

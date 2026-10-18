@@ -394,7 +394,16 @@ pub(super) fn synthesize(
         state.force_cpu.store(true, Ordering::SeqCst);
         drop(slot);
         return synthesize(
-            app, dir, state, text, voice, gender, pace, personality, emotion, robot,
+            app,
+            dir,
+            state,
+            text,
+            voice,
+            gender,
+            pace,
+            personality,
+            emotion,
+            robot,
         );
     }
     result
