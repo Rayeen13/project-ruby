@@ -256,7 +256,8 @@ fn compute_detail(gpu_runtime: bool, layers: u32) -> String {
     if layers > 0 {
         format!("Local AI ready · GPU/CPU hybrid · {layers} layers on GPU · 2 CPU threads.")
     } else if gpu_runtime {
-        "Local AI ready · CPU fallback · no layers offloaded. Check GPU drivers if unexpected.".into()
+        "Local AI ready · CPU fallback · no layers offloaded. Check GPU drivers if unexpected."
+            .into()
     } else {
         "Local AI ready · legacy CPU runtime. Stop AI, then Download / repair to enable GPU support.".into()
     }
@@ -312,8 +313,12 @@ async fn start(app: &AppHandle, directory: &Path) -> Result<String, String> {
             .port();
         let base = format!("http://127.0.0.1:{port}");
         publish(app, "starting", 0, 0, "Loading your local AI…");
-        let exe = executable(&directory.join(if gpu_runtime { "runtime-vulkan" } else { "runtime" }))
-            .ok_or("Local AI runtime is missing")?;
+        let exe = executable(&directory.join(if gpu_runtime {
+            "runtime-vulkan"
+        } else {
+            "runtime"
+        }))
+        .ok_or("Local AI runtime is missing")?;
         let log_path = directory.join(format!("server-{attempt}.log"));
         let log = File::create(&log_path).map_err(|error| error.to_string())?;
         let mut command = Command::new(exe);
@@ -581,4 +586,3 @@ mod tests {
         std::fs::remove_file(path).unwrap();
     }
 }
-
