@@ -326,6 +326,7 @@ pub(super) fn synthesize(
     let (base, seed) = profile(voice, gender)?;
     let mut slot = state.anime.lock().map_err(|_| "Voice worker unavailable")?;
     if slot.is_none() {
+        let _ = app.emit("ruby-voice-phase", "Loading anime VoiceM. First use can take longer.");
         if !verified(&dir.join(MODEL), MODEL_SHA)
             || !verified(&dir.join("speech-0810.zip"), RUNTIME_SHA)
         {
@@ -355,6 +356,7 @@ pub(super) fn synthesize(
                 .ok()
                 .is_some_and(|hash| verified(&anchor, hash.trim()));
             if !valid {
+                let _ = app.emit("ruby-voice-phase", "Creating a consistent character voice for first use…");
                 let pcm = worker.request(json!({"type":"synthesize","id":"anchor","text":"おかえりなさい。今日もあなたとお話しできて嬉しいです。ゆっくり過ごしましょう。","voice":"none","language":"ja","seed":seed,"steps":4,"instructions":base}), state)?;
                 let bytes = wav(&pcm)?;
                 let hash = format!("{:x}", sha2::Sha256::digest(&bytes));
@@ -367,6 +369,7 @@ pub(super) fn synthesize(
             )?;
             worker.voices.insert(voice.into());
         }
+        let _ = app.emit("ruby-voice-phase", "Synthesizing the next phrase…");
         let instructions = delivery(base, personality, emotion, robot);
         let marker = match emotion {
             "sigh" | "groan" | "groan heavily" => "😮‍💨",

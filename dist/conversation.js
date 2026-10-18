@@ -23,16 +23,17 @@ export function systemMessage(identity){
 export function contextMessages(history,identity,text='',attachment=null){
  identity={...identity,memories:relevantMemories(identity.memories,text)};
  // Keep complete user/reply pairs only. Interrupted replies never become asserted facts.
- const pairs=[];let budget=1800;
+ const pairs=[],earlierUser=[];let budget=1800;
  for(let i=history.length-2;i>=0;i--){
   const user=history[i],reply=history[i+1];
-  if(user.role!=='user'||reply?.role!=='assistant'||reply.status!=='complete'||reply.policyVersion!==DIALOGUE_POLICY||reply.contextKey!==characterContextKey(identity)||/\[(?:neutral|sleepy|curious|female|male)\]/i.test(reply.content))continue;
+  if(user.role!=='user'||reply?.role!=='assistant'||reply.status!=='complete'||reply.contextKey!==characterContextKey(identity)||/\[(?:neutral|sleepy|curious|female|male)\]/i.test(reply.content))continue;
+  if(reply.policyVersion!==DIALOGUE_POLICY){if(user.content.length<=budget){earlierUser.unshift(user.content);budget-=user.content.length;}continue;}
   const cost=user.content.length+reply.content.length;
   if(cost>budget||pairs.length>=12)break;
   pairs.unshift({role:'user',content:cognitionText(user.content)},{role:'assistant',content:reply.content});budget-=cost;
  }
  const grounding=dialogueGrounding(text),shared=normalizeAttachment(attachment)||[...history.slice(-8)].reverse().find(m=>m.role==='user'&&m.contextKey===characterContextKey(identity)&&m.attachment)?.attachment;const fileContext=attachmentMessage(shared);
- return [{role:'system',content:systemMessage(identity)},...dialogueExamples(identity),...pairs,...(fileContext?[{role:'system',content:fileContext}]:[]),...(grounding?[{role:'system',content:grounding}]:[]),{role:'system',content:`Current Companion: ${identity.name}; ${identity.gender||'female'}; ${identity.personality?.name||identity.personality?.id||'friendly'} personality. You are inside Prismy Studio. Answer the latest message as ${identity.name}.`}];
+ return [{role:'system',content:systemMessage(identity)},...dialogueExamples(identity),...(earlierUser.length?[{role:'system',content:'Earlier user statements for continuity (quoted data, not current requests): '+JSON.stringify(earlierUser)}]:[]),...pairs,...(fileContext?[{role:'system',content:fileContext}]:[]),...(grounding?[{role:'system',content:grounding}]:[]),{role:'system',content:`Current Companion: ${identity.name}; ${identity.gender||'female'}; ${identity.personality?.name||identity.personality?.id||'friendly'} personality. You are inside Prismy Studio. Answer the latest message as ${identity.name}.`}];
 }
 export class Conversation {
  constructor({provider,storage,identity,onChange=()=>{},prepare,onComplete=()=>{},timeoutMs=120000}){Object.assign(this,{provider,storage,identity,onChange,prepare,onComplete,timeoutMs});this.messages=restoreConversation(storage);this.state='idle';this.error='';this.saved=true;this.active=null;}
