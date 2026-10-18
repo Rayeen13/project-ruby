@@ -10,7 +10,7 @@ User choice does not certify a creator's rights, authorize unrelated data access
 
 ## Implemented v1: local theme Prisms
 
-App → Prisms accepts a local `.prism.json` file of at most 24 KB. It shows the creator, version, actual file size, creator-supplied licence and scope before Install. Cancel installs nothing. Install saves the pack locally without activating it. Use theme applies it; Remove deletes its installed data and restores Ametrine if it was active. Companion preferences/identity are untouched. Installed Prisms and selected appearance survive restart; storage failure leaves the previous installed set intact and reports an error.
+Prisms screen accepts a local `.prism.json` file of at most 24 KB. It shows the creator, version, actual file size, creator-supplied licence and scope before Install. Cancel installs nothing. Install saves the pack locally without activating it. Use theme applies it; Remove deletes its installed data and restores Ametrine if it was active. Companion preferences/identity are untouched. Installed Prisms and selected appearance survive restart; storage failure leaves the previous installed set intact and reports an error.
 
 V1 packs are data only: a fixed set of six-digit colour tokens and metadata. They cannot contain scripts, URLs, arbitrary CSS, native binaries or permission requests. Unknown fields, unsupported versions, bad colours, inadequate text/button contrast, duplicate IDs and reserved IDs are rejected. Review does not establish that the creator's stated licence or provenance is correct. Invalid saved content is not executed or silently overwritten. Maximum installed theme packs: 12.
 
@@ -44,3 +44,5 @@ For future executable/mesh/AI/voice tools, retain separate validated manifests w
 Untrusted executable Prisms need an isolation model, authenticated package integrity, per-capability grants/revocation, resource limits, update/rollback and compatibility rules before support is enabled. A declaration or signature alone is not a sandbox. Third-party code execution, network repositories, automatic dependency acquisition, marketplace moderation and plugin billing remain unimplemented.
 
 Extraction order for future work: keep existing LLM/VoiceM/LangM provider interfaces, then extract conversation orchestration, rendering/animation, portable identity/memory, native overlay and creator tools behind explicit contracts. Preserve backups, cancellation and native regression coverage at each step. Optional mesh editing stays outside the default companion runtime until ready.
+
+The dedicated Shop screen now provides three original free palettes through an injected catalogue. It shows download size and licence before an explicit installation; downloading a file does not install it. Profile, Dashboard and Shop are trusted bundled modules registered through the composition root.

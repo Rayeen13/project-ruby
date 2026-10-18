@@ -118,7 +118,7 @@ try {
             if (Test-Path ruby-native-smoke.txt) { Get-Content ruby-native-smoke.txt }
             throw 'Mesh carry did not move the actual native window'
           }
-        } elseif ($phase -in @('menu','float','dizzy','zoom_view','left','right','chat','chat_lab','setup','opal','languages','voice_library','workspace_ametrine','workspace_obsidian','workspace_sakura','workspace_cyberpunk','prism_review','prism_active','opal_classic','opal_rose','opal_evening','opal_work','opal_wave_0','opal_wave_1','opal_wave_2','dizzy_classic','dizzy_cyber','dizzy_chibi','dizzy_office','dizzy_gamer','dizzy_opal') -and $rubyHandle -ne [IntPtr]::Zero) {
+        } elseif ($phase -in @('menu','float','dizzy','zoom_view','left','right','chat','chat_lab','setup','opal','languages','voice_library','workspace_dashboard','workspace_profile','workspace_shop','workspace_fullscreen','workspace_ametrine','workspace_obsidian','workspace_sakura','workspace_cyberpunk','prism_review','prism_active','opal_classic','opal_rose','opal_evening','opal_work','opal_wave_0','opal_wave_1','opal_wave_2','dizzy_classic','dizzy_cyber','dizzy_chibi','dizzy_office','dizzy_gamer','dizzy_opal') -and $rubyHandle -ne [IntPtr]::Zero) {
           $bounds = New-Object RubyBounds+Rect
           if (-not [RubyBounds]::GetWindowRect($rubyHandle,[ref]$bounds)) { throw 'Cannot capture native window bounds' }
           $clientOrigin = New-Object RubyBounds+Point
@@ -127,7 +127,7 @@ try {
           [RubyBounds]::GetClientRect($rubyHandle,[ref]$clientBounds) | Out-Null
           $topInset = $clientOrigin.Y - $bounds.Top
           "${phase}: visible window ($($bounds.Left),$($bounds.Top)) $($bounds.Right-$bounds.Left)x$($bounds.Bottom-$bounds.Top), client top inset $topInset" | Tee-Object -FilePath ruby-native-frame.txt -Append
-          if ($phase -eq 'chat_lab' -and $topInset -lt 20) { throw 'Studio is missing its native Windows title bar' }
+          if ($phase -eq 'chat_lab' -and $topInset -gt 8) { throw 'Studio must use its custom frame without a native title bar' }
           if ($phase -eq 'float' -and $topInset -gt 2) { throw 'Floating Companion has an unwanted native title bar' }
           $screen = [System.Windows.Forms.Screen]::FromHandle($rubyHandle)
           if ($phase -in @('zoom_view','chat_lab') -and ($bounds.Left -lt $screen.WorkingArea.Left -or $bounds.Top -lt $screen.WorkingArea.Top -or $bounds.Right -gt $screen.WorkingArea.Right -or $bounds.Bottom -gt $screen.WorkingArea.Bottom)) { throw 'Zoomed canvas extends beyond usable screen' }

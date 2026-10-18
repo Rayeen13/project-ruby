@@ -14,6 +14,7 @@ fn main() {
             "local_ai_chat",
             "local_ai_cancel",
             "desktop_action",
+            "studio_window_action",
             "desktop_status",
             "desktop_move",
             "desktop_body",

@@ -212,14 +212,18 @@ pub async fn local_ai_chat(
         _ = cancel.notified() => Err("Reply stopped".to_string()),
         result = stream_reply(&window, &base, request_id, messages, model) => result,
     };
-    let mut active = state
-        .inner()
-        .0
-        .lock()
-        .map_err(|_| "AI state is unavailable")?;
-    if active.as_ref().is_some_and(|(id, _)| *id == request_id) {
-        *active = None;
+    {
+        let mut active = state
+            .inner()
+            .0
+            .lock()
+            .map_err(|_| "AI state is unavailable")?;
+        if active.as_ref().is_some_and(|(id, _)| *id == request_id) {
+            *active = None;
+        }
     }
+    // The UI immediately sends cancellation/cleanup after the completion event.
+    // Never hold AI state while notifying a window that may re-enter the host.
     if result.is_ok() {
         window
             .emit(

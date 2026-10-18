@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {mountWindowFrame} from '../dist/window-frame.js';
+const listeners=new Map(),nodes=new Map(),buttons=['minimize','maximize_toggle','fullscreen_toggle','close'].map(action=>({dataset:{windowAction:action},setAttribute(){}}));
+for(const key of ['studio-window-frame','window-status','window-maximize','window-drag','web-fullscreen'])nodes.set('#'+key,{hidden:true,textContent:'',setAttribute(){}});
+const window={addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
+const document={documentElement:{classList:{add(){}},dataset:{}},querySelector:key=>nodes.get(key),querySelectorAll:()=>buttons};
+const calls=[];let floating=true,fullscreen=false;
+const host={status:async()=>({floating}),action:async action=>{calls.push(action);floating=false;},window:async action=>{calls.push(action);if(action==='fullscreen_toggle')fullscreen=!fullscreen;if(action==='fullscreen_exit')fullscreen=false;return {fullscreen,maximized:false};}};
+const controller=mountWindowFrame({document,window,host});await new Promise(r=>setTimeout(r,0));assert.equal(nodes.get('#studio-window-frame').hidden,false);
+let prevented=false;listeners.get('keydown')({key:'F11',repeat:false,preventDefault(){prevented=true;}});await new Promise(r=>setTimeout(r,0));assert(prevented);assert(calls.includes('lab'));assert.equal(document.documentElement.dataset.fullscreen,'true');
+listeners.get('keydown')({key:'F11',repeat:true,preventDefault(){}});await new Promise(r=>setTimeout(r,0));assert.equal(calls.filter(a=>a==='fullscreen_toggle').length,1,'Held F11 does not repeatedly toggle');
+listeners.get('keydown')({key:'Escape',preventDefault(){}});await new Promise(r=>setTimeout(r,0));assert.equal(document.documentElement.dataset.fullscreen,'false');controller.dispose();assert.equal(listeners.size,0);
+let browserFullscreen=false;document.documentElement.requestFullscreen=async()=>{browserFullscreen=true;};const browser=mountWindowFrame({document,window,host:null});buttons.find(b=>b.dataset.windowAction==='fullscreen_toggle').onclick();await new Promise(r=>setTimeout(r,0));assert(browserFullscreen);browser.dispose();
+console.log('PASS: native F11/Escape, floating-to-studio transition, key repeat guard, listener cleanup and browser Fullscreen adapter.');

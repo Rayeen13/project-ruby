@@ -1,4 +1,4 @@
-## v0.4.9 — a clearer Prismy workspace
+## v0.5.0 — a clearer Prismy workspace
 
 A calmer ametrine-accented workspace with readable navigation, beginner setup/customize shortcuts, clearer model-selection status and eight saved appearances: Ametrine Jewel, Obsidian Indigo, Cyber-Slate, Alabaster Light, MeshForge Graphite, Ruby Crimson, Cyberpunk 3090 and Cozy Matcha. App → Workspace appearance changes the UI independently of your Companion, gem, personality and memory. Floating mode keeps its minimal presentation. See [workspace UX](docs/WORKSPACE_UX.md) for the four reviewed design references, implemented journeys and validation limits.
 
@@ -164,3 +164,14 @@ Windows v0.4.1: open **Conversation** from the tray or Studio, or right-click th
 The AI engine selector also connects to existing local Ollama, LM Studio, Colibri, vLLM and MoE-Infinity OpenAI-compatible servers. These optional connections do not install their frameworks or large models. The website remains a browser demo connecting to an already running local server, subject to browser local-network restrictions.
 
 See [docs/AI_ENGINES.md](docs/AI_ENGINES.md) for the runtime review, precise integration boundaries and setup. English, Japanese and Chinese VoiceM speech, local LangM and sourced internet search are implemented. Microphone input, full-duplex interruption and PC task execution remain future work.
+
+
+### v0.5.0 — product workspace alpha
+
+Dashboard, Profile, Prisms and Shop now have their own screens. Profiles are local device data with import/export; no cloud account is created. The Shop offers three original free theme packs with explicit review/install and portable downloads. Paid checkout, public uploads and creator payouts are not connected.
+
+The Windows Studio uses a custom title bar with drag, minimize, maximize/restore, close-to-tray and fullscreen controls. F11 toggles fullscreen; Escape exits. The browser offers a Fullscreen API button where supported. Floating mode remains Companion-only.
+
+Robot bodies are interchangeable shells for the active gem identity. Ruby stays Ruby across Gamer, Office and other robot bodies, including her saved personality and voice. Selecting Opal's humanoid body selects Opal herself: her maid character, own DDNA, voice defaults, colour and saved customizations. Gem selection returns to the last robot shell; Opal is not a robot-shell skin. Existing settings migrate without deleting memory or DDNA.
+
+See [product architecture and hosting](docs/PRODUCT_ARCHITECTURE.md).

@@ -4,6 +4,9 @@ Shared features must use the same domain contracts and UI modules on web and des
 
 | Feature | Website | Installed app |
 | --- | --- | --- |
+| Dashboard, local profile editing and profile backup | Shared | Shared |
+| Free-theme Shop discovery/review/install/download | Shared | Shared |
+| Fullscreen | Browser Fullscreen API button where supported; browser F11 | Custom-frame button; F11 and Escape |
 | Companion selection, outfits, animation and in-page interaction | Shared | Shared |
 | Workspace palettes; custom theme editor, import/export | Shared | Shared |
 | Theme Shop listing draft export | Shared; unpublished | Shared; unpublished |

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {normalizePreferences,loadPreferences,savePreferences,PREFERENCES_KEY} from '../dist/preferences.js';
 const options={models:['classic','cyber','chibi','office','gamer'],profiles:['ruby','saph','emme','amy'],moods:['idle','happy','listen','sleep'],gestures:['relaxed','open','point','grip','fist']};
 const defaults=normalizePreferences(null,options);
-const saved={...defaults,model:'office',profile:'emme',mood:'happy',animate:false,follow:false,handSide:-1,gestures:{right:'point',left:'fist'},camera:{yaw:1,pitch:.4,distance:6}};
+const saved=normalizePreferences({...defaults,model:'office',profile:'emme',mood:'happy',animate:false,follow:false,handSide:-1,gestures:{right:'point',left:'fist'},camera:{yaw:1,pitch:.4,distance:6}},options);
 const map=new Map(),storage={getItem:key=>map.get(key),setItem:(key,value)=>map.set(key,value)};
 assert(savePreferences(storage,saved,options));assert.deepEqual(loadPreferences(storage,options).state,saved);
 assert.deepEqual(normalizePreferences(JSON.parse(JSON.stringify(saved)),options),saved);

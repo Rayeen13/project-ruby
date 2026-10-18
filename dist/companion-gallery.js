@@ -26,7 +26,7 @@ export function mountCompanionGallery({models,select,onModel,onPersonality,getPe
   for(const button of filters.children){button.classList.toggle('active',button.dataset.category===filter);button.setAttribute('aria-pressed',String(button.dataset.category===filter));}
   const count=[...gallery.children].filter(c=>!c.hidden).length;const counter=document.querySelector('#model-count');if(counter)counter.textContent=count+' Companion'+(count===1?'':'s');const empty=document.querySelector('#model-empty');if(empty)empty.hidden=count>0;if(clear)clear.hidden=!query&&filter==='All';
   const p=personalityFor(getPersonality());persona.value=p.id;document.querySelector('#personality-tag').textContent=p.tag;
-  document.querySelector('#personality-description').textContent=p.name+' reactions and idle rhythm. Saved separately for each body.';
+  document.querySelector('#personality-description').textContent=p.name+' reactions and idle rhythm. Saved for this Companion identity, across robot shells. Humanoid characters keep their own identity.';
  }
  update();return {update};
 }
