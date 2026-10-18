@@ -2,7 +2,7 @@ import {applyPrismTokens,themeIdForPrism} from './theme-prisms.js';
 export const APPEARANCE_KEY='project-ruby.studio-appearance.v1';
 export const STUDIO_THEMES=Object.freeze([
  {id:'ametrine',name:'Ametrine Jewel',description:'Prismy’s signature violet and citrine-gold workspace.'},
- {id:'ametrine',name:'Obsidian Indigo',description:'A calm, matte workspace with indigo accents.'},
+ {id:'obsidian',name:'Obsidian Indigo',description:'A calm, matte workspace with indigo accents.'},
  {id:'slate',name:'Cyber-Slate',description:'A clean developer workspace with blue accents.'},
  {id:'sakura',name:'Alabaster Light',description:'A bright, matte workspace with soft violet accents.'},
  {id:'graphite',name:'MeshForge Graphite',description:'A graphite workspace with warm orange accents. Mesh editing is not included.'},
