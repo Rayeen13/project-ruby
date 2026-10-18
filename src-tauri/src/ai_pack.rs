@@ -13,6 +13,7 @@ use tokio::sync::Notify;
 const MODEL: &str = "qwen2.5-1.5b-instruct-q3_k_m.gguf";
 const MODEL_SHA: &str = "58cb5c05ecef48e82961f1a2be6544145ea26136f69dddda4bbbd092f0e4b993";
 const RUNTIME_SHA: &str = "301943380e45deae3991d42dddd03fae65c6a4963a5d882328a60208b43aa9e0";
+const VULKAN_SHA: &str = "021001e2b7a60aab1d23b301edb2f076e8a5136d8d29686d0d95341342088714";
 const TEMPLATE_SHA: &str = "cd8e9439f0570856fd70470bf8889ebd8b5d1107207f67a5efb46e342330527f";
 
 #[derive(Clone, Serialize)]
@@ -168,10 +169,10 @@ async fn prepare(app: &AppHandle, directory: &Path, fetch: bool) -> Result<(), S
         .build()
         .map_err(|error| error.to_string())?;
     let model = directory.join(MODEL);
-    let archive = directory.join("llama-b11433.zip");
+    let gpu_archive = directory.join("llama-b11433-vulkan.zip");
     if fetch {
         download(app, &client, &format!("https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/91cad51170dc346986eccefdc2dd33a9da36ead9/{MODEL}"), &model, Some(MODEL_SHA), 1_000_000_000).await?;
-        download(app, &client, "https://github.com/ggml-org/llama.cpp/releases/download/b11433/llama-b11433-bin-win-cpu-x64.zip", &archive, Some(RUNTIME_SHA), 25_000_000).await?;
+        download(app, &client, "https://github.com/ggml-org/llama.cpp/releases/download/b11433/llama-b11433-bin-win-vulkan-x64.zip", &gpu_archive, Some(VULKAN_SHA), 40_000_000).await?;
         let upstream = "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/989aa7980e4cf806f80c7fef2b1adb7bc71aa306";
         for (name, url) in [
             ("Qwen-LICENSE", format!("{upstream}/LICENSE")),
@@ -194,7 +195,17 @@ async fn prepare(app: &AppHandle, directory: &Path, fetch: bool) -> Result<(), S
         0,
         "Verifying model, runtime and publisher template…",
     );
-    if !checksum(&model, MODEL_SHA)? || !checksum(&archive, RUNTIME_SHA)? {
+    let gpu = checksum(&gpu_archive, VULKAN_SHA)?;
+    // Existing CPU installations remain usable offline until Download / repair
+    // explicitly upgrades the runtime. Keep the model and both caches intact.
+    let archive = if gpu {
+        gpu_archive
+    } else {
+        directory.join("llama-b11433.zip")
+    };
+    if !checksum(&model, MODEL_SHA)?
+        || !checksum(&archive, if gpu { VULKAN_SHA } else { RUNTIME_SHA })?
+    {
         return Err("Verified AI files are missing or corrupt. Choose Download / repair.".into());
     }
     let config: serde_json::Value = serde_json::from_slice(
@@ -223,11 +234,32 @@ async fn prepare(app: &AppHandle, directory: &Path, fetch: bool) -> Result<(), S
         }
     }
     // Always restore executable bytes from the verified archive before starting.
-    zip.extract(directory.join("runtime"))
+    zip.extract(directory.join(if gpu { "runtime-vulkan" } else { "runtime" }))
         .map_err(|error| error.to_string())?;
     fs::write(directory.join("installed"), b"qwen-1.5b-b11433-v2")
         .map_err(|error| error.to_string())?;
     Ok(())
+}
+
+fn offloaded_layers(log: &str) -> u32 {
+    log.lines()
+        .rev()
+        .find_map(|line| {
+            let rest = line.split_once("offloaded ")?.1;
+            let (count, _) = rest.split_once('/')?;
+            count.trim().parse().ok()
+        })
+        .unwrap_or(0)
+}
+
+fn compute_detail(gpu_runtime: bool, layers: u32) -> String {
+    if layers > 0 {
+        format!("Local AI ready · GPU/CPU hybrid · {layers} layers on GPU · 2 CPU threads.")
+    } else if gpu_runtime {
+        "Local AI ready · CPU fallback · no layers offloaded. Check GPU drivers if unexpected.".into()
+    } else {
+        "Local AI ready · legacy CPU runtime. Stop AI, then Download / repair to enable GPU support.".into()
+    }
 }
 
 fn executable(directory: &Path) -> Option<PathBuf> {
@@ -263,14 +295,16 @@ pub fn active_port(app: &AppHandle) -> Result<Option<u16>, String> {
     Ok(inner.port)
 }
 
-async fn start(app: &AppHandle, directory: &Path) -> Result<(), String> {
+async fn start(app: &AppHandle, directory: &Path) -> Result<String, String> {
     let client = reqwest::Client::builder()
         .no_proxy()
         .redirect(reqwest::redirect::Policy::none())
         .timeout(Duration::from_secs(2))
         .build()
         .map_err(|error| error.to_string())?;
-    for attempt in 0..3 {
+    let gpu_runtime = checksum(&directory.join("llama-b11433-vulkan.zip"), VULKAN_SHA)?;
+    let mut cpu_fallback = false;
+    for attempt in 0..4 {
         let listener = available_listener(if attempt == 0 { 8081 } else { 0 })?;
         let port = listener
             .local_addr()
@@ -278,8 +312,10 @@ async fn start(app: &AppHandle, directory: &Path) -> Result<(), String> {
             .port();
         let base = format!("http://127.0.0.1:{port}");
         publish(app, "starting", 0, 0, "Loading your local AI…");
-        let exe = executable(&directory.join("runtime")).ok_or("CPU runtime is missing")?;
-        let log = File::create(directory.join("server.log")).map_err(|error| error.to_string())?;
+        let exe = executable(&directory.join(if gpu_runtime { "runtime-vulkan" } else { "runtime" }))
+            .ok_or("Local AI runtime is missing")?;
+        let log_path = directory.join(format!("server-{attempt}.log"));
+        let log = File::create(&log_path).map_err(|error| error.to_string())?;
         let mut command = Command::new(exe);
         command
             .arg("-m")
@@ -290,7 +326,15 @@ async fn start(app: &AppHandle, directory: &Path) -> Result<(), String> {
                 "-t",
                 "2",
                 "-ngl",
-                "0",
+                if gpu_runtime && !cpu_fallback {
+                    "16"
+                } else {
+                    "0"
+                },
+                "-b",
+                "128",
+                "-ub",
+                "64",
                 "--parallel",
                 "1",
                 "--host",
@@ -306,6 +350,9 @@ async fn start(app: &AppHandle, directory: &Path) -> Result<(), String> {
             .stdin(Stdio::null())
             .stdout(log.try_clone().map_err(|error| error.to_string())?)
             .stderr(log);
+        if cpu_fallback {
+            command.args(["--device", "none"]);
+        }
         #[cfg(windows)]
         {
             use std::os::windows::process::CommandExt;
@@ -324,7 +371,7 @@ async fn start(app: &AppHandle, directory: &Path) -> Result<(), String> {
             inner.port = Some(port);
             inner.status.endpoint = Some(base.clone());
         }
-        let mut retry_port = false;
+        let mut retry = false;
         for _ in 0..150 {
             {
                 let state = app.state::<PackState>();
@@ -344,11 +391,16 @@ async fn start(app: &AppHandle, directory: &Path) -> Result<(), String> {
                     inner.port = None;
                     inner.status.endpoint = None;
                     if TcpListener::bind(("127.0.0.1", port)).is_err() {
-                        retry_port = true;
+                        retry = true;
+                        break;
+                    }
+                    if gpu_runtime && !cpu_fallback {
+                        cpu_fallback = true;
+                        retry = true;
                         break;
                     }
                     return Err(
-                        "Local AI exited while loading. Choose Download / repair or try another CPU."
+                        "Local AI exited while loading. Choose Download / repair and check the startup log."
                             .into(),
                     );
                 }
@@ -371,16 +423,17 @@ async fn start(app: &AppHandle, directory: &Path) -> Result<(), String> {
                     .as_mut()
                     .is_some_and(|child| matches!(child.try_wait(), Ok(None)))
                 {
-                    return Ok(());
+                    let log = fs::read_to_string(&log_path).unwrap_or_default();
+                    return Ok(compute_detail(gpu_runtime, offloaded_layers(&log)));
                 }
             }
             tokio::time::sleep(Duration::from_millis(200)).await;
         }
-        if !retry_port {
+        if !retry {
             return Err("Local AI startup timed out".into());
         }
     }
-    Err("Local AI could not reserve a port after three attempts. Please try Start AI again.".into())
+    Err("Local AI startup retries were exhausted. Please try Start AI again.".into())
 }
 
 pub fn shutdown(app: &AppHandle) {
@@ -406,7 +459,8 @@ pub fn ai_pack_status(app: AppHandle, state: State<'_, PackState>) -> Result<Pac
     let directory = root(&app)?;
     inner.status.installed = directory.join("installed").is_file()
         || (directory.join(MODEL).is_file()
-            && directory.join("llama-b11433.zip").is_file()
+            && (directory.join("llama-b11433.zip").is_file()
+                || directory.join("llama-b11433-vulkan.zip").is_file())
             && directory.join("tokenizer_config.json").is_file());
     if inner.status.phase == "missing" && inner.status.installed {
         inner.status.phase = "stopped".into();
@@ -457,19 +511,13 @@ pub async fn ai_pack_run(
         } => result,
     };
     match &result {
-        Ok(()) => publish(
-            &app,
-            "ready",
-            0,
-            0,
-            "Local AI is ready. Your conversations can work offline.",
-        ),
+        Ok(detail) => publish(&app, "ready", 0, 0, detail),
         Err(error) => {
             shutdown(&app);
             publish(&app, "error", 0, 0, error);
         }
     }
-    result
+    result.map(|_| ())
 }
 
 #[tauri::command]
@@ -487,7 +535,23 @@ pub fn ai_pack_stop(app: AppHandle) {
 
 #[cfg(test)]
 mod tests {
-    use super::{available_listener, checksum};
+    use super::{available_listener, checksum, compute_detail, offloaded_layers};
+
+    #[test]
+    fn acceleration_status_uses_actual_offload_log_not_requested_layers() {
+        assert_eq!(
+            offloaded_layers("load_tensors: offloaded 16/29 layers to GPU"),
+            16
+        );
+        assert_eq!(
+            offloaded_layers("load_tensors: offloaded 0/29 layers to GPU"),
+            0
+        );
+        assert_eq!(offloaded_layers("no usable GPU found"), 0);
+        assert!(compute_detail(true, 0).contains("CPU fallback"));
+        assert!(compute_detail(true, 16).contains("16 layers on GPU"));
+        assert!(compute_detail(false, 0).contains("Download / repair"));
+    }
 
     #[test]
     fn occupied_ports_are_skipped_without_touching_the_listener() {
@@ -517,3 +581,4 @@ mod tests {
         std::fs::remove_file(path).unwrap();
     }
 }
+
