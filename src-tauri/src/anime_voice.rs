@@ -1,6 +1,7 @@
 use super::{find_file, verified, Inner};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use serde_json::{json, Value};
+use sha2::Digest;
 use std::collections::HashSet;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Read, Write};
@@ -14,8 +15,7 @@ use tauri::{AppHandle, Emitter};
 pub(super) const MODEL: &str = "Irodori-TTS-866M-MF-v4.1-Q4_K.gguf";
 pub(super) const MODEL_SHA: &str =
     "1913bf74000a3300c703eb91c985a4e5c4d7a2bbeb0cc7fe07d1583c4fea9729";
-const RUNTIME_SHA: &str =
-    "2904dd54de7f18cf438338c28216ebffc205d29c6a2de3e645af40dd136b92f2";
+const RUNTIME_SHA: &str = "2904dd54de7f18cf438338c28216ebffc205d29c6a2de3e645af40dd136b92f2";
 const MODEL_BASE: &str = "https://huggingface.co/sakasegawa/Irodori-TTS-v4.1-Small-MF-GGUF/resolve/205ab071cb54e46509a84d3a48535df283bc3b0f";
 
 pub(super) fn installed(dir: &Path) -> bool {
@@ -25,6 +25,7 @@ pub(super) fn installed(dir: &Path) -> bool {
 }
 
 pub(super) async fn install(app: &AppHandle, dir: &Path, state: &Inner) -> Result<(), String> {
+    state.force_cpu.store(false, Ordering::SeqCst);
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(1800))
         .build()
@@ -52,12 +53,19 @@ pub(super) async fn install(app: &AppHandle, dir: &Path, state: &Inner) -> Resul
             return Err("Unsafe or oversized speech runtime archive".into());
         }
     }
-    zip.extract(dir.join("runtime")).map_err(|e| e.to_string())?;
+    zip.extract(dir.join("runtime"))
+        .map_err(|e| e.to_string())?;
     for name in ["LICENSE-MIT", "LICENSE-APACHE-2.0"] {
         super::download_limited(
-            app, &client, &format!("{MODEL_BASE}/{name}"), &dir.join(name),
-            None, state, 100_000,
-        ).await?;
+            app,
+            &client,
+            &format!("{MODEL_BASE}/{name}"),
+            &dir.join(name),
+            None,
+            state,
+            100_000,
+        )
+        .await?;
     }
     super::download_limited(
         app, &client,
@@ -95,14 +103,21 @@ pub(super) fn delivery(base: &str, personality: &str, emotion: &str, robot: bool
     };
     let feeling = match emotion {
         "happy" | "excited" => "嬉しそうに。",
-        "softly" | "whisper" => "小さな柔らかい声で。",
+        "softly" | "whisper" | "listen" => "小さな柔らかい声で。",
         "sad" | "sigh" | "groan" | "groan heavily" => "少し疲れたように。",
         "sarcastic" => "軽くからかうように。",
         "chuckle" | "laugh" => "笑いを含んだ声で。",
         "gasp" => "驚いたように。",
         _ => "",
     };
-    format!("{base}{acting}{feeling}{}", if robot { "優しいロボットのキャラクター。" } else { "" })
+    format!(
+        "{base}{acting}{feeling}{}",
+        if robot {
+            "優しいロボットのキャラクター。"
+        } else {
+            ""
+        }
+    )
 }
 
 pub(super) struct Worker {
@@ -121,18 +136,33 @@ impl Drop for Worker {
 }
 
 impl Worker {
-    pub(super) fn process_id(&self) -> u32 { self.child.id() }
+    pub(super) fn process_id(&self) -> u32 {
+        self.child.id()
+    }
     fn launch(dir: &Path, device: &str, state: &Inner) -> Result<Self, String> {
         let exe = find_file(&dir.join("runtime"), "speech.exe")
             .ok_or("Download the anime VoiceM collection first")?;
-        let log = File::create(dir.join(format!("worker-{device}.log")))
-            .map_err(|e| e.to_string())?;
+        let log =
+            File::create(dir.join(format!("worker-{device}.log"))).map_err(|e| e.to_string())?;
         let mut command = Command::new(&exe);
-        command.current_dir(exe.parent().unwrap())
-            .arg("worker").arg(dir.join(MODEL))
-            .args(["--device", device, "--threads", "2", "--voice", "none", "--steps", "4"])
+        command
+            .current_dir(exe.parent().unwrap())
+            .arg("worker")
+            .arg(dir.join(MODEL))
+            .args([
+                "--device",
+                device,
+                "--threads",
+                "2",
+                "--voice",
+                "none",
+                "--steps",
+                "4",
+            ])
             .env("SPEECH_NO_UPDATE_CHECK", "1")
-            .stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(log);
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(log);
         #[cfg(windows)]
         {
             use std::os::windows::process::CommandExt;
@@ -140,7 +170,10 @@ impl Worker {
         }
         let mut child = command.spawn().map_err(|e| e.to_string())?;
         let input = child.stdin.take().ok_or("Voice worker stdin unavailable")?;
-        let output = child.stdout.take().ok_or("Voice worker stdout unavailable")?;
+        let output = child
+            .stdout
+            .take()
+            .ok_or("Voice worker stdout unavailable")?;
         let (sender, events) = sync_channel(8);
         std::thread::spawn(move || {
             let mut reader = BufReader::new(output);
@@ -155,22 +188,42 @@ impl Worker {
                     _ => Err("Voice worker protocol limit exceeded".into()),
                 };
                 let failed = event.is_err();
-                if sender.send(event).is_err() || failed { break; }
+                if sender.send(event).is_err() || failed {
+                    break;
+                }
             }
         });
-        let mut worker = Self { child, input, events, voices: HashSet::new(), device: String::new() };
+        let mut worker = Self {
+            child,
+            input,
+            events,
+            voices: HashSet::new(),
+            device: String::new(),
+        };
         let ready = worker.next(state, Instant::now() + Duration::from_secs(120))?;
-        if ready["type"] != "ready" || ready["protocol"] != 3 || ready["model"]["sample_rate"] != 48000 {
-            return Err("Anime VoiceM failed its worker contract. Try repair or a CPU fallback.".into());
+        if ready["type"] != "ready"
+            || ready["protocol"] != 3
+            || ready["model"]["sample_rate"] != 48000
+        {
+            return Err(
+                "Anime VoiceM failed its worker contract. Try repair or a CPU fallback.".into(),
+            );
         }
-        worker.device = ready["model"]["device"].as_str().unwrap_or("unknown").to_owned();
+        worker.device = ready["model"]["device"]
+            .as_str()
+            .unwrap_or("unknown")
+            .to_owned();
         Ok(worker)
     }
 
     fn next(&mut self, state: &Inner, deadline: Instant) -> Result<Value, String> {
         loop {
-            if state.cancelled.load(Ordering::SeqCst) { return Err("Voice stopped".into()); }
-            if Instant::now() > deadline { return Err("Anime VoiceM timed out".into()); }
+            if state.cancelled.load(Ordering::SeqCst) {
+                return Err("Voice stopped".into());
+            }
+            if Instant::now() > deadline {
+                return Err("Anime VoiceM timed out".into());
+            }
             match self.events.recv_timeout(Duration::from_millis(30)) {
                 Ok(value) => return value,
                 Err(RecvTimeoutError::Timeout) => continue,
@@ -181,7 +234,10 @@ impl Worker {
 
     fn send(&mut self, value: &Value) -> Result<(), String> {
         serde_json::to_writer(&mut self.input, value).map_err(|e| e.to_string())?;
-        self.input.write_all(b"\n").and_then(|_| self.input.flush()).map_err(|e| e.to_string())
+        self.input
+            .write_all(b"\n")
+            .and_then(|_| self.input.flush())
+            .map_err(|e| e.to_string())
     }
 
     fn request(&mut self, value: Value, state: &Inner) -> Result<Vec<u8>, String> {
@@ -191,26 +247,43 @@ impl Worker {
         let mut sequence = 0;
         loop {
             let event = self.next(state, deadline)?;
-            if event["id"] != value["id"] { return Err("Unexpected voice worker event".into()); }
+            if event["id"] != value["id"] {
+                return Err("Unexpected voice worker event".into());
+            }
             match event["type"].as_str() {
-                Some("progress") => {},
+                Some("progress") => {}
                 Some("chunk") => {
-                    if event["seq"].as_u64() != Some(sequence) { return Err("Out-of-order voice audio".into()); }
+                    if event["seq"].as_u64() != Some(sequence) {
+                        return Err("Out-of-order voice audio".into());
+                    }
                     sequence += 1;
-                    let chunk = STANDARD.decode(event["pcm"].as_str().ok_or("Voice PCM missing")?)
+                    let chunk = STANDARD
+                        .decode(event["pcm"].as_str().ok_or("Voice PCM missing")?)
                         .map_err(|_| "Invalid voice PCM")?;
                     if chunk.len() % 2 != 0 || pcm.len() + chunk.len() > 12_000_000 {
                         return Err("Voice output exceeded its audio limit".into());
                     }
                     pcm.extend(chunk);
-                },
+                }
                 Some("end") => {
                     if value["type"] == "synthesize"
-                        && (event["stop"] != "complete" || event["samples"].as_u64() != Some(pcm.len() as u64 / 2))
-                    { return Err("Voice ended before the complete phrase. Try a shorter line.".into()); }
+                        && (event["stop"] != "complete"
+                            || event["samples"].as_u64() != Some(pcm.len() as u64 / 2))
+                    {
+                        return Err(
+                            "Voice ended before the complete phrase. Try a shorter line.".into(),
+                        );
+                    }
                     return Ok(pcm);
-                },
-                _ => return Err(format!("Anime VoiceM: {}", event["error"]["message"].as_str().unwrap_or("request failed"))),
+                }
+                _ => {
+                    return Err(format!(
+                        "Anime VoiceM: {}",
+                        event["error"]["message"]
+                            .as_str()
+                            .unwrap_or("request failed")
+                    ))
+                }
             }
         }
     }
@@ -222,26 +295,51 @@ pub(super) fn wav(pcm: &[u8]) -> Result<Vec<u8>, String> {
     }
     let size = pcm.len() as u32;
     let mut bytes = Vec::with_capacity(pcm.len() + 44);
-    bytes.extend(b"RIFF"); bytes.extend((size + 36).to_le_bytes()); bytes.extend(b"WAVEfmt ");
-    bytes.extend(16u32.to_le_bytes()); bytes.extend(1u16.to_le_bytes()); bytes.extend(1u16.to_le_bytes());
-    bytes.extend(48000u32.to_le_bytes()); bytes.extend(96000u32.to_le_bytes());
-    bytes.extend(2u16.to_le_bytes()); bytes.extend(16u16.to_le_bytes()); bytes.extend(b"data");
-    bytes.extend(size.to_le_bytes()); bytes.extend(pcm);
+    bytes.extend(b"RIFF");
+    bytes.extend((size + 36).to_le_bytes());
+    bytes.extend(b"WAVEfmt ");
+    bytes.extend(16u32.to_le_bytes());
+    bytes.extend(1u16.to_le_bytes());
+    bytes.extend(1u16.to_le_bytes());
+    bytes.extend(48000u32.to_le_bytes());
+    bytes.extend(96000u32.to_le_bytes());
+    bytes.extend(2u16.to_le_bytes());
+    bytes.extend(16u16.to_le_bytes());
+    bytes.extend(b"data");
+    bytes.extend(size.to_le_bytes());
+    bytes.extend(pcm);
     Ok(bytes)
 }
 
 pub(super) fn synthesize(
-    app: &AppHandle, dir: &Path, state: &Inner, text: &str,
-    voice: &str, gender: &str, pace: f64, personality: &str, emotion: &str, robot: bool,
+    app: &AppHandle,
+    dir: &Path,
+    state: &Inner,
+    text: &str,
+    voice: &str,
+    gender: &str,
+    pace: f64,
+    personality: &str,
+    emotion: &str,
+    robot: bool,
 ) -> Result<Vec<u8>, String> {
     let (base, seed) = profile(voice, gender)?;
     let mut slot = state.anime.lock().map_err(|_| "Voice worker unavailable")?;
     if slot.is_none() {
         if !verified(&dir.join(MODEL), MODEL_SHA)
             || !verified(&dir.join("speech-0810.zip"), RUNTIME_SHA)
-        { return Err("Anime VoiceM verification failed. Download / repair this pack.".into()); }
-        *slot = Some(Worker::launch(dir, "auto", state).or_else(|error| {
-            if state.cancelled.load(Ordering::SeqCst) { return Err(error); }
+        {
+            return Err("Anime VoiceM verification failed. Download / repair this pack.".into());
+        }
+        let device = if state.force_cpu.load(Ordering::SeqCst) {
+            "cpu"
+        } else {
+            "auto"
+        };
+        *slot = Some(Worker::launch(dir, device, state).or_else(|error| {
+            if state.cancelled.load(Ordering::SeqCst) {
+                return Err(error);
+            }
             Worker::launch(dir, "cpu", state)
         })?);
     }
@@ -249,13 +347,24 @@ pub(super) fn synthesize(
         let worker = slot.as_mut().unwrap();
         let _ = app.emit("ruby-voice-device", &worker.device);
         if !worker.voices.contains(voice) {
-            let folder = dir.join("voices"); fs::create_dir_all(&folder).map_err(|e| e.to_string())?;
+            let folder = dir.join("voices");
+            fs::create_dir_all(&folder).map_err(|e| e.to_string())?;
             let anchor = folder.join(format!("{voice}-v1.wav"));
-            if !anchor.is_file() {
+            let hash_path = folder.join(format!("{voice}-v1.sha256"));
+            let valid = fs::read_to_string(&hash_path)
+                .ok()
+                .is_some_and(|hash| verified(&anchor, hash.trim()));
+            if !valid {
                 let pcm = worker.request(json!({"type":"synthesize","id":"anchor","text":"おかえりなさい。今日もあなたとお話しできて嬉しいです。ゆっくり過ごしましょう。","voice":"none","language":"ja","seed":seed,"steps":4,"instructions":base}), state)?;
-                fs::write(&anchor, wav(&pcm)?).map_err(|e| e.to_string())?;
+                let bytes = wav(&pcm)?;
+                let hash = format!("{:x}", sha2::Sha256::digest(&bytes));
+                fs::write(&anchor, bytes).map_err(|e| e.to_string())?;
+                fs::write(&hash_path, hash).map_err(|e| e.to_string())?;
             }
-            worker.request(json!({"type":"add_voice","id":"add","name":voice,"path":anchor}), state)?;
+            worker.request(
+                json!({"type":"add_voice","id":"add","name":voice,"path":anchor}),
+                state,
+            )?;
             worker.voices.insert(voice.into());
         }
         let instructions = delivery(base, personality, emotion, robot);
@@ -269,7 +378,25 @@ pub(super) fn synthesize(
         let pcm = worker.request(json!({"type":"synthesize","id":"line","text":spoken,"voice":voice,"language":"ja","seed":seed,"steps":4,"speed":pace,"instructions":instructions}), state)?;
         wav(&pcm)
     })();
-    if result.is_err() { slot.take(); }
+    let retry_cpu = result.as_ref().err().is_some_and(|error| {
+        let message = error.to_lowercase();
+        !state.cancelled.load(Ordering::SeqCst)
+            && !state.force_cpu.load(Ordering::SeqCst)
+            && slot.as_ref().is_some_and(|worker| worker.device != "CPU")
+            && ["out of memory", "allocation", "device lost", "vk_error"]
+                .iter()
+                .any(|term| message.contains(term))
+    });
+    if result.is_err() {
+        slot.take();
+    }
+    if retry_cpu {
+        state.force_cpu.store(true, Ordering::SeqCst);
+        drop(slot);
+        return synthesize(
+            app, dir, state, text, voice, gender, pace, personality, emotion, robot,
+        );
+    }
     result
 }
 
@@ -281,13 +408,19 @@ mod tests {
         assert!(profile("anime_f_witty", "female").is_ok());
         assert!(profile("anime_f_witty", "male").is_err());
         assert!(profile("../actor.wav", "female").is_err());
-        assert_ne!(delivery("voice", "calm", "sad", false), delivery("voice", "playful", "happy", true));
+        assert_ne!(
+            delivery("voice", "calm", "sad", false),
+            delivery("voice", "playful", "happy", true)
+        );
     }
     #[test]
     fn wav_keeps_all_pcm_samples_from_the_first_byte() {
-        let pcm = [1, 2, 3, 4, 5, 6]; let bytes = wav(&pcm).unwrap();
-        assert_eq!(&bytes[44..], &pcm); assert_eq!(&bytes[..4], b"RIFF");
+        let pcm = [1, 2, 3, 4, 5, 6];
+        let bytes = wav(&pcm).unwrap();
+        assert_eq!(&bytes[44..], &pcm);
+        assert_eq!(&bytes[..4], b"RIFF");
         assert_eq!(u32::from_le_bytes(bytes[24..28].try_into().unwrap()), 48000);
-        assert!(wav(&[1]).is_err()); assert!(wav(&[]).is_err());
+        assert!(wav(&[1]).is_err());
+        assert!(wav(&[]).is_err());
     }
 }

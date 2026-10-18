@@ -4,7 +4,7 @@ export function greetingLine(identity){const name=String(identity.name||'Ruby').
  if(identity.voiceLanguage==='zh')return `欢迎回来。我是${name}。今天也一起加油吧。`;
  return ['sarcastic','tsundere','himedere'].includes(id)?`Oh, you're back. I'm ${name}. Try to keep up today.`:['playful','deredere','bakadere','nyandere'].includes(id)?`You're back! I'm ${name}. Ready for a little adventure?`:`Welcome back. I'm ${name}. Let's make today a good one.`;
 }
-export const greetingCacheKey=(text,voice)=>JSON.stringify(['greeting-v1',voice.pack,voice.voice,voice.language,voice.gender,voice.pace,text]);
+export const greetingCacheKey=(text,voice)=>JSON.stringify(['greeting-v2',voice.pack,voice.voice,voice.language,voice.gender,voice.pace,voice.personality,voice.robot,text]);
 export function createGreetingCache(indexedDB=globalThis.indexedDB){
  let database;const open=()=>database??=new Promise((resolve,reject)=>{if(!indexedDB)return reject(Error('Audio cache unavailable'));const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore(STORE,{keyPath:'key'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.onblocked=()=>reject(Error('Audio cache blocked'));});
  const transaction=async(mode,action)=>{const db=await open();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,mode),store=tx.objectStore(STORE);let result;action(store,value=>{result=value;});tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});};

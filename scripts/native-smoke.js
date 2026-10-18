@@ -118,6 +118,7 @@
   const identityRoot=JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.ruby;
   document.querySelector('[data-profile="opal"]').click();await wait(150);const opalIntro=await askCompanion('What is your name?');assert(/Opal/i.test(opalIntro)&&!/(?:I am|I.m) Ruby/i.test(opalIntro),'Opal retains her own identity: '+opalIntro);
   const opalHost=await askCompanion('What application are we talking inside?');assert(/Prismy Studio/i.test(opalHost),'Opal knows the actual host application: '+opalHost);
+  const opalAge=await askCompanion('What is your character age?');assert(/\b18\b/.test(opalAge),'Opal knows her canonical age is 18: '+opalAge);
   const opalDeveloper=await askCompanion('I am the developer of Prismy Studio. I made it to talk with you, Opal.');assert(!/never (?:programmed|created)|not (?:inside|within)|not.*computer program|rather than.*companion/i.test(opalDeveloper),'Opal does not deny her app or contradict the developer: '+opalDeveloper);
   document.querySelector('[data-profile="ruby"]').click();select.value='gamer';select.dispatchEvent(new Event('change'));await wait(150);assert(JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.ruby===identityRoot,'Ruby identity root survives body and Companion switching');
   assert([...document.querySelectorAll('.swatches button')].length===7&&[...document.querySelectorAll('.swatches button')].every(b=>getComputedStyle(b).getPropertyValue('--c').trim()&&getComputedStyle(b.querySelector('i')).boxShadow!=='none'),'All seven gem colours have the same computed glow');

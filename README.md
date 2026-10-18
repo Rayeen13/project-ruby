@@ -1,3 +1,11 @@
+## v0.5.1 — Opal wardrobe, identity and expressive VoiceM
+
+Opal is now canonically 18. Her mannequin and clothes are separate skinned entities sharing one humanoid rig; all four outfits retain continuous garment surfaces, with no cut-out triangles or overlapping apron copies. Saved DDNA ages migrate without replacing identity or owner memories.
+
+Companions know they run inside Prismy Studio. Dialogue context retains more of the recent conversation, discourages repeated catchphrases and excludes old incorrect assistant replies from new model context.
+
+Settings → Voice & language → **Use anime voices · Japanese** selects an optional Irodori/speech.cpp VoiceM pack (~893 MB). It adds eight original gender-scoped voice designs, personality/emotion instructions, generated reference voices, GPU preference, warm reuse, cancellation and idle unload. Your text language stays independent; English text/Japanese voice uses local LangM. CPU synthesis can be slow. Read [VoiceM setup, terms and limitations](docs/VOICE_M_IRODORI.md) and [the wardrobe contract](docs/OPAL_WARDROBE.md). Code/model MIT with upstream additional restrictions and codec notices; no paid voice API or actor recording is included.
+
 ## v0.5.0 — a clearer Prismy workspace
 
 A calmer ametrine-accented workspace with readable navigation, beginner setup/customize shortcuts, clearer model-selection status and eight saved appearances: Ametrine Jewel, Obsidian Indigo, Cyber-Slate, Alabaster Light, MeshForge Graphite, Ruby Crimson, Cyberpunk 3090 and Cozy Matcha. App → Workspace appearance changes the UI independently of your Companion, gem, personality and memory. Floating mode keeps its minimal presentation. See [workspace UX](docs/WORKSPACE_UX.md) for the four reviewed design references, implemented journeys and validation limits.
