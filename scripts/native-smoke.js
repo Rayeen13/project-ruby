@@ -175,6 +175,9 @@
   const change=(element,value)=>{element.value=value;element.dispatchEvent(new Event('change'));};
   change(textLanguage,'en');change(languageSelect,'ja');await wait(150);
   assert(textLanguage.value==='en'&&languageSelect.value==='ja','English text and Japanese voice remain independent');
+  const voiceEngine=document.querySelector('#voice-engine');
+  assert(voiceEngine.value==='irodori'&&[...voiceSelect.options].every(o=>o.value==='auto'||/^anime_f_/.test(o.value)),'Japanese defaults to original female anime voices for Ruby');
+  change(voiceEngine,'supertonic3');await wait(150);
   assert([...voiceSelect.options].every(o=>o.value==='auto'||/^st_f/.test(o.value)),'Japanese collection filters to female voices for Ruby');
   document.querySelector('#voice-license').checked=true;document.querySelector('#voice-license').dispatchEvent(new Event('change'));
   assert((await window.__TAURI__.core.invoke('voice_pack_status',{pack:'supertonic3'})).installed,'Japanese pack is installed and reused offline');
