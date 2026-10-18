@@ -326,7 +326,10 @@ pub(super) fn synthesize(
     let (base, seed) = profile(voice, gender)?;
     let mut slot = state.anime.lock().map_err(|_| "Voice worker unavailable")?;
     if slot.is_none() {
-        let _ = app.emit("ruby-voice-phase", "Loading anime VoiceM. First use can take longer.");
+        let _ = app.emit(
+            "ruby-voice-phase",
+            "Loading anime VoiceM. First use can take longer.",
+        );
         if !verified(&dir.join(MODEL), MODEL_SHA)
             || !verified(&dir.join("speech-0810.zip"), RUNTIME_SHA)
         {
