@@ -17,3 +17,7 @@ const options={models:['classic','chibi','office','gamer','opal'],profiles:COMPA
 const migrated=normalizePreferences({version:1,model:'opal',profile:'ruby',personalities:{opal:'kuudere',gamer:'playful'}},options);assert.equal(migrated.profile,'opal');assert.equal(migrated.robotProfile,'ruby');assert.equal(migrated.identityPersonalities.opal,'kuudere');
 assert.deepEqual(normalizePreferences(migrated,options),migrated);assert.equal(normalizePreferences({version:1,model:'gamer',profile:'opal'},options).profile,'ruby');
 console.log('PASS: gem identity across robot shells, humanoid ownership, personality/voice isolation, user overrides, legacy migration and portable DDNA continuity.');
+
+const opalCanonical=resolveCompanionIdentity({profile:'ruby',bodyId:'opal',age:25});assert.equal(opalCanonical.age,18);
+const oldDNA={schema:'ruby.ddna.seed',version:1,identities:[{id:'opal-legacy-identity-1234',profile:'opal',age:25,createdAt:'2026-10-17T00:00:00Z',personality:{original:'sarcastic',active:'sarcastic'}}],active:{opal:'opal-legacy-identity-1234'}};
+let migrationSaved;const oldStorage={getItem:()=>JSON.stringify(oldDNA),setItem:(_,v)=>migrationSaved=JSON.parse(v)};const migratedDNA=new CompanionDNA(oldStorage);assert.equal(migratedDNA.export().identities[0].age,18);assert.equal(migrationSaved.identities[0].id,oldDNA.identities[0].id);assert.equal(migrationSaved.identities[0].age,18);

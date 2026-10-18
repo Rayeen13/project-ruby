@@ -93,6 +93,14 @@ jobs:
       - name: Verify offline English, Chinese and Japanese synthesis independently
         shell: pwsh
         run: ./scripts/windows-voice-smoke.ps1
+      - name: Restore verified anime VoiceM cache
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
+        with:
+          path: ~/AppData/Local/io.github.rayeen13.projectruby/irodori-smoke-v1
+          key: windows-irodori-mf-q4-1913bf74-speech-0810
+      - name: Verify actual native anime VoiceM lifecycle
+        shell: pwsh
+        run: ./scripts/windows-voice-smoke.ps1 -AnimeOnly
       - name: Exercise actual Windows WebView and native window
         shell: pwsh
         env:

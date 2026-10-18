@@ -9,10 +9,10 @@ export function mountVoiceSettings({document,state,identity,onChange,modelsFor,e
  el('langm-engine').value=state.data.langm.engine;el('voice-license').checked=state.data.supertonicTerms;
  function render(){
   const language=state.data.voiceLanguage;
-  options(el('voice-engine'),language==='en'?[['kokoro','Natural · Kokoro'],['supertonic3','Original character collection · Supertonic 3']]:language==='ja'?[['supertonic3','Original Japanese character collection · Supertonic 3']]:[['kokoro','Chinese collection · Kokoro']]);
+  options(el('voice-engine'),language==='en'?[['kokoro','Natural · Kokoro'],['supertonic3','Original character collection · Supertonic 3']]:language==='ja'?[['irodori','Anime voice design · Irodori · GPU preferred'],['supertonic3','Lightweight Japanese collection · Supertonic 3']]:[['kokoro','Chinese collection · Kokoro']]);
   el('voice-engine').value=voicePackFor(identity());state.data.voiceEngine=el('voice-engine').value;
-  const pack=voicePackFor(identity());el('voice-license-row').hidden=pack!=='supertonic3';
-  el('voice-pack-note').textContent=pack==='supertonic3'?'Original character presets for Japanese or English. About 154 MB including runtime, shared across all voices. Model: OpenRAIL-M; commercial use subject to its terms. No paid API.':'Kokoro English/Chinese share one pack. About 316 MB on first install; switching language reuses the same files. Apache-2.0 model; bundled component notices retained.';
+  const pack=voicePackFor(identity());el('voice-license-row').hidden=!['supertonic3','irodori'].includes(pack);el('voice-license').checked=pack==='irodori'?state.data.irodoriTerms:state.data.supertonicTerms;el('voice-license-link').textContent=pack==='irodori'?'Irodori model terms, including no unconsented impersonation or deception':'Supertonic model terms';el('voice-license-link').href=pack==='irodori'?'https://huggingface.co/Aratako/Irodori-TTS-v4.1-Small-MF#license--ethical-restrictions':'https://huggingface.co/Supertone/supertonic-3/blob/main/LICENSE';
+  el('voice-pack-note').textContent=pack==='irodori'?'Original Japanese anime voice design with personality and emotion instructions. Optional ~893 MB download including Vulkan runtime. GPU preferred; CPU can be slow. Shares one model across voices, creates a reference on first use, stays warm, unloads after 45 seconds idle. MIT code/model with upstream ethical restrictions; notices retained.':pack==='supertonic3'?'Original character presets for Japanese or English. About 154 MB including runtime, shared across all voices. Model: OpenRAIL-M; commercial use subject to its terms. No paid API.':'Kokoro English/Chinese share one pack. About 316 MB on first install; switching language reuses the same files. Apache-2.0 model; bundled component notices retained.';
   el('langm-custom').hidden=state.data.langm.engine==='same';
   el('langm-status').textContent=state.data.langm.engine==='same'?'LangM reuses your selected local LLM. Only the spoken line is translated; displayed chat stays in your text language. No separate model download. Translation quality depends on that model.':'Load a free multilingual model in your chosen local engine, then check the connection. No text is sent to a cloud translation service.';
  }
@@ -20,7 +20,7 @@ export function mountVoiceSettings({document,state,identity,onChange,modelsFor,e
  el('text-language').onchange=()=>{state.data.textLanguage=el('text-language').value;change();};
  el('voice-language').onchange=()=>{state.data.voiceLanguage=el('voice-language').value;change();};
  el('voice-engine').onchange=()=>{state.data.voiceEngine=el('voice-engine').value;change();};
- el('voice-license').onchange=()=>{state.data.supertonicTerms=el('voice-license').checked;state.save();};
+ el('voice-license').onchange=()=>{state.data[voicePackFor(identity())==='irodori'?'irodoriTerms':'supertonicTerms']=el('voice-license').checked;state.save();};
  el('langm-engine').onchange=()=>{state.data.langm={engine:el('langm-engine').value,model:''};el('langm-model').replaceChildren();change();};
  el('langm-model').onchange=()=>{state.data.langm.model=el('langm-model').value;state.save();onChange();};
  el('langm-connect').onclick=async()=>{
@@ -28,7 +28,8 @@ export function mountVoiceSettings({document,state,identity,onChange,modelsFor,e
   try{const models=await modelsFor(state.data.langm.engine);options(el('langm-model'),models.map(m=>[m,m]));if(models.includes(state.data.langm.model))el('langm-model').value=state.data.langm.model;state.data.langm.model=el('langm-model').value;state.save();el('langm-status').textContent='Local LangM ready. Choose a multilingual model for Japanese/Chinese translation.';}
   catch(error){el('langm-status').textContent=String(error.message||error);}finally{el('langm-connect').disabled=false;}
  };
- el('voice-license-link').onclick=event=>{if(tauri){event.preventDefault();void tauri.core.invoke('open_web_url',{url:'https://huggingface.co/Supertone/supertonic-3/blob/main/LICENSE'}).catch(()=>{});}};
+ el('voice-license-link').onclick=event=>{if(tauri){event.preventDefault();void tauri.core.invoke('open_web_url',{url:el('voice-license-link').href}).catch(()=>{});}};
  if(state.data.langm.model)options(el('langm-model'),[[state.data.langm.model,state.data.langm.model]]);
+ el('voice-anime-preset').onclick=()=>{state.data.voiceLanguage='ja';state.data.voiceEngine='irodori';el('voice-language').value='ja';change();};
  render();return {refresh:render};
 }

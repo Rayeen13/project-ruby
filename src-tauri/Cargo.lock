@@ -2508,8 +2508,9 @@ dependencies = [
 
 [[package]]
 name = "project-ruby"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
+ "base64 0.22.1",
  "bzip2",
  "reqwest 0.12.28",
  "roxmltree",

@@ -1,3 +1,5 @@
+#[path = "anime_voice.rs"]
+mod anime;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::{
@@ -7,7 +9,7 @@ use std::{
     process::{Command, Stdio},
     sync::{
         atomic::{AtomicBool, Ordering},
-        Arc,
+        Arc, Mutex,
     },
     time::Duration,
 };
@@ -20,6 +22,8 @@ const ZIP_SHA: &str = "58b4683dd3de08fb0445717d5a5086fa23a09f2259748b5259f50eb28
 struct Inner {
     busy: AtomicBool,
     cancelled: AtomicBool,
+    anime: Mutex<Option<anime::Worker>>,
+    idle_epoch: std::sync::atomic::AtomicU64,
 }
 #[derive(Default)]
 pub struct VoiceState(Arc<Inner>);
@@ -108,6 +112,7 @@ fn pack_id(pack: Option<&str>) -> Result<&'static str, String> {
     match pack {
         None | Some("kokoro") => Ok("kokoro"),
         Some("supertonic3") => Ok("supertonic3"),
+        Some("irodori") => Ok("irodori"),
         _ => Err("Unknown VoiceM pack".into()),
     }
 }
@@ -118,6 +123,8 @@ fn root(app: &AppHandle, pack: &str) -> Result<PathBuf, String> {
         .app_local_data_dir()
         .map_err(|e| e.to_string())?
         .join(match (pack, smoke) {
+            ("irodori", true) => "irodori-smoke-v1",
+            ("irodori", false) => "irodori-v1",
             ("supertonic3", true) => "supertonic3-smoke-v1",
             ("supertonic3", false) => "supertonic3-v1",
             (_, true) => "kokoro-smoke-v1",
@@ -154,9 +161,11 @@ pub fn voice_pack_status(
     let pack = pack_id(pack.as_deref())?;
     let dir = root(&app, pack)?;
     Ok(VoiceStatus {
-        installed: dir.join("installed-kokoro-v1").exists()
+        installed: if pack == "irodori" {
+            anime::installed(&dir)
+        } else { dir.join("installed-kokoro-v1").exists()
             && installed_model(&dir, pack)
-            && find_file(&dir.join("runtime"), "sherpa-onnx-offline-tts.exe").is_some(),
+            && find_file(&dir.join("runtime"), "sherpa-onnx-offline-tts.exe").is_some() },
         busy: state.0.busy.load(Ordering::SeqCst),
     })
 }
@@ -180,6 +189,17 @@ async fn download(
     hash: Option<&str>,
     state: &Inner,
 ) -> Result<(), String> {
+    download_limited(app, client, url, path, hash, state, 200_000_000).await
+}
+async fn download_limited(
+    app: &AppHandle,
+    client: &reqwest::Client,
+    url: &str,
+    path: &Path,
+    hash: Option<&str>,
+    state: &Inner,
+    limit: u64,
+) -> Result<(), String> {
     if hash.is_some_and(|h| verified(path, h)) {
         return Ok(());
     }
@@ -190,8 +210,8 @@ async fn download(
         .map_err(|e| e.to_string())?
         .error_for_status()
         .map_err(|e| e.to_string())?;
-    let total = response.content_length().unwrap_or(200_000_000);
-    if total > 200_000_000 {
+    let total = response.content_length().unwrap_or(limit);
+    if total > limit {
         return Err("VoiceM file is larger than expected".into());
     }
     let partial = Partial(path.with_extension("part"));
@@ -204,7 +224,7 @@ async fn download(
             return Err("VoiceM download stopped. Retry to continue setup.".into());
         }
         received += chunk.len() as u64;
-        if received > 200_000_000 {
+        if received > limit {
             return Err("VoiceM exceeds size limit".into());
         }
         digest.update(&chunk);
@@ -246,9 +266,17 @@ pub async fn voice_pack_download(
     if pack == "supertonic3" && accept_license != Some(true) {
         return Err("Accept the Supertonic OpenRAIL-M model terms before downloading".into());
     }
+    if pack == "irodori" && accept_license != Some(true) {
+        return Err("Accept the Irodori model terms before downloading".into());
+    }
     let _operation = reserve(&state)?;
     let dir = root(&app, pack)?;
     fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    if pack == "irodori" {
+        state.0.anime.lock().map_err(|_| "Voice worker unavailable")?.take();
+        return anime::install(&app, &dir, &state.0).await;
+    }
+
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(600))
         .build()
@@ -460,6 +488,9 @@ pub async fn voice_synthesize(
     voice: Option<String>,
     pack: Option<String>,
     language: Option<String>,
+    personality: Option<String>,
+    emotion: Option<String>,
+    robot: Option<bool>,
 ) -> Result<Vec<u8>, String> {
     if text.is_empty()
         || text.chars().count() > 1500
@@ -471,14 +502,33 @@ pub async fn voice_synthesize(
     }
     let pack = pack_id(pack.as_deref())?;
     let language = language.unwrap_or_else(|| "en".into());
-    let sid = speaker_for(pack, voice.as_deref(), &gender, &language)?;
+    let anime_voice = voice.clone().unwrap_or_else(|| if gender == "male" { "anime_m_calm" } else { "anime_f_warm" }.into());
+    let sid = if pack == "irodori" {
+        if language != "ja" { return Err("Anime VoiceM currently speaks Japanese. Select Japanese voice language.".into()); }
+        anime::profile(&anime_voice, &gender)?;
+        "0"
+    } else { speaker_for(pack, voice.as_deref(), &gender, &language)? };
     let operation = reserve(&state)?;
     let dir = root(&app, pack)?;
+    let permit = loop {
+        tokio::select! {
+            result = crate::local_ai::LOCAL_COMPUTE.acquire() => break result.map_err(|_| "Compute scheduler unavailable")?,
+            _ = tokio::time::sleep(Duration::from_millis(30)) => {
+                if state.0.cancelled.load(Ordering::SeqCst) { return Err("Voice stopped".into()); }
+            }
+        }
+    };
     let _ = app.emit("ruby-voice-compute", true);
     let render_guard = VoiceRenderGuard(app.clone());
-    tauri::async_runtime::spawn_blocking(move || -> Result<Vec<u8>, String> {
+    let idle = state.0.clone();
+    let result = tauri::async_runtime::spawn_blocking(move || -> Result<Vec<u8>, String> {
         let _render_guard = render_guard;
         let _operation = operation;
+        if _operation.0.cancelled.load(Ordering::SeqCst) { return Err("Voice stopped".into()); }
+        if pack == "irodori" {
+            return anime::synthesize(&app, &dir, &_operation.0, &text, &anime_voice, &gender, pace,
+                personality.as_deref().unwrap_or("curious"), emotion.as_deref().unwrap_or(""), robot.unwrap_or(false));
+        }
         let executable = find_file(&dir.join("runtime"), "sherpa-onnx-offline-tts.exe")
             .ok_or("Download / repair this VoiceM pack first")?;
         if _operation.0.cancelled.load(Ordering::SeqCst) {
@@ -625,7 +675,16 @@ pub async fn voice_synthesize(
         Ok(bytes)
     })
     .await
-    .map_err(|e| e.to_string())?
+    .map_err(|e| e.to_string())?;
+    drop(permit);
+    let epoch = idle.idle_epoch.fetch_add(1, Ordering::SeqCst) + 1;
+    tauri::async_runtime::spawn(async move {
+        tokio::time::sleep(Duration::from_secs(45)).await;
+        if idle.idle_epoch.load(Ordering::SeqCst) == epoch && !idle.busy.load(Ordering::SeqCst) {
+            if let Ok(mut worker) = idle.anime.lock() { worker.take(); }
+        }
+    });
+    result
 }
 #[tauri::command]
 pub fn voice_stop(state: State<'_, VoiceState>) {
@@ -655,6 +714,7 @@ mod tests {
 }
 
 pub async fn smoke(app: AppHandle) -> Result<(), String> {
+    if std::env::args().any(|a| a == "--anime-voice-smoke-test") { return anime_smoke(app).await; }
     fs::write(
         "ruby-native-voice-live.txt",
         "Checking and downloading VoiceM",
@@ -673,6 +733,9 @@ pub async fn smoke(app: AppHandle) -> Result<(), String> {
             text.into(),
             gender.into(),
             1.0,
+            None,
+            None,
+            None,
             None,
             None,
             None,
@@ -718,10 +781,57 @@ pub async fn smoke(app: AppHandle) -> Result<(), String> {
             None,
             Some(pack.into()),
             Some(language.into()),
+            None,
+            None,
+            None,
         )
         .await?;
         fs::write(format!("ruby-native-{language}-{gender}.wav"), bytes)
             .map_err(|e| e.to_string())?;
     }
+    Ok(())
+}
+
+pub fn shutdown(app: &AppHandle) {
+    let state = app.state::<VoiceState>();
+    state.0.cancelled.store(true, Ordering::SeqCst);
+    if let Ok(mut worker) = state.0.anime.lock() { worker.take(); }
+}
+
+async fn anime_smoke(app: AppHandle) -> Result<(), String> {
+    fs::write("ruby-native-voice-live.txt", "Downloading verified anime VoiceM").map_err(|e| e.to_string())?;
+    voice_pack_download(app.clone(), app.state::<VoiceState>(), Some("irodori".into()), Some(true)).await?;
+    let mut worker_id = None;
+    for (id, gender, voice, emotion, text) in [
+        ("opal-gentle", "female", "anime_f_witty", "softly", "おかえりなさい。少し休みましょう。"),
+        ("opal-playful", "female", "anime_f_witty", "happy", "ふふ、今日もよく頑張りましたね。"),
+        ("saph-calm", "male", "anime_m_calm", "", "おかえり。今日もお疲れさま。"),
+    ] {
+        fs::write("ruby-native-voice-live.txt", format!("Native anime synthesis: {id}")).map_err(|e| e.to_string())?;
+        let started = std::time::Instant::now();
+        let bytes = voice_synthesize(app.clone(), app.state::<VoiceState>(), text.into(), gender.into(), 1.0,
+            Some(voice.into()), Some("irodori".into()), Some("ja".into()), Some("sarcastic".into()), Some(emotion.into()), Some(false)).await?;
+        if bytes.len() < 48044 { return Err("Anime VoiceM generated too little audio".into()); }
+        fs::write(format!("ruby-native-anime-{id}.wav"), bytes).map_err(|e| e.to_string())?;
+        let state = app.state::<VoiceState>();
+        let guard = state.0.anime.lock().map_err(|_| "Voice worker unavailable")?;
+        let worker = guard.as_ref().ok_or("Warm voice worker disappeared")?;
+        if worker_id.is_some_and(|pid| pid != worker.process_id()) { return Err("Voice worker was not reused".into()); }
+        worker_id = Some(worker.process_id());
+        fs::write(format!("ruby-native-anime-{id}.txt"), format!("device={}\nelapsed={:.3}\nworker={}\n", worker.device, started.elapsed().as_secs_f64(), worker.process_id())).map_err(|e| e.to_string())?;
+    }
+    let task = voice_synthesize(app.clone(), app.state::<VoiceState>(), "今日はとても素敵な日ですね。ゆっくり話しましょう。".into(), "female".into(), 1.0,
+        Some("anime_f_witty".into()), Some("irodori".into()), Some("ja".into()), None, None, None);
+    tokio::pin!(task);
+    tokio::select! {
+        result = &mut task => { result?; }
+        _ = tokio::time::sleep(Duration::from_millis(200)) => {
+            voice_stop(app.state::<VoiceState>());
+            if task.await.is_ok() { return Err("Active anime synthesis did not cancel".into()); }
+        }
+    }
+    let state = app.state::<VoiceState>();
+    if state.0.busy.load(Ordering::SeqCst) { return Err("Voice reservation was not released".into()); }
+    shutdown(&app);
     Ok(())
 }

@@ -11,9 +11,9 @@ export class OrderedSpeech{
  async speak(text,voice){
   const ready=this.stop(),token=this.generation,controller=new AbortController();this.controller=controller;
   const current=()=>token===this.generation&&!controller.signal.aborted;
-  const synth=part=>{const delivery={...voice,pace:Math.max(.75,Math.min(1.5,(voice?.pace||1)*(part.cue?.pace||1)))};const task=Promise.resolve().then(()=>this.synthesize(part.text,delivery,controller.signal));this.inflight=task;void task.finally(()=>{if(this.inflight===task)this.inflight=null;}).catch(()=>{});return task;};
+  const synth=part=>{const delivery={...voice,cue:part.cue?.id||'',pace:Math.max(.75,Math.min(1.5,(voice?.pace||1)*(part.cue?.pace||1)))};const task=Promise.resolve().then(()=>this.synthesize(part.text,delivery,controller.signal));this.inflight=task;void task.finally(()=>{if(this.inflight===task)this.inflight=null;}).catch(()=>{});return task;};
   await ready;if(!current())return;
-  const chunks=speechPlan(text,voice?.language&&voice.language!=='en'?{first:70,rest:100}:undefined);if(!chunks.length)return;
+  const chunks=speechPlan(text,voice?.language&&voice.language!=='en'?(voice.pack==='irodori'?{first:30,rest:48}:{first:70,rest:100}):undefined);if(!chunks.length)return;
   let bytes=await synth(chunks[0]);
   for(let i=0;i<chunks.length&&current();i++){
    const playing=this.play(bytes,{signal:controller.signal,text:chunks[i].text,cue:chunks[i].cue,index:i,voice});

@@ -1,7 +1,9 @@
+import {ANIME_VOICES,defaultAnimeVoice} from './anime-voices.js';
 import {voicePackFor} from './languages.js';
 import {companionFor,entityForBody} from './companion-identities.js';
 // Explicit speaker metadata from the Kokoro publisher and Sherpa v1.0 voice table.
 export const VOICES=Object.freeze([
+ ...ANIME_VOICES,
  {id:'af_heart',name:'Heart',gender:'female',accent:'US',style:'Warm · expressive',sid:3},
  {id:'af_bella',name:'Bella',gender:'female',accent:'US',style:'Bright · confident',sid:2},
  {id:'af_sarah',name:'Sarah',gender:'female',accent:'US',style:'Clear · composed',sid:9},
@@ -26,7 +28,7 @@ export const legacyVoiceChoiceKey=identity=>[identity.profile,identity.voiceLang
 export const voiceChoiceKey=identity=>[identity.profile,voiceBodyFamily(identity),identity.voiceLanguage||'en',voicePackFor(identity)].join(':');
 const ACTING_VOICES={calm:['bf_emma','bm_george'],focused:['af_sarah','bm_george'],playful:['af_heart','am_puck'],sarcastic:['af_bella','am_michael'],deredere:['af_heart','am_puck'],tsundere:['af_bella','am_fenrir'],kuudere:['af_sarah','bm_george'],dandere:['bf_emma','am_michael'],yandere:['af_bella','am_michael'],himedere:['bf_emma','bm_george'],oujidere:['bf_emma','bm_george'],kamidere:['af_bella','am_fenrir'],bakadere:['af_heart','am_puck'],hajidere:['bf_emma','am_michael'],shundere:['af_sarah','bm_george'],nyandere:['af_heart','am_puck']};
 export function defaultVoice(identity){
- const available=voicesFor(identity);if(voicePackFor(identity)==='supertonic3'){const index=({playful:1,deredere:1,bakadere:1,sarcastic:2,tsundere:2,yandere:2,focused:3,kuudere:3,calm:4,dandere:4,shundere:4})[identity.personality?.id]??0;return available[index]||available[0];}if(identity.voiceLanguage==='zh')return available[0];
+ const available=voicesFor(identity);if(voicePackFor(identity)==='irodori')return available.find(v=>v.id===defaultAnimeVoice(identity))||available[0];if(voicePackFor(identity)==='supertonic3'){const index=({playful:1,deredere:1,bakadere:1,sarcastic:2,tsundere:2,yandere:2,focused:3,kuudere:3,calm:4,dandere:4,shundere:4})[identity.personality?.id]??0;return available[index]||available[0];}if(identity.voiceLanguage==='zh')return available[0];
  const signature={ruby:'af_heart',saph:'am_michael',emme:'bf_emma',amy:'af_sarah',jasper:'am_puck',jet:'bm_george',opal:'af_bella'}[identity.profile];
  if(signature&&identity.personality?.id===companionFor(identity.profile).personality)return available.find(v=>v.id===signature)||available[0];
  const acting=ACTING_VOICES[identity.personality?.id];
