@@ -637,7 +637,7 @@ pub struct StudioWindowStatus {
 }
 
 #[tauri::command]
-pub fn studio_window_action(
+pub async fn studio_window_action(
     window: WebviewWindow,
     action: StudioWindowAction,
 ) -> Result<StudioWindowStatus, String> {
