@@ -1,3 +1,11 @@
+## v0.5.1 · Companion reliability and expressive voice
+
+- Separate Opal mannequin/wardrobe entities, full garment topology, smooth skirt binding and clean apron colour regions across four outfits.
+- Canonical Opal age 18, including saved DDNA normalization and imports. Preserve UUIDs, creation dates, personalities and owner memories.
+- Explicit Prismy Studio host awareness, more recent paired context and regression coverage using real local dialogue.
+- Optional Japanese Irodori Small-MF VoiceM: original adult voice design, gender filtering, personality/emotion controls, reference consistency, GPU preference and CPU fallback, shared compute scheduling, warm reuse/cancellation and 45-second idle unload. English text/Japanese speech remains supported through local LangM.
+- Acceptance: shared/native tests, actual Windows visual/interaction checks, actual WAV auditions and native VoiceM lifecycle checks. Physical RTX 2050 latency/VRAM/thermals and human-rated acting quality still require target-device/user trials. English/Chinese expressive VoiceM engines remain future work.
+
 ## Current follow-up · Setup and voice quality
 
 - v0.4.9: implement a simpler workspace using four supplied UI concepts: beginner setup/customize routes, persistent three-theme appearance, readable navigation and local-only appearance state. Real anime voice assets, mesh editing, capture, cloud and marketplace remain separate milestones; prototype telemetry is not a shipped capability.

@@ -27,3 +27,11 @@ console.log('Conversation: persona/context, persistence, interrupted restart, St
 const exact=new Conversation({storage,identity,provider:{async *stream(){throw Error('Literal output must not call the model');}}});
 await exact.send('say exactly `[happy] blue kite`','local');assert.equal(exact.messages.at(-1).content,'[happy] blue kite');
 await exact.send("you should say wa 'alaikumussalam",'local');assert.equal(exact.messages.at(-1).content,"wa 'alaikumussalam");
+
+const hostPrompt=contextMessages([], {name:'Opal',profile:'opal',identityKind:'humanoid',role:'anime maid android',gender:'female',age:18,personality:{id:'sarcastic',prompt:'Dry wit.'}})[0].content;assert.match(hostPrompt,/inside this application/);assert.match(hostPrompt,/Prismy Studio/);assert.match(hostPrompt,/age: 18/);
+const memoryIdentity={...identity(),profile:'emme',personality:{id:'calm',prompt:'Be practical.'}};
+const {DIALOGUE_POLICY,characterContextKey}=await import('../dist/conversation.js');const historyPair=(content,reply)=>[{role:'user',content},{role:'assistant',content:reply,status:'complete',policyVersion:DIALOGUE_POLICY,contextKey:characterContextKey(memoryIdentity)}];
+const dayHistory=[...historyPair('I watched CaseOh, prayed and worked on Prismy Studio. '+'.'.repeat(350),'That sounds like a full day. '+'.'.repeat(400)),...historyPair('We just released the app. '+'.'.repeat(150),'That is a milestone. '+'.'.repeat(200))];assert(contextMessages(dayHistory,memoryIdentity,'What did I do earlier?').some(m=>m.content.includes('CaseOh')));
+assert(!contextMessages([{role:'user',content:'Hi'},{role:'assistant',content:'I do not run inside an app.',status:'complete',policyVersion:2,contextKey:characterContextKey(memoryIdentity)}],memoryIdentity).some(m=>m.content==='I do not run inside an app.'));
+
+const olderUser=[{role:'user',content:'I watched CaseOh and worked on Prismy Studio.'},{role:'assistant',content:'I do not run inside an app.',status:'complete',policyVersion:2,contextKey:characterContextKey(memoryIdentity)}];const migratedContext=contextMessages(olderUser,memoryIdentity);assert(migratedContext.some(m=>m.content.includes('CaseOh')));assert(!migratedContext.some(m=>m.content.includes('I do not run inside an app.')));

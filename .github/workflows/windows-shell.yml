@@ -93,6 +93,14 @@ jobs:
       - name: Verify offline English, Chinese and Japanese synthesis independently
         shell: pwsh
         run: ./scripts/windows-voice-smoke.ps1
+      - name: Restore verified anime VoiceM cache
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
+        with:
+          path: ~/AppData/Local/io.github.rayeen13.projectruby/irodori-smoke-v1
+          key: windows-irodori-mf-q4-1913bf74-speech-0810
+      - name: Verify actual native anime VoiceM lifecycle
+        shell: pwsh
+        run: ./scripts/windows-voice-smoke.ps1 -AnimeOnly
       - name: Exercise actual Windows WebView and native window
         shell: pwsh
         env:
@@ -131,7 +139,7 @@ jobs:
           Copy-Item docs/licenses/REQWEST-MIT.txt desktop-artifact/
           Copy-Item docs/licenses/ZIP-MIT.txt desktop-artifact/
           Copy-Item docs/WINDOWS.md desktop-artifact/README.md
-          Copy-Item docs/HUMANOID_GESTURES.md,docs/PRISMY_STUDIO_BLUEPRINT.md desktop-artifact/
+          Copy-Item docs/HUMANOID_GESTURES.md,docs/PRISMY_STUDIO_BLUEPRINT.md,docs/VOICE_M_IRODORI.md,docs/OPAL_WARDROBE.md desktop-artifact/
           Copy-Item src-tauri/Cargo.lock desktop-artifact/
           Copy-Item ruby-native-smoke.txt desktop-artifact/
           Copy-Item ruby-native-*.wav,ruby-native-voice.txt desktop-artifact/

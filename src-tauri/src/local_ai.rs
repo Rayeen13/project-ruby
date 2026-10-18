@@ -5,6 +5,8 @@ use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
 use tokio::sync::Notify;
 
+pub static LOCAL_COMPUTE: tokio::sync::Semaphore = tokio::sync::Semaphore::const_new(1);
+
 fn endpoint(engine: Option<&str>, ruby_port: Option<u16>) -> Result<String, String> {
     match engine.unwrap_or("ruby") {
         "ruby" => ruby_port
@@ -210,7 +212,10 @@ pub async fn local_ai_chat(
     // Dropping the request/response future closes the HTTP stream even during prefill.
     let result = tokio::select! {
         _ = cancel.notified() => Err("Reply stopped".to_string()),
-        result = stream_reply(&window, &base, request_id, messages, model) => result,
+        result = async {
+            let _permit = LOCAL_COMPUTE.acquire().await.map_err(|_| "Compute scheduler unavailable")?;
+            stream_reply(&window, &base, request_id, messages, model).await
+        } => result,
     };
     {
         let mut active = state

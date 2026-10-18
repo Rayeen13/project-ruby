@@ -27,7 +27,7 @@ export function mountCompanionChat({document,storage,identity,onState=()=>{},onO
   if(!shouldSearch(text,{enabled:el('internet-enabled').checked}))return;
   el('chat-status').textContent='Searching the internet…';const query=searchQuery(text,history);lastQuery=query;
   try{const sources=await searchInternet(query,{signal});if(!sources.length)throw new Error('No useful internet results.');return sources;}catch(error){if(signal.aborted)throw error;if(explicitSearch(text))throw error;return {unavailable:true};}
- },onComplete:reply=>{onExpression(reply.mood||state.data.emotion);if(state.data.speak)void voice?.speak(reply.content,{textLanguage:reply.textLanguage});}});
+ },onComplete:reply=>{onExpression(reply.mood||state.data.emotion);if(state.data.speak)void voice?.speak(reply.content,{textLanguage:reply.textLanguage,emotion:reply.mood||state.data.emotion});}});
  const langmProvider=(engine=state.data.langm.engine==='same'?engineSelect.value:state.data.langm.engine)=>{if(globalThis.__TAURI__){const p=new NativeChatProvider(globalThis.__TAURI__);p.engine=engine;return p;}return new LocalChatProvider({base:engineFor(engine).base});};
  const langm=new LocalLangM({provider:langmProvider,model:()=>state.data.langm.engine==='same'?model.value:state.data.langm.model});
  let lastQuery='';

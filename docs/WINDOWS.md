@@ -1,3 +1,9 @@
+## v0.5.1 update
+
+Opal is 18, with a separate mannequin and wardrobe entity and continuous garments. Existing DDNA identity IDs and memories are preserved. Companions explicitly know this conversation is hosted inside Prismy Studio.
+
+For the new original anime VoiceM, open Settings → Voice & language → Use anime voices · Japanese. Keep English selected for text if desired. Accept Irodori model terms, download the optional ~893 MB pack, then preview/select a voice. GPU is preferred when supported; the actual device is reported after loading. CPU synthesis can be slow, especially on first use when a reference is generated. The warm worker unloads after 45 seconds idle. See VOICE_M_IRODORI.md for notices and limitations. English/Chinese collections remain available.
+
 # Prismy Studio · Project Ruby v0.4.9
 
 The Lab now offers beginner setup/customize shortcuts and a calmer default layout. Open **App → Workspace appearance** for all eight built-in themes. This changes the workspace only; Companion identity and memories stay intact.

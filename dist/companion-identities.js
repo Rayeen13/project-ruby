@@ -7,7 +7,7 @@ export const COMPANION_IDENTITIES=Object.freeze([
  {id:'amy',name:'Amy',gem:'Amethyst',color:'#bf86ff',gender:'female',age:24,personality:'curious'},
  {id:'jasper',name:'Jasper',gem:'Jasper',color:'#ffaf66',gender:'male',age:27,personality:'playful'},
  {id:'jet',name:'Jet',gem:'Jet',color:'#96b8cc',gender:'male',age:28,personality:'focused'},
- {id:'opal',name:'Opal',gem:'Opal',color:'#b4b8ff',gender:'female',age:25,personality:'sarcastic',bodyId:'opal',role:'anime maid android'}
+ {id:'opal',name:'Opal',gem:'Opal',color:'#b4b8ff',gender:'female',age:18,personality:'sarcastic',bodyId:'opal',role:'anime maid android'}
 ].map(Object.freeze));
 export const companionFor=id=>COMPANION_IDENTITIES.find(p=>p.id===id)||COMPANION_IDENTITIES[0];
 export const entityForBody=id=>id?COMPANION_IDENTITIES.find(p=>p.bodyId===id):undefined;

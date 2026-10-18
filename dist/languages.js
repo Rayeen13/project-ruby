@@ -1,6 +1,6 @@
 export const TEXT_LANGUAGES=Object.freeze([{id:'auto',name:'Match my message'},{id:'en',name:'English'},{id:'ja',name:'日本語 · Japanese'},{id:'zh',name:'中文 · Chinese'},{id:'hi',name:'हिन्दी · Hindi'},{id:'ur',name:'اردو · Urdu'},{id:'ar',name:'العربية · Arabic'}]);
 export const LANGUAGE_NAMES={en:'English',ja:'Japanese',zh:'Chinese',hi:'Hindi',ur:'Urdu',ar:'Arabic'};
-export const voicePackFor=identity=>identity.voiceLanguage==='ja'?'supertonic3':identity.voiceLanguage==='zh'?'kokoro':identity.voiceEngine==='supertonic3'?'supertonic3':'kokoro';
+export const voicePackFor=identity=>identity.voiceLanguage==='ja'?(identity.voiceEngine==='supertonic3'?'supertonic3':'irodori'):identity.voiceLanguage==='zh'?'kokoro':identity.voiceEngine==='supertonic3'?'supertonic3':'kokoro';
 export function detectedLanguage(text){if(/[\u3040-\u30ff]/.test(text))return 'ja';if(/[\u3400-\u9fff]/.test(text))return 'zh';if(/[\u0900-\u097f]/.test(text))return 'hi';if(/[\u0600-\u06ff]/.test(text))return 'ar';return 'en';}
 export function needsTranslation(text,target,source='auto'){return (source==='auto'?detectedLanguage(text):source)!==target;}
 export class LocalLangM{

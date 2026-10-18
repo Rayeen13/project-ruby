@@ -1,0 +1,46 @@
+name: Expressive VoiceM audition
+on:
+  pull_request:
+    paths: ['.github/workflows/anime-voice-audition.yml', 'scripts/anime-voice-audition.ps1']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audition:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
+        with:
+          path: .voice-audition-cache
+          key: irodori-mf-q4-1913bf74-speech-0810
+      - shell: pwsh
+        run: ./scripts/anime-voice-audition.ps1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: original-anime-voice-audition
+          path: voice-audition/*
+          if-no-files-found: error
+          retention-days: 30
+  format_source:
+    name: Format native source for local review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - run: cargo fmt --manifest-path src-tauri/Cargo.toml
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: formatted-native-source
+          path: |
+            src-tauri/src/anime_voice.rs
+            src-tauri/src/voice.rs
+            src-tauri/src/local_ai.rs
+            src-tauri/src/main.rs
+          retention-days: 3
