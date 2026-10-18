@@ -356,7 +356,10 @@ pub(super) fn synthesize(
                 .ok()
                 .is_some_and(|hash| verified(&anchor, hash.trim()));
             if !valid {
-                let _ = app.emit("ruby-voice-phase", "Creating a consistent character voice for first use…");
+                let _ = app.emit(
+                    "ruby-voice-phase",
+                    "Creating a consistent character voice for first use…",
+                );
                 let pcm = worker.request(json!({"type":"synthesize","id":"anchor","text":"おかえりなさい。今日もあなたとお話しできて嬉しいです。ゆっくり過ごしましょう。","voice":"none","language":"ja","seed":seed,"steps":4,"instructions":base}), state)?;
                 let bytes = wav(&pcm)?;
                 let hash = format!("{:x}", sha2::Sha256::digest(&bytes));
