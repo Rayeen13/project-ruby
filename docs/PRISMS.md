@@ -14,7 +14,9 @@ App → Prisms accepts a local `.prism.json` file of at most 24 KB. It shows the
 
 V1 packs are data only: a fixed set of six-digit colour tokens and metadata. They cannot contain scripts, URLs, arbitrary CSS, native binaries or permission requests. Unknown fields, unsupported versions, bad colours, inadequate text/button contrast, duplicate IDs and reserved IDs are rejected. Review does not establish that the creator's stated licence or provenance is correct. Invalid saved content is not executed or silently overwritten. Maximum installed theme packs: 12.
 
-An example, Ametrine Night, is offered as a separate explicit file download and is not preinstalled or activated. Its small JSON example is bundled as a downloadable template, not as an installed optional Prism. No marketplace, automatic downloader, billing or executable plugin installer is implemented by this milestone.
+An example, Ametrine Night, is offered as a separate explicit file download and is not preinstalled or activated. Its small JSON example is bundled as a downloadable template, not as an installed optional Prism. The colour editor creates original themes with creator, version and licence metadata. Export produces the same `.prism.json` format accepted by web and desktop. Installed pack exports preserve creator credits and licence. Installation and activation remain separate explicit actions.
+
+Prepare for Prismy Shop exports an **unpublished listing draft**, including the validated theme, description, price/currency and an explicit creator rights declaration. It neither publishes a listing nor accepts a purchase. This declaration is not a rights verification. Live accounts, asset hosting, moderation, checkout, payouts and marketplace terms remain unimplemented. No automatic downloader, billing or executable plugin installer is implemented by this milestone.
 
 ## SOLID boundaries
 
@@ -25,6 +27,8 @@ An example, Ametrine Night, is offered as a separate explicit file download and 
 | Workspace appearance | `studio-appearance.js`: built-in/custom palette application and selected-theme persistence |
 | Data schema and installed theme persistence | `theme-prisms.js`: validation, parsing, storage and bounded token application |
 | User review/install/use/remove UI | `prism-manager.js`: explicit actions; receives the store and appearance interface |
+| Theme export and Shop draft contracts | `theme-sharing.js`: portable validated serialisation and unpublished listing validation |
+| Creator UI | `theme-creator.js`: colour/metadata editing, explicit downloads and local installation |
 | Lab navigation and beginner shortcuts | `lab-shell.js`: routes existing actions, independent of the extension lifecycle |
 
 Single responsibility keeps validation, storage, presentation and lifecycle separate. Open/closed extension happens through descriptors and provider interfaces. Implementations must satisfy shared lifecycle/behaviour tests rather than relying on a particular renderer. Small APIs avoid requiring a theme to implement speech or native control. Dependency inversion keeps the host free of DOM/Tauri/Three.js/LLM imports; the composition root supplies concrete services.

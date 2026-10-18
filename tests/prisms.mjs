@@ -9,7 +9,7 @@ assert.throws(()=>host.register({id:'feature.view',version:'1',mount(){}}),/Dupl
 const bad=createPrismHost();bad.register({id:'a',version:'1',requires:['b'],mount(){throw Error('should not mount');}});await assert.rejects(()=>bad.start(),/Missing/);bad.register({id:'b',version:'1',requires:['a'],mount(){}});await assert.rejects(()=>bad.start(),/Cyclic/);
 const rollback=createPrismHost();let disposed=0;rollback.register({id:'base',version:'1',mount:()=>({dispose(){disposed++;}})});rollback.register({id:'fail',version:'1',requires:['base'],mount(){throw Error('failure');}});await assert.rejects(()=>rollback.start(),/failure/);assert.equal(disposed,1);assert(rollback.list().every(m=>!m.active));
 const cleanup=createPrismHost();cleanup.register({id:'a',version:'1',mount:()=>({dispose(){throw Error('cleanup');}})});cleanup.register({id:'b',version:'1',requires:['a'],mount:()=>({dispose(){disposed++;}})});await cleanup.start();await assert.rejects(()=>cleanup.stopAll(),AggregateError);assert(cleanup.list().every(m=>!m.active));
-let injected=false;const workspace=createStudioPrisms({storage:{}},{appearance:context=>{injected=!!context.storage;return {dispose(){injected=false;}};},themeLibrary:()=>({})});await workspace.start();assert(injected);await workspace.stopAll();assert(!injected);
+let injected=false;const workspace=createStudioPrisms({storage:{}},{appearance:context=>{injected=!!context.storage;return {dispose(){injected=false;}};},themeLibrary:()=>({}),themeCreator:()=>({})});await workspace.start();assert(injected);await workspace.stopAll();assert(!injected);
 console.log('PASS: dependency injection/order, idempotent start, stop guards, rollback, cleanup failure isolation, restart, missing/cyclic/duplicate modules and composition-root substitution.');
 
 const {ThemePrismStore,parseThemePrism,PRISM_STORAGE_KEY,themeIdForPrism,applyPrismTokens}=await import('../dist/theme-prisms.js');
@@ -27,3 +27,14 @@ const quota=new ThemePrismStore({getItem:()=>null,setItem(){throw Error('quota')
 const properties=new Map(),root={style:{setProperty:(k,v)=>properties.set(k,v),removeProperty:k=>properties.delete(k)}};applyPrismTokens(root,prism);assert.equal(properties.get('--ui-primary-text'),'#ffffff');applyPrismTokens(root,null);assert.equal(properties.size,0);assert.equal(themeIdForPrism(prism.id),'prism:'+prism.id);
 assert(store.remove(prism.id));assert.equal(new ThemePrismStore(storage).list().length,0);assert.equal(JSON.parse(values.get(PRISM_STORAGE_KEY)).version,1);
 console.log('PASS: explicit theme install/removal, persistent packs, permission/script/colour/contrast rejection, corrupt storage and atomic quota failures.');
+
+const {serializeThemePrism,prepareThemeListing}=await import('../dist/theme-sharing.js');
+assert.deepEqual(parseThemePrism(serializeThemePrism(prism)),prism);
+const listing={description:'An original night palette.',price:'2.50',currency:'USD',rightsConfirmed:true};
+const draft=prepareThemeListing(prism,listing);assert.equal(draft.status,'unpublished');assert.deepEqual(draft.theme,prism);assert.equal(draft.listing.price.amount,'2.50');assert.equal(draft.listing.license,prism.license);
+assert.throws(()=>prepareThemeListing(prism,{...listing,rightsConfirmed:false}),/Confirm/);
+for(const price of ['-1','NaN','1e2','2.501','1000000',''])assert.throws(()=>prepareThemeListing(prism,{...listing,price}),/price/);
+assert.throws(()=>prepareThemeListing(prism,{...listing,currency:'BTC'}),/currency/);
+assert.throws(()=>prepareThemeListing(prism,{...listing,currency:'JPY'}),/whole yen/);
+assert.throws(()=>prepareThemeListing(prism,{...listing,description:''}),/description/);
+console.log('PASS: portable theme export round-trip, unchanged credits/licence, unpublished Shop drafts and explicit rights/price/currency validation.');
