@@ -117,6 +117,8 @@
   const topic=await askCompanion('Let us talk about Japan. Tell me something interesting.');assert(/Japan|sushi|Tokyo|culture|temple|Nihon/i.test(topic),'Companion actually engages with the requested topic: '+topic);
   const identityRoot=JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.ruby;
   document.querySelector('[data-profile="opal"]').click();await wait(150);const opalIntro=await askCompanion('What is your name?');assert(/Opal/i.test(opalIntro)&&!/(?:I am|I.m) Ruby/i.test(opalIntro),'Opal retains her own identity: '+opalIntro);
+  const opalHost=await askCompanion('What application are we talking inside?');assert(/Prismy Studio/i.test(opalHost),'Opal knows the actual host application: '+opalHost);
+  const opalDeveloper=await askCompanion('I am the developer of Prismy Studio. I made it to talk with you, Opal.');assert(!/never (?:programmed|created)|not (?:inside|within)|not.*computer program|rather than.*companion/i.test(opalDeveloper),'Opal does not deny her app or contradict the developer: '+opalDeveloper);
   document.querySelector('[data-profile="ruby"]').click();select.value='gamer';select.dispatchEvent(new Event('change'));await wait(150);assert(JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.ruby===identityRoot,'Ruby identity root survives body and Companion switching');
   assert([...document.querySelectorAll('.swatches button')].length===7&&[...document.querySelectorAll('.swatches button')].every(b=>getComputedStyle(b).getPropertyValue('--c').trim()&&getComputedStyle(b.querySelector('i')).boxShadow!=='none'),'All seven gem colours have the same computed glow');
   await askCompanion('Search NASA Artemis program',125000);
@@ -299,4 +301,3 @@
   await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:true,details:checks.join('\n')});
  }catch(error){await window.__TAURI__.core.invoke('desktop_smoke_report',{passed:false,details:checks.join('\n')+'\nFAIL: '+String(error.message||error)+'\nDiagnostics: '+JSON.stringify({uiErrors,modelReady:document.querySelector('#stage')?.dataset.modelReady,feedback:document.querySelector('#interaction-feedback')?.textContent,chatState:document.querySelector('#chat-panel')?.dataset.state,status:document.querySelector('#chat-status')?.textContent,voice:document.querySelector('#voice-status')?.textContent,setup:document.querySelector('#setup-status')?.textContent,lastMessages:JSON.parse(localStorage.getItem('project-ruby.conversation.v1')||'null')?.messages?.slice(-2)})});}
 })();
-

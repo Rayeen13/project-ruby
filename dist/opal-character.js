@@ -3,6 +3,7 @@ import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {VRMLoaderPlugin,VRMUtils} from './vendor/three-vrm.module.js';
 import {GEM_PROFILES} from './character.js';
 import {OPAL_OUTFITS} from './wardrobe.js';
+import {createOpalWardrobe} from './opal-wardrobe.js';
 import {sampleHumanoidArmPose,applyHumanoidArmPose} from './humanoid-gestures.js';
 
 // A real CC0 VRoid skinned avatar; source/provenance is in docs/OPAL_ASSET.md.
@@ -38,33 +39,8 @@ export class OpalCharacter {
   this.vrm.scene.updateMatrixWorld(true);this.makeWardrobe(clothes);this.makeHeadband();this.loaded=true;this.setOutfit(this.outfit);this.update(0,{follow:false});return this;
  }
  makeWardrobe(clothes){
-  for(const spec of OPAL_OUTFITS){const group=new T.Group();group.name='opal-outfit-'+spec.id;this.vrm.scene.add(group);this.outfits.set(spec.id,group);
-   for(const source of clothes){
-    source.visible=false;const dress=source.clone();dress.visible=true;dress.geometry=source.geometry.clone();dress.skeleton=source.skeleton;dress.bindMatrix.copy(source.bindMatrix);dress.bindMatrixInverse.copy(source.bindMatrixInverse);
-    const original=Array.isArray(source.material)?source.material[0]:source.material;dress.material=new T.MeshToonMaterial({map:original.map,color:({classic:0x24212e,rose:0xe9a0ba,evening:0x242035,work:0x26364c})[spec.id],side:T.DoubleSide});dress.name='Opal-skinned-dress';
-    // Preserve the artist's continuous garment topology, UVs and skin weights.
-    const positions=dress.geometry.attributes.position,box=new T.Box3().setFromBufferAttribute(positions),waist=box.min.y+(box.max.y-box.min.y)*.49;
-    for(let i=0;i<positions.count;i++)if(positions.getY(i)<waist){const weight=Math.min(1,(waist-positions.getY(i))/Math.max(.001,waist-box.min.y));positions.setY(i,positions.getY(i)-(spec.id==='evening'?.36:spec.id==='work'?.12:spec.id==='rose'?-.035:0)*weight);}
-    // The skirt hangs from the pelvis: leg weights pinch a lengthened hem into trousers.
-    const hip=source.skeleton.bones.indexOf(this.vrm.humanoid.getRawBoneNode('hips')),skinIndex=dress.geometry.attributes.skinIndex,skinWeight=dress.geometry.attributes.skinWeight;
-    if(hip<0)throw Error('Opal garment is missing its pelvis binding');
-    for(let i=0;i<positions.count;i++)if(source.geometry.attributes.position.getY(i)<waist){skinIndex.setXYZW(i,hip,0,0,0);skinWeight.setXYZW(i,1,0,0,0);}
-    skinIndex.needsUpdate=true;skinWeight.needsUpdate=true;positions.needsUpdate=true;dress.geometry.computeVertexNormals();group.add(dress);
-    // An apron cut from the actual skinned garment surface, with a sewn border.
-    let indices=dress.geometry.index?.array||Array.from({length:positions.count},(_,i)=>i);
-    if(['classic','rose'].includes(spec.id)){
-     const cut=spec.id==='classic'?.34:.285,kept=[];
-     for(let k=0;k<indices.length;k+=3){const ids=[indices[k],indices[k+1],indices[k+2]],x=ids.reduce((n,i)=>n+Math.abs(positions.getX(i)),0)/3,y=ids.reduce((n,i)=>n+positions.getY(i),0)/3;if(!(y>waist+.08&&x>cut))kept.push(...ids);}
-     dress.geometry.setIndex(kept);indices=kept;
-    }
-    const normal=dress.geometry.attributes.normal,apron=[];
-    for(let k=0;k<indices.length;k+=3){const ids=[indices[k],indices[k+1],indices[k+2]],x=ids.reduce((n,i)=>n+positions.getX(i),0)/3,y=ids.reduce((n,i)=>n+positions.getY(i),0)/3,z=ids.reduce((n,i)=>n+positions.getZ(i),0)/3;
-     const f=(waist-y)/Math.max(.001,waist-box.min.y),width=y>waist?.082:.095+Math.max(0,f)*.14;
-     if(z<-.035&&Math.abs(x)<width&&y>box.min.y+.028&&y<box.max.y-.04)apron.push(...ids);
-    }
-    if(apron.length){const mesh=dress.clone();mesh.geometry=dress.geometry.clone();mesh.geometry.setIndex(apron);const p=mesh.geometry.attributes.position;for(let i=0;i<p.count;i++)p.setXYZ(i,p.getX(i)+normal.getX(i)*.003,p.getY(i)+normal.getY(i)*.003,p.getZ(i)+normal.getZ(i)*.003);mesh.geometry.computeVertexNormals();mesh.material=new T.MeshToonMaterial({color:0xfff5ed,side:T.DoubleSide});mesh.name='Opal-skinned-apron';mesh.skeleton=dress.skeleton;mesh.bindMatrix.copy(dress.bindMatrix);mesh.bindMatrixInverse.copy(dress.bindMatrixInverse);group.add(mesh);}
-   }
-  }
+  this.mannequin=this.vrm.scene;this.mannequin.name='Opal-mannequin';this.mannequin.userData.entity='body';
+  const wardrobe=createOpalWardrobe(this.vrm,clothes);this.wardrobe=wardrobe.entity;this.outfits=wardrobe.outfits;this.body.add(this.wardrobe);
  }
  makeHeadband(){
   const head=this.vrm.humanoid.getRawBoneNode('head'),material=new T.MeshToonMaterial({color:0xfff7f0,side:T.DoubleSide});
