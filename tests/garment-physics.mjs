@@ -14,10 +14,22 @@ for(const fps of [8,30,60]){
  for(let i=0;i<fps*2;i++){c.root.position.x=.12*Math.sin(i/fps*12);c.root.rotation.z=.06*Math.sin(i/fps*10);c.root.updateMatrixWorld(true);c.update(0,{dt:1/fps,follow:false});check();chest=Math.max(chest,c.clothRig.chestMotion);for(const p of c.clothRig.joints.filter(p=>p.kind==='chest'))assert(p.joint.bone.quaternion.angleTo(p.rest)<=p.limit+1e-5);}
  assert(chest>.04,'Chest visibly responds to actual body motion');c.root.position.set(0,0,0);c.root.rotation.set(0,0,0);for(let i=0;i<fps*2;i++){c.root.updateMatrixWorld(true);c.update(0,{dt:1/fps,follow:false});}assert(c.clothRig.chestMotion<.002,'Chest settles naturally at every frame rate');
 }
+// Real RAF intervals are uneven. A fractional remainder XPBD step used to
+// amplify velocities until an idle skirt jumped 25+ cm frame to frame.
+for(const cadence of [[.032,.034,.033,.031,.035],[.016,.017,.0165,.0168],[.05,.01,.033]]){
+ c.root.position.set(0,0,0);c.root.rotation.set(0,0,0);c.root.updateMatrixWorld(true);c.vrm.springBoneManager.reset();c.clothRig.reset();f.reset();let previous,maxJump=0,meanJump=0,samples=0;
+ for(let i=0;i<300;i++){
+  c.update(0,{dt:cadence[i%cadence.length],follow:false});check();
+  if(i>220){for(let k=0;k<f.points.length;k++){const distance=f.points[k].distanceTo(previous[k]);maxJump=Math.max(maxJump,distance);meanJump+=distance;samples++;}}
+  previous=f.points.map(p=>p.clone());
+ }
+ assert(maxJump<.01,`Idle cloth must not flicker under uneven frames: ${maxJump} metres`);
+ assert(meanJump/samples<.001,'Settled cloth has no ongoing high-frequency surface vibration');
+}
 // Multiple UV vertices welded to one physical particle cannot tear apart.
 for(let i=0;i<f.map.length;i++){const p=f.mesh.getVertexPosition(i,new T.Vector3()).applyMatrix4(f.mesh.matrixWorld).multiplyScalar(1/1.85);assert(p.distanceTo(f.points[f.map[i]])<1e-5,'Rendered skinning matches the solved physical surface');}
 for(const id of ['rose','evening','work','victorian','bluebell','pinstripe','classic']){c.setOutfit(id);c.update(0,{dt:1/30});assert.equal(f.system.GetNumBodies(),f.colliders.length+1,'Only the visible garment is simulated; switching outfits does not accumulate bodies');check();assert(c.outfits.get(id).children.some(m=>m.userData.garment==='hem-trim'),'Every outfit has a stitched gathered hem');}
 c.dispose();assert(f.disposed);
 const plane=new T.PlaneGeometry(1,1);plane.setAttribute('skinIndex',new T.Uint16BufferAttribute(new Uint16Array(16),4));const weights=new Float32Array(16);for(let i=0;i<4;i++)weights[i*4]=1;plane.setAttribute('skinWeight',new T.Float32BufferAttribute(weights,4));const refined=refineGarment(plane,.15,5);assert(refined.attributes.position.count>plane.attributes.position.count);const area=g=>{let sum=0;for(let i=0;i<g.index.count;i+=3){const a=new T.Vector3().fromBufferAttribute(g.attributes.position,g.index.getX(i)),b=new T.Vector3().fromBufferAttribute(g.attributes.position,g.index.getX(i+1)),c=new T.Vector3().fromBufferAttribute(g.attributes.position,g.index.getX(i+2));sum+=b.sub(a).cross(c.sub(a)).length()*.5;}return sum;};assert(Math.abs(area(plane)-area(refined))<1e-6,'Refinement retains the full authored surface');
 const fallback=new OpalCharacter({createCanvas:canvas,createGarmentPhysics:async()=>null});await fallback.ready;assert(fallback.loaded&&!fallback.fabric&&!fallback.clothRig.fabricActive);fallback.update(0,{dt:1/30});fallback.dispose();
-console.log('PASS: real Jolt gravity/reversed gravity, pinned attachments, bounded cloth/chest at 8/30/60 FPS, seam continuity, stitched hems, body lifecycle, surface refinement and injected fallback.');
+console.log('PASS: real Jolt gravity/reversed gravity, pinned attachments, bounded cloth/chest at 8/30/60 FPS, uneven-RAF temporal stability, seam continuity, stitched hems, body lifecycle, surface refinement and injected fallback.');
