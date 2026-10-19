@@ -1,3 +1,9 @@
+## v0.5.4 — Fitted cloth, secondary motion and voice stability
+
+Opal now uses a locally bundled **Jolt** soft-body garment solver with gravity, stretch/bend constraints, pinned attachment maps and fitted torso/limb capsules. Her refined skinned garments retain the VRoid source and original weights; stitched hems follow the solved cloth. Chest motion is responsive and bounded, with the bodice following the same joints. All seven outfits and existing schedules remain available. See [garment architecture and limits](docs/OPAL_WARDROBE.md).
+
+Native voice audio uses binary IPC rather than large JSON arrays. The preview keeps moving during voice work and can recover a lost graphics context without reloading chat or resetting user data. See [voice/render recovery](docs/VOICE_RENDER_RECOVERY.md). Explicit character-age questions read canonical DDNA metadata instead of sampling the LLM; normal dialogue continues using the selected model.
+
 ## v0.5.3 — Opal cloth motion and three new maid outfits
 
 Opal's bodice now retains its artist skin weights, adds a small fabric allowance and occludes covered torso/upper-arm skin beneath the costume. Spring state is rebased after avatar rotation, display scaling and the relaxed pose; excessive chest motion is damped. Body and clothes remain separate.

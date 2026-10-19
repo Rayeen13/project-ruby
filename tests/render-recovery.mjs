@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {RenderRecovery,frameRate} from '../dist/render-recovery.js';
+import {voiceBytes} from '../dist/voice-provider.js';
+const surface=new EventTarget();let restored=0,released=0,status='';
+const renderer={domElement:surface,forceContextRestore(){restored++;}};
+const recovery=new RenderRecovery(renderer,{onLost:async()=>{released++;},onStatus:s=>status=s});
+assert.equal(frameRate({busy:true,lowPower:true}),8);assert.equal(frameRate({busy:true}),15);
+let paints=0;assert(recovery.draw(()=>paints++));
+const lost=new Event('webglcontextlost',{cancelable:true});surface.dispatchEvent(lost);assert(lost.defaultPrevented);assert(!recovery.draw(()=>paints++));await new Promise(r=>setTimeout(r,0));assert.equal(released,1);assert.equal(restored,1);
+surface.dispatchEvent(new Event('webglcontextrestored'));assert.equal(status,'ready');assert(recovery.draw(()=>paints++));
+assert(!recovery.draw(()=>{throw Error('device problem');}));assert(!recovery.draw(()=>paints++));recovery.retry();assert(recovery.draw(()=>paints++));recovery.dispose();surface.dispatchEvent(new Event('webglcontextlost'));assert.equal(recovery.lost,false);
+const wav=Uint8Array.of(82,73,70,70,1,2,3);for(const value of [wav,wav.buffer,Array.from(wav),new DataView(wav.buffer)])assert.deepEqual(Array.from(voiceBytes(value)),Array.from(wav));assert.deepEqual(Array.from(voiceBytes(wav.subarray(4))),[1,2,3]);
+console.log('PASS: render isolation/recovery, resource release, active compute frame budget and binary WAV/view/legacy transport.');

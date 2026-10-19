@@ -1,37 +1,41 @@
-# Opal body, wardrobe and cloth motion
+# Opal mannequin, garments and secondary motion
 
-Opal remains an 18-year-old female anime maid android. Outfit selection is presentation state; it does not change her name, gender, personality, DDNA or owner memories.
+Opal is canonically an 18-year-old female anime maid android. Wardrobe changes preserve her identity, gender, voice preferences, DDNA and memories.
 
-## Chest clipping repair
+## Asset workflow
 
-The body and wardrobe remain separate skinned entities, sharing the humanoid skeleton. The complete artist garment topology and original Bust/Sleeve/Skirt weights are retained. The earlier pelvis-weight replacement is removed: it disabled skirt secondary motion. A small fabric allowance offsets the garment along its normals. Torso and upper-arm skin/outline triangles that are always covered by these full-sleeved outfits are omitted from the render geometry; the complete source mannequin remains retained for fitting. Exposed neck, hands and legs are preserved. This outfit-occlusion step prevents underlying skin from appearing through the bodice; it does not tear or cut the garment.
+The CC0 VRoid mannequin and clothing are separate skinned entities on the original humanoid skeleton. Source mesh/topology remain intact in the bundled VRM. Garments retain original vertex weights and receive conforming edge refinement, with normalized interpolated weights for new vertices. The authored bind surface is retained in `fabricRest`; runtime simulation never overwrites that reference. UV seams are welded in the simulation mesh and mapped back to the render mesh, preventing the physical seam from splitting. Every outfit has a gathered hem attached to its refined edge.
 
-VRM spring tails were initialized before rotateVRM0, display scaling and the relaxed arm pose. They are now rebased after those transforms. Scale-dependent collision radii/stiffness are calibrated, and excessive chest secondary motion is damped. Hair continues to use the VRM spring manager.
+The garment uses rough, non-metallic fabric shading and stable cloth-space apron/weave colour regions. The current apron is a continuous region of the dress, sharing its deformation. All seven styles have moving stitched hems. Pinned neckline, bodice and waist regions remain fitted to the rig; sleeves and lower skirts have progressively larger movement limits. Body faces always covered by these costumes are occluded in render geometry. The full mannequin is retained for fitting, and exposed neck/hands/legs stay visible.
 
-## Cloth motion
+## Jolt cloth
 
-A dedicated OpalClothRig drives 16 weighted skirt/sleeve joints with world-space spring particles, damping, gravity, fixed-length constraints, angular movement limits and sphere body colliders. Unweighted end bones are not simulated. It uses bounded substeps and resets on large teleports. One shared simulation drives whichever outfit is visible; it is not a solver per costume. It runs in the shared browser/native renderer, with no new model, service or physics dependency.
+JoltPhysics.js **1.1.0** (MIT) is bundled locally, loaded only when Opal needs it. Its soft-body solver supplies gravity, stretch/shear edges, dihedral bending, skinned constraints and collision handling. The adapter transfers the existing skin weights, uses a fitted-pose stretch/bend reference, supplies animated joint matrices and maps solved particles back into the skinned render geometry. Attachment-distance and backstop masks serve the same roles described in Epic's cloth-authoring documentation. An explicit final attachment envelope prevents edge corrections from pulling shoulder seams outside their painted limits.
 
-This is a lightweight skeletal cloth approximation, with limited folds from skinning and modeled gathers. It is not a full woven-fabric finite-element, per-vertex self-collision or garment-construction simulator. Existing body/leg/arm colliders and bounded movement prevent the tested fabric particles from entering the body. Native visual acceptance and arbitrary extreme poses remain separate from those checks.
+Ten torso/limb capsules form the garment physics asset. These are fitted separately from the VRM hair colliders. Only the visible garment is simulated; outfit changes destroy the preceding soft body and rebuild its selected asset. Hem trims follow the solved edge without additional soft bodies. The solver uses bounded 1/60-second steps and at most 0.125 seconds of catch-up. Physics timing remains independent of reduced render frame rates. Cleanup releases the world, bodies and temporary native objects. A spring fallback keeps the Companion usable if cloth initialization is unavailable; native acceptance explicitly requires Jolt to be active.
 
-## Seven selectable outfits
+This follows the separate garment/skin-weight/mask/collision workflow used in game engines. Runtime Jolt settings require an engine-specific conversion to use Chaos Cloth in Unreal. Full cloth-to-cloth/self-collision and garment-pattern authoring remain future Studio work; this release does not claim a textile finite-element model or guaranteed collision-free arbitrary poses.
 
-The four existing IDs (classic, rose, evening, work) and time-of-day/work preferences remain compatible. Three new original variations add geometry and tailoring:
+## Chest and hair
 
-- **Victorian ivory:** longer, gently flared charcoal skirt, ivory gathered hem and white collar trim.
-- **Bluebell café:** blue bell skirt, softly expanded upper sleeves and gathered ivory hem.
-- **Pinstripe housemaid:** medium-length muted striped dress, apron and gathered hem.
+Four original Bust joints have a bounded, underdamped response to actual world-space motion. Proximal/distal frequencies differ, with angular limits and zeroed velocity on resets. This restores secondary chest movement while keeping body and bodice coupled through the original weights. It is a supported soft-tissue animation approximation, not a biomechanical model. Hair retains the existing VRM spring system. The earlier spring-state rebase after avatar rotation, scaling and relaxed pose remains in place.
 
-New hem trims are welded strips fitted to the original hem boundary, sharing normalized skin weights and skeleton. They follow the cloth springs. Continuous apron colour regions avoid near-coplanar full-bib overlays. Subtle woven shading and modeled folds supply fabric detail without copied textures. Use **Customize → Opal’s wardrobe → Preview fabric movement** for a three-second sway; reduced-motion preferences disable it.
+## Wardrobe
 
-Reference silhouettes/tailoring only; no product photographs, brand character designs or textures are bundled:
+The seven IDs remain `classic`, `rose`, `evening`, `work`, `victorian`, `bluebell`, `pinstripe`. Existing selections, time schedules and work overrides remain compatible. **Customize → Opal's wardrobe → Preview fabric movement** runs a three-second sway; reduced-motion preferences are respected.
+
+Generic tailoring references only; no product photos, character designs or textures are bundled:
+
 - https://www.londonmuseum.org.uk/collections/v/object-80112/apron-work-apron/
 - https://teesvalleymuseums.org/object/servants-uniform/
 - https://bodylinetokyo.co.jp/en-int/collections/school_events/products/76177
 
-Physics references:
-- https://vrm.dev/en/univrm/springbone/univrm_secondary/
-- https://pixiv.github.io/three-vrm/docs/documents/spring-bones-on-scaled-models.html
-- https://github.com/vrm-c/vrm-specification/blob/master/specification/VRMC_springBone-1.0/README.md
+Implementation references:
 
-Validation covers original garment indices/weights, separate body/clothes, retained exposed anatomy, three rigged hem trims, root transform covariance and finite/bounded colliding cloth motion under 8/30/60 FPS shake sequences. Windows captures all seven outfits and three movement-preview frames before AI downloads. Re-review on target hardware if adding new poses, bones or costumes.
+- https://github.com/jrouwe/JoltPhysics.js/tree/1.1.0 — MIT; the original vendor licence is in `dist/vendor/JOLT-LICENSE.txt`.
+- https://jrouwe.github.io/JoltPhysics.js/soft/soft_body.html
+- https://dev.epicgames.com/documentation/en-us/unreal-engine/panel-cloth-editor-overview
+- https://dev.epicgames.com/documentation/en-us/unreal-engine/clothing-tool-in-unreal-engine
+- https://pixiv.github.io/three-vrm/docs/documents/spring-bones-on-scaled-models.html
+
+Validation covers real/reversed gravity with a stationary mannequin, pinned attachment accuracy, movement envelopes, original weights and retained source surface, seam continuity, stitched hems, bounded/settling chest motion at 8/30/60 FPS, outfit body-count stability and cleanup. Native captures and user-device acceptance complement numerical checks.

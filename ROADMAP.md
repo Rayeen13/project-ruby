@@ -1,3 +1,12 @@
+## v0.5.4 · Garment and voice reliability
+
+- Integrate MIT JoltPhysics.js soft cloth: gravity, stretch/bend constraints, fitted-pose rest data, skinned attachment limits/backstops and torso/limb capsule collisions.
+- Refine garment surfaces, preserve source/skin weights, weld physical seams and attach moving gathered hems to every outfit.
+- Restore bounded chest motion and frame-rate-independent settling; keep the bodice coupled to the original rig.
+- Replace JSON WAV sample arrays with binary IPC. Keep preview updates alive during synthesis; recover graphics loss, release the voice worker and retain chat/preferences.
+- Read explicit age queries from canonical DDNA metadata, fixing the failed v0.5.3 identity regression.
+- Validate Jolt gravity/reversed-gravity, attachments, seams, 8/30/60 FPS, body lifecycle, actual Windows context restoration, binary audio and GUI anime synthesis. Confirm visual quality and device-specific freezing on the owner's laptop.
+
 ## v0.5.3 · Opal fabric reliability
 
 - Repair chest skin/outline poke-through with preserved garment weights, fabric allowance and retained-source body coverage. Rebase spring state after avatar transforms and the relaxed pose; damp excessive chest motion.

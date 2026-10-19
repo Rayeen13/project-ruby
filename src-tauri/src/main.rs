@@ -145,6 +145,7 @@ fn main() {
             voice::voice_pack_status,
             voice::voice_pack_download,
             voice::voice_synthesize,
+            voice::voice_release,
             voice::voice_stop,
             ai_pack::ai_pack_status,
             ai_pack::ai_pack_run,
