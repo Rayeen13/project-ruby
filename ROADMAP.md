@@ -1,3 +1,11 @@
+## v0.5.2 · Voice acceptance on the owner’s device
+
+- Add a shared VoiceCheck module with injected playback, fixed language samples, explicit start/stop, first/repeat timings, actual anime worker device and a privacy-limited JSON export.
+- Add Anime/Lighter Japanese shortcuts, preserving text language, gender filtering, voice defaults and explicit pack consent.
+- Exercise both real local samples and cancellation in Windows CI. Physical RTX 2050 performance, thermal impact and listening acceptance remain unverified until a check is run on that hardware.
+- Add focused AI-friendship grounding and an example after a real 1.5B denial; dialogue policy 4 drops older assistant claims from context without deleting history or user statements. Replies remain LLM-generated.
+- Next: use target-device timings and listening feedback to tune defaults. Continue compact-LLM conversation evaluation; November microphone/ASR/interrupt work remains required.
+
 ## v0.5.1 · Companion reliability and expressive voice
 
 - Separate Opal mannequin/wardrobe entities, full garment topology, smooth skirt binding and clean apron colour regions across four outfits.
@@ -33,7 +41,7 @@ Project Ruby is an ADICE (Artificial Digital Intelligent Companion Entity) compa
 
 Terminology: **Companion = 3D mesh character**, **LLM = intelligence model**, **VoiceM = voice synthesis model**, **LangM = local translation model**. Keep these terms in UI, plugin contracts and documentation.
 
-The current milestone is **Companion Studio v0.4.1**: five preserved robot bodies plus the original Opal android, gem identities, expressions, personality, persistent owner notes, independent chat/Settings, managed local LLM download, sourced internet lookup and downloadable English VoiceM with preview/speech. Windows Studio uses native window chrome; floating Companion remains frameless with body-specific bounds and preset sizes. Google AI Mode is a browser shortcut, not a hidden answer API. Content preference is prompt-level, not a guarantee of LLM compliance. Microphone input, screen vision, desktop input control, native mobile widgets and world physics remain open. Windows CI exercises actual WebView/process behavior; physical-device acceptance remains required.
+The current shipped foundation is **Prismy Studio v0.5.x**: five robot shells plus the rigged Opal anime maid, independent gem identities, portable DDNA/owner memory, local text chat, sourced internet lookup and optional local VoiceM collections. Studio has a custom window frame and F11 fullscreen; floating Companion remains frameless, with pin/peek, global gaze and stable size presets. Opal is 18. A local profile, theme Prisms and free theme catalogue are available; cloud accounts, paid checkout and payouts are not connected. Google AI Mode remains a browser shortcut. Microphone input, screen vision, approved desktop actions and native mobile hosts are still open. Windows CI exercises actual WebView/process behavior; physical-device acceptance remains required.
 
 User-requested speech output was brought forward from November. **November still requires two-way voice conversation:** microphone capture, ASR, interruption, latency/hardware tuning, multilingual packs and accessible listening feedback. Do not call text-to-speech alone completion of that milestone.
 

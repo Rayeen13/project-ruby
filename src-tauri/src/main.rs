@@ -60,6 +60,7 @@ async fn desktop_smoke_checkpoint(
             "opal",
             "languages",
             "voice_library",
+            "voice_check",
             "workspace_dashboard",
             "workspace_profile",
             "workspace_shop",
@@ -118,7 +119,7 @@ async fn desktop_smoke_checkpoint(
     std::fs::write("ruby-native-phase.txt", &phase).map_err(|error| error.to_string())?;
     if matches!(
         phase.as_str(),
-        "chat" | "chat_lab" | "setup" | "opal" | "languages"
+        "chat" | "chat_lab" | "setup" | "opal" | "languages" | "voice_check"
     ) {
         tokio::time::sleep(std::time::Duration::from_secs(2)).await;
     }

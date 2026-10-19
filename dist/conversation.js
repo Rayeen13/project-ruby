@@ -2,7 +2,7 @@ import {normalizeAttachment,attachmentMessage} from './chat-attachments.js';
 import {literalUtterance,dialogueGrounding,dialogueExamples,normalizeDialogue,cognitionText} from './dialogue-grounding.js';
 import {LANGUAGE_NAMES} from './languages.js';
 import {parseExpression} from './companion-state.js';
-export const DIALOGUE_POLICY=3;
+export const DIALOGUE_POLICY=4;
 export const characterContextKey=i=>[i.ddnaId||i.profile||i.name,i.personality?.id||i.personality?.prompt||''].join(':');
 export const CHAT_KEY='project-ruby.conversation.v1';
 const MAX_HISTORY=200,MAX_TEXT=8000;

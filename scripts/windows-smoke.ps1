@@ -118,7 +118,7 @@ try {
             if (Test-Path ruby-native-smoke.txt) { Get-Content ruby-native-smoke.txt }
             throw 'Mesh carry did not move the actual native window'
           }
-        } elseif ($phase -in @('menu','float','dizzy','zoom_view','left','right','chat','chat_lab','setup','opal','languages','voice_library','workspace_dashboard','workspace_profile','workspace_shop','workspace_fullscreen','workspace_ametrine','workspace_obsidian','workspace_sakura','workspace_cyberpunk','prism_review','prism_active','opal_classic','opal_rose','opal_evening','opal_work','opal_wave_0','opal_wave_1','opal_wave_2','dizzy_classic','dizzy_cyber','dizzy_chibi','dizzy_office','dizzy_gamer','dizzy_opal') -and $rubyHandle -ne [IntPtr]::Zero) {
+        } elseif ($phase -in @('menu','float','dizzy','zoom_view','left','right','chat','chat_lab','setup','opal','languages','voice_library','voice_check','workspace_dashboard','workspace_profile','workspace_shop','workspace_fullscreen','workspace_ametrine','workspace_obsidian','workspace_sakura','workspace_cyberpunk','prism_review','prism_active','opal_classic','opal_rose','opal_evening','opal_work','opal_wave_0','opal_wave_1','opal_wave_2','dizzy_classic','dizzy_cyber','dizzy_chibi','dizzy_office','dizzy_gamer','dizzy_opal') -and $rubyHandle -ne [IntPtr]::Zero) {
           $bounds = New-Object RubyBounds+Rect
           if (-not [RubyBounds]::GetWindowRect($rubyHandle,[ref]$bounds)) { throw 'Cannot capture native window bounds' }
           $clientOrigin = New-Object RubyBounds+Point

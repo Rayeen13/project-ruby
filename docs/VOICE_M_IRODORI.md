@@ -1,6 +1,6 @@
 # Expressive Japanese anime VoiceM
 
-Settings → Voice & language → **Use anime voices · Japanese** keeps the text language unchanged and selects Irodori. Accept the displayed model terms, download the optional collection (~893 MB), then preview and select a voice. English text with Japanese voice uses the existing local LangM. Translation quality still depends on that LLM. English/Chinese Kokoro and lightweight Supertonic remain separate choices.
+Settings → Voice & language → **Anime · Japanese** keeps the text language unchanged and selects Irodori. Accept the displayed model terms, download the optional collection (~893 MB), then preview and select a voice. English text with Japanese voice uses the existing local LangM. Translation quality still depends on that LLM. English/Chinese Kokoro and lightweight Supertonic remain separate choices.
 
 The engine is Irodori-TTS v4.1 Small-MF Q4_K through speech.cpp v0.8.10, not a pitch-shifted stock voice. Eight original caption-designed adult profiles are gender scoped. Opal is an 18-year-old female anime maid with dry wit. Character personality, expressive performance cues and Companion emotions reach the synthesis model as style instructions; supported sigh/giggle/whisper cues also use the model's emoji controls. Acting direction is probabilistic, not a promise of perfect voice acting.
 
@@ -18,3 +18,5 @@ Sources and pinned versions:
 - https://huggingface.co/sakasegawa/Irodori-TTS-v4.1-Small-MF-GGUF/tree/205ab071cb54e46509a84d3a48535df283bc3b0f
 
 The pack is Japanese-only. Native VoiceM execution currently requires the Windows app; the web UI exposes the same voice preferences and catalogue, with the existing installed-app playback boundary. English/Chinese expressive engines and human-rated voice quality remain future work.
+
+Use **Check my voice** to collect first/repeat timings and the actual native worker device on your own machine. **Lighter · Japanese** chooses Supertonic without changing the text language or accepting any additional terms. See [VOICE_CHECK.md](VOICE_CHECK.md).

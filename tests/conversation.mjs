@@ -35,3 +35,9 @@ const dayHistory=[...historyPair('I watched CaseOh, prayed and worked on Prismy 
 assert(!contextMessages([{role:'user',content:'Hi'},{role:'assistant',content:'I do not run inside an app.',status:'complete',policyVersion:2,contextKey:characterContextKey(memoryIdentity)}],memoryIdentity).some(m=>m.content==='I do not run inside an app.'));
 
 const olderUser=[{role:'user',content:'I watched CaseOh and worked on Prismy Studio.'},{role:'assistant',content:'I do not run inside an app.',status:'complete',policyVersion:2,contextKey:characterContextKey(memoryIdentity)}];const migratedContext=contextMessages(olderUser,memoryIdentity);assert(migratedContext.some(m=>m.content.includes('CaseOh')));assert(!migratedContext.some(m=>m.content.includes('I do not run inside an app.')));
+
+const {dialogueGrounding,dialogueExamples}=await import('../dist/dialogue-grounding.js');
+for(const line of ['are u a friend','Are you my friend?','Are we friends?','Can we be friends?','I am your friend'])assert.match(dialogueGrounding(line),/Relationship fact/);
+assert.equal(dialogueGrounding('My friend needs help with algebra.'),'');assert.equal(dialogueGrounding('Can my friend read my password?'),'');assert(dialogueExamples(identity()).some(m=>m.role==='assistant'&&m.content.startsWith('Yes, I am your AI friend')));
+const oldDenial=[{role:'user',content:'I am your friend'},{role:'assistant',content:'I am not a friend.',status:'complete',policyVersion:3,contextKey:characterContextKey(memoryIdentity)}];assert(!contextMessages(oldDenial,memoryIdentity).some(m=>m.content==='I am not a friend.'));
+let generated=0;const actualFriend=new Conversation({identity,storage,provider:{async *stream(){generated++;yield 'Yes, I can keep you company as your AI friend.';}}});await actualFriend.send('are u a friend','local');assert.equal(generated,1,'Friendship replies must still come from the LLM, not local canned output');

@@ -1,3 +1,11 @@
+## v0.5.2 — Voice checks on your device
+
+Settings → Voice & language now includes **Check my voice**. Play two fixed local samples, compare first/repeat playback latency and see the actual anime worker device (or the CPU runtime used by the lighter engines). Save a small JSON report for troubleshooting. Reports contain selected Companion/voice metadata and timings; no chat, owner memories, recordings or unique hardware identifiers. Checks do not download packs, translate text or use greeting audio caches. Stop, changing Companion or voice settings, and starting other speech cancel the check.
+
+Companion dialogue adds focused AI-friendship grounding and a positive example after a real model denial was reproduced. Older incorrect assistant claims are excluded from new context while retaining user statements; ordinary replies still come from the selected LLM.
+
+Choose **Anime · Japanese** or **Lighter · Japanese** without changing text language. Each pack still needs an explicit download and acceptance of its own terms. The website shares the controls; native voice execution and measurements require the Windows app. See [voice checks and interpretation](docs/VOICE_CHECK.md). Measured latency ends at scheduled playback; it is not a guarantee of physical speaker latency or voice acting quality.
+
 ## v0.5.1 — Opal wardrobe, identity and expressive VoiceM
 
 Opal is now canonically 18. Her mannequin and clothes are separate skinned entities sharing one humanoid rig; all four outfits retain continuous garment surfaces, with no cut-out triangles or overlapping apron copies. Saved DDNA ages migrate without replacing identity or owner memories.
