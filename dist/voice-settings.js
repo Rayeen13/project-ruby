@@ -31,5 +31,6 @@ export function mountVoiceSettings({document,state,identity,onChange,modelsFor,e
  el('voice-license-link').onclick=event=>{if(tauri){event.preventDefault();void tauri.core.invoke('open_web_url',{url:el('voice-license-link').href}).catch(()=>{});}};
  if(state.data.langm.model)options(el('langm-model'),[[state.data.langm.model,state.data.langm.model]]);
  el('voice-anime-preset').onclick=()=>{state.data.voiceLanguage='ja';state.data.voiceEngine='irodori';el('voice-language').value='ja';change();};
+ el('voice-light-preset').onclick=()=>{state.data.voiceLanguage='ja';state.data.voiceEngine='supertonic3';el('voice-language').value='ja';change();};
  render();return {refresh:render};
 }

@@ -1,3 +1,9 @@
+## v0.5.2 voice check
+
+Open **Settings → Voice & language → Check my voice → Play two samples** after installing your chosen voice collection. Keep the volume above zero. The check plays two fixed lines locally and reports first/repeat playback timing and the synthesis device. **Save report** exports `prismy-voice-check.json`; share it when reporting slow speech. It contains no chat, owner memories or recordings. **Stop check** cancels preparation/playback. Changing Companion/voice or starting other speech also cancels it. Choose **Lighter · Japanese** for the smaller Supertonic collection; your text language remains unchanged.
+
+A first sample may already be warm. GPU preference is not proof that a GPU was used: read the reported device. The check does not measure peak VRAM, thermals or physical speaker buffering. See [VOICE_CHECK.md](VOICE_CHECK.md).
+
 ## v0.5.1 update
 
 Opal is 18, with a separate mannequin and wardrobe entity and continuous garments. Existing DDNA identity IDs and memories are preserved. Companions explicitly know this conversation is hosted inside Prismy Studio.
