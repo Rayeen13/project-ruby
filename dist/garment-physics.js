@@ -48,7 +48,8 @@ export class GarmentPhysics{
   shared.CalculateEdgeLengths();shared.CalculateBendConstraintConstants();shared.CalculateLRALengths();
   for(let k=0;k<representatives.length;k++){const i=representatives[k],v=shared.mVertices.at(k);v.mPosition.x=p[i*3];v.mPosition.y=p[i*3+1];v.mPosition.z=p[i*3+2];}
   shared.CalculateSkinnedConstraintNormals();shared.Optimize();
-  this.origin.Set(0,0,0);const creation=new J.SoftBodyCreationSettings(shared,this.origin,this.identity,1);creation.mUpdatePosition=false;creation.mAllowSleeping=false;creation.mFacesDoubleSided=true;creation.mNumIterations=8;creation.mVertexRadius=.004;creation.mLinearDamping=.35;
+  this.origin.Set(0,0,0);const creation=new J.SoftBodyCreationSettings(shared,this.origin,this.identity,1);creation.mUpdatePosition=false;creation.mAllowSleeping=false;creation.mFacesDoubleSided=true;creation.mNumIterations=8;creation.mVertexRadius=.004;// Dissipate shake energy rather than letting constraints ring at low FPS.
+  creation.mLinearDamping=3;creation.mMaxLinearVelocity=2;
   this.body=this.bi.CreateSoftBody(creation);J.destroy(creation);this.bi.AddBody(this.body.GetID(),J.EActivation_Activate);this.properties=J.castObject(this.body.GetMotionProperties(),J.SoftBodyMotionProperties);this.properties.SetEnableSkinConstraints(true);this.reset();
  }
  skinMatrices(){

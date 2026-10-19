@@ -41,3 +41,5 @@ Implementation references:
 Validation covers real/reversed gravity with a stationary mannequin, pinned attachment accuracy, movement envelopes, original weights and retained source surface, seam continuity, stitched hems, bounded/settling chest motion at 8/30/60 FPS, outfit body-count stability and cleanup. Native captures and user-device acceptance complement numerical checks.
 
 The Jolt adapter accumulates elapsed render time into equal 60 Hz physics ticks. It never submits a tiny remainder timestep: XPBD velocity reconstruction divided by that remainder amplified ordinary RAF jitter into severe idle flickering. Temporal tests cover uneven 60/30 FPS intervals and alternating slow/fast frames, in addition to the steady-rate shake checks.
+
+Garment damping is 3 s⁻¹ with a 2 m/s particle velocity limit. This retains the shake response while dissipating residual motion instead of ringing for seconds on a busy low-FPS renderer. Uneven 5–10 FPS shake/settle tests require residual per-frame motion below 2 mm after four seconds of settling.

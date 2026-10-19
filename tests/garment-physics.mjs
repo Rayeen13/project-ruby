@@ -26,6 +26,20 @@ for(const cadence of [[.032,.034,.033,.031,.035],[.016,.017,.0165,.0168],[.05,.0
  assert(maxJump<.01,`Idle cloth must not flicker under uneven frames: ${maxJump} metres`);
  assert(meanJump/samples<.001,'Settled cloth has no ongoing high-frequency surface vibration');
 }
+// After a real preview shake, cloth must dissipate energy even when a
+// busy renderer alternates between 5–10 FPS and faster catch-up frames.
+for(const cadence of [[.10,.125,.08,.16],[.18,.04,.09,.21]]){
+ c.root.position.set(0,0,0);c.root.rotation.set(0,0,0);c.root.updateMatrixWorld(true);c.clothRig.reset();f.reset();let time=0,maxResidual=0,shakeMotion=0;
+ for(let i=0;time<10;i++){
+  const dt=cadence[i%cadence.length];time+=dt;c.root.position.x=0;c.root.rotation.z=0;
+  c.update(0,{dt:Math.min(dt,.05),physicsDt:Math.min(dt,.125),follow:false,deferCloth:true});
+  if(time<3){const envelope=Math.sin(Math.PI*time/3)**2;c.root.position.x=.12*Math.sin(time*12)*envelope;c.root.rotation.z=.07*Math.sin(time*10)*envelope;}
+  c.root.updateMatrixWorld(true);c.syncCloth(Math.min(dt,.125));check();
+  if(time<3)shakeMotion=Math.max(shakeMotion,f.frameJump);if(time>7)maxResidual=Math.max(maxResidual,f.frameJump);
+ }
+ assert(shakeMotion>.005,'Fabric still responds to a physical shake');
+ assert(maxResidual<.002,`Cloth settles after a shake under uneven low FPS: ${maxResidual} metres`);
+}
 // Multiple UV vertices welded to one physical particle cannot tear apart.
 for(let i=0;i<f.map.length;i++){const p=f.mesh.getVertexPosition(i,new T.Vector3()).applyMatrix4(f.mesh.matrixWorld).multiplyScalar(1/1.85);assert(p.distanceTo(f.points[f.map[i]])<1e-5,'Rendered skinning matches the solved physical surface');}
 for(const id of ['rose','evening','work','victorian','bluebell','pinstripe','classic']){c.setOutfit(id);c.update(0,{dt:1/30});assert.equal(f.system.GetNumBodies(),f.colliders.length+1,'Only the visible garment is simulated; switching outfits does not accumulate bodies');check();assert(c.outfits.get(id).children.some(m=>m.userData.garment==='hem-trim'),'Every outfit has a stitched gathered hem');}
