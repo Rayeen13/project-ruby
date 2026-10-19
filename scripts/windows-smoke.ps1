@@ -7,6 +7,16 @@ using System;
 using System.Runtime.InteropServices;
 public static class RubyBounds {
   private delegate bool WindowCallback(IntPtr window, IntPtr parameter);
+  [DllImport("user32.dll", EntryPoint="SystemParametersInfoW", SetLastError=true)] private static extern bool ReadAnimation(uint action, uint parameter, out int value, uint flags);
+  [DllImport("user32.dll", EntryPoint="SystemParametersInfoW", SetLastError=true)] private static extern bool WriteAnimation(uint action, uint parameter, IntPtr value, uint flags);
+  public static int ReadClientAnimations() {
+    int value;
+    if (!ReadAnimation(0x1042, 0, out value, 0)) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+    return value;
+  }
+  public static void SetClientAnimations(int value) {
+    if (!WriteAnimation(0x1043, 0, new IntPtr(value), 2)) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+  }
   [DllImport("user32.dll")] private static extern bool EnumWindows(WindowCallback callback, IntPtr parameter);
   [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
   [DllImport("user32.dll")] private static extern bool IsWindowVisible(IntPtr window);
@@ -39,12 +49,18 @@ $occupiedAiPort = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::
 $occupiedAiPort.Start()
 $launchArguments = @('--native-smoke-test')
 if ($VisualOnly) { $launchArguments += '--native-visual-only' }
-$rubyProcess = Start-Process src-tauri/target/release/project-ruby.exe -ArgumentList $launchArguments -PassThru
+$previousAnimations = [RubyBounds]::ReadClientAnimations()
+$rubyProcess = $null
 $rubyHandle = [IntPtr]::Zero
 $seen = @{}
 $elapsed = [System.Diagnostics.Stopwatch]::StartNew()
 $lastHeartbeat = -15
 try {
+  # GitHub's runner disables client-area animation by default. Exercise actual
+  # cloth/wave motion with the OS preference enabled, then restore it in finally.
+  # This is test-session setup, never an application preference override.
+  [RubyBounds]::SetClientAnimations(1)
+  $rubyProcess = Start-Process src-tauri/target/release/project-ruby.exe -ArgumentList $launchArguments -PassThru
   while ($elapsed.Elapsed.TotalMinutes -lt 8) {
     if ($elapsed.Elapsed.TotalSeconds - $lastHeartbeat -ge 15) {
       $lastHeartbeat = $elapsed.Elapsed.TotalSeconds
@@ -187,5 +203,6 @@ try {
   Get-Content ruby-native-smoke.txt
 } finally {
   $occupiedAiPort.Stop()
-  if (-not $rubyProcess.HasExited) { Stop-Process -Id $rubyProcess.Id -Force }
+  if ($rubyProcess -and -not $rubyProcess.HasExited) { Stop-Process -Id $rubyProcess.Id -Force }
+  [RubyBounds]::SetClientAnimations($previousAnimations)
 }
