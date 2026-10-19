@@ -3,6 +3,7 @@
 - Add a shared VoiceCheck module with injected playback, fixed language samples, explicit start/stop, first/repeat timings, actual anime worker device and a privacy-limited JSON export.
 - Add Anime/Lighter Japanese shortcuts, preserving text language, gender filtering, voice defaults and explicit pack consent.
 - Exercise both real local samples and cancellation in Windows CI. Physical RTX 2050 performance, thermal impact and listening acceptance remain unverified until a check is run on that hardware.
+- Add focused AI-friendship grounding and an example after a real 1.5B denial; dialogue policy 4 drops older assistant claims from context without deleting history or user statements. Replies remain LLM-generated.
 - Next: use target-device timings and listening feedback to tune defaults. Continue compact-LLM conversation evaluation; November microphone/ASR/interrupt work remains required.
 
 ## v0.5.1 · Companion reliability and expressive voice
