@@ -4,6 +4,7 @@ import {VRMLoaderPlugin,VRMUtils} from './vendor/three-vrm.module.js';
 import {GEM_PROFILES} from './character.js';
 import {OPAL_OUTFITS} from './wardrobe.js';
 import {createOpalWardrobe} from './opal-wardrobe.js';
+import {configureOpalCloth,coverOpalTorso,clothPreviewOffset} from './opal-cloth-rig.js';
 import {sampleHumanoidArmPose,applyHumanoidArmPose} from './humanoid-gestures.js';
 
 // A real CC0 VRoid skinned avatar; source/provenance is in docs/OPAL_ASSET.md.
@@ -22,7 +23,7 @@ export class OpalCharacter {
   else gltf=await loader.loadAsync(new URL('models/opal-base.vrm',document.baseURI).href);
   this.vrm=gltf.userData.vrm;if(!this.vrm)throw Error('Opal’s humanoid avatar could not be loaded.');
   VRMUtils.rotateVRM0(this.vrm);VRMUtils.removeUnnecessaryVertices(gltf.scene);VRMUtils.combineSkeletons(gltf.scene);
-  this.body.remove(this.head);this.body.add(this.vrm.scene);this.vrm.scene.scale.setScalar(1.85);
+  this.body.remove(this.head);this.body.add(this.vrm.scene);this.vrm.scene.scale.setScalar(1.85);this.clothRig=configureOpalCloth(this.vrm,1.85);this.bodyCoverage=coverOpalTorso(this.vrm);
   const bone=id=>this.vrm.humanoid.getNormalizedBoneNode(id);this.bone=bone;this.head=bone('head');
   this.arms=[['left',1],['right',-1]].map(([name,side])=>{const hand=bone(name+'Hand'),fingers=['Index','Middle','Ring','Little'].map(d=>({base:bone(name+d+'Proximal'),tip:bone(name+d+'Distal'),middle:bone(name+d+'Intermediate')}));hand.userData.digits={fingers,thumb:bone(name+'ThumbProximal'),thumbTip:bone(name+'ThumbDistal'),side};return {arm:bone(name+'UpperArm'),forearm:bone(name+'LowerArm'),hand,side};});
   this.feet=[bone('leftUpperLeg'),bone('rightUpperLeg')];this.originalMaterials=[];const clothes=[];
@@ -36,7 +37,7 @@ export class OpalCharacter {
    }
    if(mats.some(m=>/Tops.*CLOTH/i.test(m.name)))clothes.push(o);
   });
-  this.vrm.scene.updateMatrixWorld(true);this.makeWardrobe(clothes);this.makeHeadband();this.loaded=true;this.setOutfit(this.outfit);this.update(0,{follow:false});return this;
+  this.vrm.scene.updateMatrixWorld(true);this.makeWardrobe(clothes);this.makeHeadband();this.setOutfit(this.outfit);this.update(0,{follow:false,dt:0});this.vrm.springBoneManager.reset();this.clothRig.reset();this.loaded=true;this.update(0,{follow:false});return this;
  }
  makeWardrobe(clothes){
   this.mannequin=this.vrm.scene;this.mannequin.name='Opal-mannequin';this.mannequin.userData.entity='body';
@@ -64,8 +65,10 @@ export class OpalCharacter {
   for(const rig of this.arms)applyHumanoidArmPose(this.vrm,sampleHumanoidArmPose(t,{side:rig.side===1?'left':'right',gesture:this.handGestures[rig.side]||'relaxed',waveWeight:rig.side===-1?waveWeight:0}));
   const e=this.vrm.expressionManager;if(e){for(const name of ['happy','relaxed','sad','surprised'])e.setValue(name,0);this.speechWeight=(this.speechWeight||0)+((this.speechTarget||0)-(this.speechWeight||0))*(1-Math.exp(-22*dt));e.setValue('aa',this.speechWeight*.8);e.setValue('blink',this.mood==='sleep'?1:Math.sin(t*1.3)>.993?1:0);if(this.mood==='happy')e.setValue('happy',.65);}
   for(const item of this.iris)if(item.material.map!==item.map)item.material.map=item.map;
-  this.vrm.update(Math.min(dt,.05));this.root.updateMatrixWorld(true);if(this.lastBounds===undefined||t<this.lastBounds||t-this.lastBounds>.18){this.root.traverse(o=>{if(o.isSkinnedMesh)o.computeBoundingBox();});this.lastBounds=t;}
+  this.vrm.update(Math.min(dt,.05));this.clothRig.update(Math.min(dt,.05));this.root.updateMatrixWorld(true);if(this.lastBounds===undefined||t<this.lastBounds||t-this.lastBounds>.18){this.root.traverseVisible(o=>{if(o.isSkinnedMesh)o.computeBoundingBox();});this.lastBounds=t;}
  }
+ previewCloth(time){this.clothPreviewStart=time;}
+ applyClothPreview(time){const p=clothPreviewOffset(time,this.clothPreviewStart);if(p){this.root.position.x+=p.x;this.root.rotation.z+=p.z;}return !!p;}
  syncPose(){this.vrm?.humanoid.update();}
  drawDizzyEyes(ms){
   if(!this.loaded)return;const c=this.ctx;c.clearRect(0,0,1024,512);c.fillStyle='#d5c6ec';c.strokeStyle='#51436d';c.lineWidth=13;

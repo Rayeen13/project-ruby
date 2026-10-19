@@ -1,3 +1,7 @@
+## v0.5.3 wardrobe update
+
+Choose Opal, open **Customize → Opal’s wardrobe**, select any of the seven outfits and press **Preview fabric movement**. This gives a short sway for inspecting the chest, sleeves and hem. Grabbing/shaking continues to use the same cloth rig. Reduced-motion settings disable the preview. Existing voice packs, memories and outfit schedules are retained. See [OPAL_WARDROBE.md](OPAL_WARDROBE.md) for physics/design details.
+
 ## v0.5.2 voice check
 
 Open **Settings → Voice & language → Check my voice → Play two samples** after installing your chosen voice collection. Keep the volume above zero. The check plays two fixed lines locally and reports first/repeat playback timing and the synthesis device. **Save report** exports `prismy-voice-check.json`; share it when reporting slow speech. It contains no chat, owner memories or recordings. **Stop check** cancels preparation/playback. Changing Companion/voice or starting other speech also cancels it. Choose **Lighter · Japanese** for the smaller Supertonic collection; your text language remains unchanged.
