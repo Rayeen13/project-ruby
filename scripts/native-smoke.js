@@ -208,8 +208,10 @@
   assert(document.querySelector('#setup-status').textContent.startsWith('Ready'),'Recommended setup reuses installed LLM and VoiceM without starting duplicate processes');
   assert(JSON.parse(localStorage.getItem('project-ruby.setup.v1')).preset==='recommended','Completed setup choices persist');
   document.querySelector('[data-settings-tab="llm"]').click();
-  document.querySelector('#ai-pack-stop').click();await wait(300);
-  assert((await window.__TAURI__.core.invoke('ai_pack_status')).phase==='stopped','Stop AI unloads the owned model process');
+  document.querySelector('#ai-pack-stop').click();
+  let stoppedPack;const unloadDeadline=performance.now()+5000;
+  do{stoppedPack=await window.__TAURI__.core.invoke('ai_pack_status');if(stoppedPack.phase==='stopped')break;await wait(100);}while(performance.now()<unloadDeadline);
+  assert(stoppedPack.phase==='stopped','Stop AI unloads the owned model process · '+stoppedPack.phase);
   document.querySelector('#settings-close').click();await wait(150);
   document.querySelector('#reset-preferences').click();await wait(300);
   assert(!document.querySelector('#opal-auto').checked&&document.querySelector('#opal-outfit').value==='classic','Reset preferences restores the default wardrobe');
