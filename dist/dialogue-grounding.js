@@ -1,3 +1,10 @@
+// Explicit runtime metadata queries are read from DDNA, not sampled by the LLM.
+export function characterFact(input,identity){
+ const question=input.trim().toLowerCase().replace(/[!?？！.]+$/g,'');
+ if(!/^(?:how old (?:are|r) (?:you|u)|what(?:'s| is) your (?:character )?age|your age)$/.test(question))return null;
+ if(!Number.isInteger(identity.age)||identity.age<0)return null;
+ return identity.textLanguage==='ja'?`キャラクター設定では${identity.age}歳です。`:identity.textLanguage==='zh'?`我的角色年龄是${identity.age}岁。`:`My character age is ${identity.age}.`;
+}
 // Deterministic text operations and small language references, not generated persona replies.
 export function literalUtterance(text){
  const match=text.trim().match(/^(?:please\s+)?(?:say|repeat)(?:\s+(?:exactly|only|after me))?\s*[: ,]?\s*([`"“])([\s\S]+?)[`"”]\s*[.!]?$/i);

@@ -486,8 +486,39 @@ fn speaker(voice: Option<&str>, gender: &str) -> Result<&'static str, String> {
         _ => Err("Choose a voice matching this Companion".into()),
     }
 }
+// Binary IPC avoids serializing WAV samples into multi-megabyte JSON arrays.
 #[tauri::command]
 pub async fn voice_synthesize(
+    app: AppHandle,
+    state: State<'_, VoiceState>,
+    text: String,
+    gender: String,
+    pace: f64,
+    voice: Option<String>,
+    pack: Option<String>,
+    language: Option<String>,
+    personality: Option<String>,
+    emotion: Option<String>,
+    robot: Option<bool>,
+) -> Result<tauri::ipc::Response, String> {
+    synthesize(
+        app,
+        state,
+        text,
+        gender,
+        pace,
+        voice,
+        pack,
+        language,
+        personality,
+        emotion,
+        robot,
+    )
+    .await
+    .map(tauri::ipc::Response::new)
+}
+
+pub async fn synthesize(
     app: AppHandle,
     state: State<'_, VoiceState>,
     text: String,
@@ -752,7 +783,7 @@ pub async fn smoke(app: AppHandle) -> Result<(), String> {
     ] {
         let detail = format!("Synthesizing {gender}");
         fs::write("ruby-native-voice-live.txt", detail).map_err(|e| e.to_string())?;
-        let bytes = voice_synthesize(
+        let bytes = synthesize(
             app.clone(),
             app.state::<VoiceState>(),
             text.into(),
@@ -797,7 +828,7 @@ pub async fn smoke(app: AppHandle) -> Result<(), String> {
             format!("Synthesizing {language} {gender}"),
         )
         .map_err(|e| e.to_string())?;
-        let bytes = voice_synthesize(
+        let bytes = synthesize(
             app.clone(),
             app.state::<VoiceState>(),
             text.into(),
@@ -815,6 +846,26 @@ pub async fn smoke(app: AppHandle) -> Result<(), String> {
             .map_err(|e| e.to_string())?;
     }
     Ok(())
+}
+
+// Called after graphics-device loss. Cancellation and process teardown run off
+// the UI thread and release the warm VoiceM's device memory before recovery.
+#[tauri::command]
+pub async fn voice_release(state: State<'_, VoiceState>) -> Result<(), String> {
+    let inner = state.0.clone();
+    inner.cancelled.store(true, Ordering::SeqCst);
+    inner.idle_epoch.fetch_add(1, Ordering::SeqCst);
+    inner.force_cpu.store(true, Ordering::SeqCst);
+    tauri::async_runtime::spawn_blocking(move || -> Result<(), String> {
+        inner
+            .anime
+            .lock()
+            .map_err(|_| "Voice worker unavailable")?
+            .take();
+        Ok(())
+    })
+    .await
+    .map_err(|error| error.to_string())?
 }
 
 pub fn shutdown(app: &AppHandle) {
@@ -868,7 +919,7 @@ async fn anime_smoke(app: AppHandle) -> Result<(), String> {
         )
         .map_err(|e| e.to_string())?;
         let started = std::time::Instant::now();
-        let bytes = voice_synthesize(
+        let bytes = synthesize(
             app.clone(),
             app.state::<VoiceState>(),
             text.into(),
@@ -908,7 +959,7 @@ async fn anime_smoke(app: AppHandle) -> Result<(), String> {
         )
         .map_err(|e| e.to_string())?;
     }
-    let task = voice_synthesize(
+    let task = synthesize(
         app.clone(),
         app.state::<VoiceState>(),
         "今日はとても素敵な日ですね。ゆっくり話しましょう。".into(),

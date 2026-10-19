@@ -1,3 +1,4 @@
+import {GarmentPhysics} from './garment-physics.js';
 import * as T from './vendor/three.module.js';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {VRMLoaderPlugin,VRMUtils} from './vendor/three-vrm.module.js';
@@ -9,8 +10,8 @@ import {sampleHumanoidArmPose,applyHumanoidArmPose} from './humanoid-gestures.js
 
 // A real CC0 VRoid skinned avatar; source/provenance is in docs/OPAL_ASSET.md.
 export class OpalCharacter {
- constructor({createCanvas=()=>document.createElement('canvas')}={}){
-  this.humanoid=true;this.root=new T.Group();this.body=new T.Group();this.root.add(this.body);this.head=new T.Group();this.body.add(this.head);
+ constructor({createCanvas=()=>document.createElement('canvas'),createGarmentPhysics=vrm=>GarmentPhysics.create(vrm)}={}){
+  this.createGarmentPhysics=createGarmentPhysics;this.humanoid=true;this.root=new T.Group();this.body=new T.Group();this.root.add(this.body);this.head=new T.Group();this.body.add(this.head);
   this.profile=GEM_PROFILES.find(p=>p.id==='opal');this.mood='idle';this.gaze=new T.Vector2();this.arms=[];this.feet=[];this.handGestures={};this.outfit='classic';this.outfits=new Map();this.iris=[];
   this.canvas=createCanvas();this.canvas.width=1024;this.canvas.height=512;this.ctx=this.canvas.getContext('2d');this.faceTex=new T.CanvasTexture(this.canvas);this.faceTex.colorSpace=T.SRGBColorSpace;this.faceTex.flipY=false;
   this.ready=this.load();this.ready.catch(error=>{this.loadError=String(error.message||error);});
@@ -37,7 +38,7 @@ export class OpalCharacter {
    }
    if(mats.some(m=>/Tops.*CLOTH/i.test(m.name)))clothes.push(o);
   });
-  this.vrm.scene.updateMatrixWorld(true);this.makeWardrobe(clothes);this.makeHeadband();this.setOutfit(this.outfit);this.update(0,{follow:false,dt:0});this.vrm.springBoneManager.reset();this.clothRig.reset();this.loaded=true;this.update(0,{follow:false});return this;
+  this.vrm.scene.updateMatrixWorld(true);this.makeWardrobe(clothes);this.makeHeadband();this.setOutfit(this.outfit);this.update(0,{follow:false,dt:0});this.vrm.springBoneManager.reset();this.clothRig.reset();try{this.fabric=await this.createGarmentPhysics(this.vrm);}catch(error){this.clothError=String(error.message||error);}this.clothRig.fabricActive=!!this.fabric;this.clothRig.reset();this.setOutfit(this.outfit);this.loaded=true;this.update(0,{follow:false});return this;
  }
  makeWardrobe(clothes){
   this.mannequin=this.vrm.scene;this.mannequin.name='Opal-mannequin';this.mannequin.userData.entity='body';
@@ -56,8 +57,8 @@ export class OpalCharacter {
  setMood(mood){this.mood=mood;}
  setSpeechLevel(value){this.speechTarget=T.MathUtils.clamp(Number.isFinite(value)?value:0,0,1);}
  setHandGesture(pose,side=-1){if(!['relaxed','open','point','grip','fist'].includes(pose))throw Error('Unknown hand gesture');this.handGestures[side]=pose;}
- setOutfit(id){if(!OPAL_OUTFITS.some(o=>o.id===id))return;this.outfit=id;for(const [key,group] of this.outfits)group.visible=key===id;if(this.glasses)this.glasses.visible=id==='work';}
- update(t,{pointer={x:0,y:0},follow=true,wave=false,waveWeight=wave?1:0,dt=.016}={}){
+ setOutfit(id){if(!OPAL_OUTFITS.some(o=>o.id===id))return;this.outfit=id;for(const [key,group] of this.outfits)group.visible=key===id;if(this.glasses)this.glasses.visible=id==='work';if(this.fabric){const parts=this.outfits.get(id).children;this.fabric.select(parts.find(m=>m.userData.garment==='dress'),parts.filter(m=>m.userData.garment==='hem-trim'));}}
+ update(t,{pointer={x:0,y:0},follow=true,wave=false,waveWeight=wave?1:0,dt=.016,physicsDt=dt,deferCloth=false}={}){
   if(!this.vrm)return;this.gaze.lerp(new T.Vector2(follow?pointer.x:0,follow?pointer.y:0),1-Math.exp(-12*dt));
   this.body.position.y=Math.sin(t*1.8)*.006;
   this.head.rotation.set(this.gaze.y*.08,this.gaze.x*.16,Math.sin(t*.7)*.01);
@@ -65,8 +66,10 @@ export class OpalCharacter {
   for(const rig of this.arms)applyHumanoidArmPose(this.vrm,sampleHumanoidArmPose(t,{side:rig.side===1?'left':'right',gesture:this.handGestures[rig.side]||'relaxed',waveWeight:rig.side===-1?waveWeight:0}));
   const e=this.vrm.expressionManager;if(e){for(const name of ['happy','relaxed','sad','surprised'])e.setValue(name,0);this.speechWeight=(this.speechWeight||0)+((this.speechTarget||0)-(this.speechWeight||0))*(1-Math.exp(-22*dt));e.setValue('aa',this.speechWeight*.8);e.setValue('blink',this.mood==='sleep'?1:Math.sin(t*1.3)>.993?1:0);if(this.mood==='happy')e.setValue('happy',.65);}
   for(const item of this.iris)if(item.material.map!==item.map)item.material.map=item.map;
-  this.vrm.update(Math.min(dt,.05));this.clothRig.update(Math.min(dt,.05));this.root.updateMatrixWorld(true);if(this.lastBounds===undefined||t<this.lastBounds||t-this.lastBounds>.18){this.root.traverseVisible(o=>{if(o.isSkinnedMesh)o.computeBoundingBox();});this.lastBounds=t;}
+  this.vrm.update(Math.min(dt,.05));this.clothRig.update(physicsDt);if(!deferCloth)this.syncCloth(physicsDt);this.root.updateMatrixWorld(true);if(this.lastBounds===undefined||t<this.lastBounds||t-this.lastBounds>.18){this.root.traverseVisible(o=>{if(o.isSkinnedMesh)o.computeBoundingBox();});this.lastBounds=t;}
  }
+ syncCloth(dt){if(this.fabric){try{this.fabric.update(dt);this.clothRig.motion=this.fabric.motion;}catch(error){this.clothError=String(error.message||error);try{this.fabric.dispose();}catch{}this.fabric=null;this.clothRig.fabricActive=false;this.clothRig.reset();}}}
+ dispose(){this.fabric?.dispose();}
  previewCloth(time){this.clothPreviewStart=time;}
  applyClothPreview(time){const p=clothPreviewOffset(time,this.clothPreviewStart);if(p){this.root.position.x+=p.x;this.root.rotation.z+=p.z;}return !!p;}
  syncPose(){this.vrm?.humanoid.update();}

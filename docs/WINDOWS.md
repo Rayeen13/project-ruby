@@ -1,3 +1,7 @@
+## v0.5.4
+
+Use the new installer/portable executable to test binary voice playback and graphics recovery. Your existing models, voices, wardrobe preferences and conversation remain under the same application identity. Choose Opal in Customize and run Preview fabric movement. Her clothing now uses Jolt soft-body gravity and stitched hems; chest secondary motion remains bounded. Read [garment details](OPAL_WARDROBE.md) and [voice/render recovery](VOICE_RENDER_RECOVERY.md). Use Check my voice on the target laptop to verify the actual compute device and timings.
+
 ## v0.5.3 wardrobe update
 
 Choose Opal, open **Customize → Opal’s wardrobe**, select any of the seven outfits and press **Preview fabric movement**. This gives a short sway for inspecting the chest, sleeves and hem. Grabbing/shaking continues to use the same cloth rig. Reduced-motion settings disable the preview. Existing voice packs, memories and outfit schedules are retained. See [OPAL_WARDROBE.md](OPAL_WARDROBE.md) for physics/design details.

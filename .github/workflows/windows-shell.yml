@@ -134,12 +134,12 @@ jobs:
           Copy-Item src-tauri/target/release/bundle/nsis/*.exe desktop-artifact/
           Copy-Item src-tauri/target/release/project-ruby.exe desktop-artifact/
           Copy-Item LICENSE desktop-artifact/
-          Copy-Item dist/vendor/THREE-LICENSE.txt,dist/vendor/THREE-VRM-LICENSE.txt desktop-artifact/
+          Copy-Item dist/vendor/THREE-LICENSE.txt,dist/vendor/THREE-VRM-LICENSE.txt,dist/vendor/JOLT-LICENSE.txt desktop-artifact/
           Copy-Item docs/OPAL_ASSET.md desktop-artifact/
           Copy-Item docs/licenses/REQWEST-MIT.txt desktop-artifact/
           Copy-Item docs/licenses/ZIP-MIT.txt desktop-artifact/
           Copy-Item docs/WINDOWS.md desktop-artifact/README.md
-          Copy-Item docs/HUMANOID_GESTURES.md,docs/PRISMY_STUDIO_BLUEPRINT.md,docs/VOICE_M_IRODORI.md,docs/OPAL_WARDROBE.md,docs/VOICE_CHECK.md desktop-artifact/
+          Copy-Item docs/HUMANOID_GESTURES.md,docs/PRISMY_STUDIO_BLUEPRINT.md,docs/VOICE_M_IRODORI.md,docs/OPAL_WARDROBE.md,docs/VOICE_CHECK.md,docs/VOICE_RENDER_RECOVERY.md desktop-artifact/
           Copy-Item src-tauri/Cargo.lock desktop-artifact/
           Copy-Item ruby-native-smoke.txt desktop-artifact/
           Copy-Item ruby-native-*.wav,ruby-native-voice.txt desktop-artifact/
