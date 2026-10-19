@@ -1,3 +1,11 @@
+## v0.5.3 · Opal fabric reliability
+
+- Repair chest skin/outline poke-through with preserved garment weights, fabric allowance and retained-source body coverage. Rebase spring state after avatar transforms and the relaxed pose; damp excessive chest motion.
+- Replace rigid hip rebinding with a shared 16-joint cloth-spring solver: gravity, damping, body colliders, angular/length limits, bounded steps and teleport recovery. Hair retains its VRM secondary motion.
+- Add Victorian ivory, Bluebell café and Pinstripe housemaid to the wardrobe, including different silhouettes and rigged gathered hems; preserve four existing IDs and schedules.
+- Add a reduced-motion-aware three-second fabric preview, shake/collision tests at 8/30/60 FPS and Windows captures of all outfits and motion frames.
+- Boundary: skeletal cloth is a lightweight approximation; full per-vertex self-collision/garment authoring remains Studio work. Target-device visual acceptance remains required.
+
 ## v0.5.2 · Voice acceptance on the owner’s device
 
 - Add a shared VoiceCheck module with injected playback, fixed language samples, explicit start/stop, first/repeat timings, actual anime worker device and a privacy-limited JSON export.

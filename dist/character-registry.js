@@ -14,7 +14,7 @@ export const CHARACTER_MODELS=Object.freeze([
  {id:'office',name:'Office',category:'Professional',revision:'004',capabilities:characterCapabilities({hands:true}),description:'Compact desk robot with a rounded rectangular head, short limbs and subtle gem accents.',create:options=>new OfficeCharacter(options)},
  {id:'gamer',name:'Gamer',category:'Gaming',revision:'005',capabilities:characterCapabilities({hands:true,heldProp:{side:-1,kind:'controller',gesture:'grip'}}),description:'Anime-inspired gamer with headphone listening screens and a controller held in the waving right hand.',create:options=>new GamerCharacter(options)}
 ,
- {id:'opal',name:'Opal · maid android',category:'Anime originals',revision:'006',capabilities:characterCapabilities({hands:true}),description:'Skinned VRoid anime maid with facial expressions, humanoid bones, articulated hands and four adapted outfits. Dry wit, warm intentions.',create:options=>new OpalCharacter(options)}
+ {id:'opal',name:'Opal · maid android',category:'Anime originals',revision:'006',capabilities:characterCapabilities({hands:true}),description:'Skinned VRoid anime maid with facial expressions, humanoid bones, articulated hands and seven spring-driven maid outfits. Dry wit, warm intentions.',create:options=>new OpalCharacter(options)}
 ].map(spec=>Object.freeze({...spec,canWave:spec.capabilities.wave})));
 export class CharacterSelection {
  constructor(scene,options={}){this.scene=scene;this.options=options;this.cache=new Map();this.profileId='ruby';this.robotProfileId='ruby';this.robotModelId='gamer';this.mood='idle';this.select('gamer');}

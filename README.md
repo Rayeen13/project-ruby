@@ -1,3 +1,11 @@
+## v0.5.3 — Opal cloth motion and three new maid outfits
+
+Opal's bodice now retains its artist skin weights, adds a small fabric allowance and occludes covered torso/upper-arm skin beneath the costume. Spring state is rebased after avatar rotation, display scaling and the relaxed pose; excessive chest motion is damped. Body and clothes remain separate.
+
+Skirts and sleeves use a shared lightweight cloth-spring rig with gravity, damping, body collisions and movement limits. The previous rigid hip rebinding is removed. **Customize → Opal’s wardrobe → Preview fabric movement** gives a short sway to inspect the outfit. Reduced-motion preferences are respected.
+
+The wardrobe now has **seven** outfits: the existing four plus **Victorian ivory**, **Bluebell café** and **Pinstripe housemaid**, with different skirt silhouettes, woven styling and rigged gathered hems. Existing selections/schedules remain compatible. See [the wardrobe/physics contract](docs/OPAL_WARDROBE.md) for design references, limits and validation.
+
 ## v0.5.2 — Voice checks on your device
 
 Settings → Voice & language now includes **Check my voice**. Play two fixed local samples, compare first/repeat playback latency and see the actual anime worker device (or the CPU runtime used by the lighter engines). Save a small JSON report for troubleshooting. Reports contain selected Companion/voice metadata and timings; no chat, owner memories, recordings or unique hardware identifiers. Checks do not download packs, translate text or use greeting audio caches. Stop, changing Companion or voice settings, and starting other speech cancel the check.
