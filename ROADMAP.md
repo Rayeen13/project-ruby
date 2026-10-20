@@ -205,3 +205,5 @@ Studio product name: **Prismy Studio**, in the proposed Companion Labs Ecosystem
 - Volume, optional gentle digital doubling for robot bodies and clean humanoid playback.
 - Short local greeting cache (8 entries, 1.5 MB per item), once-per-launch greeting after setup, input/mute/Stop cancellation, no LLM dependency.
 - Outstanding: licensed original anime assets, listening/acting quality acceptance, model comparison and target-laptop benchmarks. Existing voices are not relabeled as proven anime acting.
+
+- v0.5.5: isolate Opal cloth physics in a worker; bound catch-up work; terminate stalled simulation and preserve lightweight animation; remove native pointer/drag lock-order cycle; add sustained-shake and UI-heartbeat acceptance.

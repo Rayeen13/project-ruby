@@ -1,4 +1,5 @@
 import {GarmentPhysics} from './garment-physics.js';
+import {GarmentWorker} from './garment-worker-client.js';
 import * as T from './vendor/three.module.js';
 import {GLTFLoader} from './vendor/GLTFLoader.js';
 import {VRMLoaderPlugin,VRMUtils} from './vendor/three-vrm.module.js';
@@ -10,7 +11,7 @@ import {sampleHumanoidArmPose,applyHumanoidArmPose} from './humanoid-gestures.js
 
 // A real CC0 VRoid skinned avatar; source/provenance is in docs/OPAL_ASSET.md.
 export class OpalCharacter {
- constructor({createCanvas=()=>document.createElement('canvas'),createGarmentPhysics=vrm=>GarmentPhysics.create(vrm)}={}){
+ constructor({createCanvas=()=>document.createElement('canvas'),createGarmentPhysics=vrm=>typeof window==='undefined'?GarmentPhysics.create(vrm):GarmentWorker.create(vrm)}={}){
   this.createGarmentPhysics=createGarmentPhysics;this.humanoid=true;this.root=new T.Group();this.body=new T.Group();this.root.add(this.body);this.head=new T.Group();this.body.add(this.head);
   this.profile=GEM_PROFILES.find(p=>p.id==='opal');this.mood='idle';this.gaze=new T.Vector2();this.arms=[];this.feet=[];this.handGestures={};this.outfit='classic';this.outfits=new Map();this.iris=[];
   this.canvas=createCanvas();this.canvas.width=1024;this.canvas.height=512;this.ctx=this.canvas.getContext('2d');this.faceTex=new T.CanvasTexture(this.canvas);this.faceTex.colorSpace=T.SRGBColorSpace;this.faceTex.flipY=false;

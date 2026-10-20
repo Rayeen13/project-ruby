@@ -10,8 +10,8 @@ function check(file){
  if(visited.has(file))return;visited.add(file);
  assert(fs.existsSync(file),'Missing browser module: '+file);
  const source=fs.readFileSync(file,'utf8');
- for(const match of source.matchAll(/(?:from\s*|import\s*(?:\(\s*)?)(['"])(\.[^'"]+)\1/g)){
-  check(path.resolve(path.dirname(file),match[2]));
+ for(const match of source.matchAll(/(?:from\s*|import\s*(?:\(\s*)?|new URL\(\s*)(['"])(\.[^'"]+)\1/g)){
+  if(match[2].endsWith('.js'))check(path.resolve(path.dirname(file),match[2]));
  }
 }
 check(path.join(dist,entry[1]));

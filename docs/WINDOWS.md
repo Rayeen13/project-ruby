@@ -125,3 +125,5 @@ Saved files use `%LOCALAPPDATA%/ProjectRuby/experimental-ai`, including compatib
 Full history is local display/export storage; the compact model sees bounded recent context. Sourced search and VoiceM speech are implemented; microphone input and PC task execution remain future work. Model quality, Hindi and individual laptop/iGPU performance need further acceptance work.
 
 Setup presets: Recommended downloads defaults; Lite omits voices; Custom selects the engine, loaded LLM and matching voice; Pro connects your own stronger local LLM. Pro is not a paid plan. About 1,260 MB default download, with approximately 2.5 GB free disk space recommended for archives/extraction. Female and male voice choices are filtered per Companion. Existing chat and owner notes are retained.
+
+In v0.5.5, Opal’s cloth physics runs outside the UI thread. A slow or failed solver falls back to lightweight motion without resetting the companion or chat. Sustained movement with floating chat open is part of Windows acceptance.
