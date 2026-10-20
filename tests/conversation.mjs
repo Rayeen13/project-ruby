@@ -41,3 +41,12 @@ for(const line of ['are u a friend','Are you my friend?','Are we friends?','Can 
 assert.equal(dialogueGrounding('My friend needs help with algebra.'),'');assert.equal(dialogueGrounding('Can my friend read my password?'),'');assert(dialogueExamples(identity()).some(m=>m.role==='assistant'&&m.content.startsWith('Yes, I am your AI friend')));
 const oldDenial=[{role:'user',content:'I am your friend'},{role:'assistant',content:'I am not a friend.',status:'complete',policyVersion:3,contextKey:characterContextKey(memoryIdentity)}];assert(!contextMessages(oldDenial,memoryIdentity).some(m=>m.content==='I am not a friend.'));
 let generated=0;const actualFriend=new Conversation({identity,storage,provider:{async *stream(){generated++;yield 'Yes, I can keep you company as your AI friend.';}}});await actualFriend.send('are u a friend','local');assert.equal(generated,1,'Friendship replies must still come from the LLM, not local canned output');
+
+// Owner-name cleanup must happen before checking the canonical Companion name.
+for(const name of ['Ruby','Opal','Saph']){
+ const caseChat=new Conversation({identity:()=>({...identity(),name}),provider:{async *stream(){yield `I am here to be a friendly AI companion, ${name}.`;}}});
+ await caseChat.send('kimi wa dare?!','local');
+ assert(caseChat.messages.at(-1).content.startsWith(`I'm ${name}.`),'A vocative removed as an owner-name mistake cannot satisfy Companion identity');
+ assert(!caseChat.messages.at(-1).content.includes(`, ${name}.`));
+}
+console.log('PASS: canonical identity survives owner-name cleanup for Ruby, Opal and Saph.');

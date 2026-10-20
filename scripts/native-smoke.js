@@ -70,7 +70,7 @@
   }finally{URL.createObjectURL=originalCreate;HTMLAnchorElement.prototype.click=originalAnchorClick;}
   document.querySelector('[data-lab-tab="collection"]').click();
   const wardrobeChange=(id,value)=>{const e=document.querySelector(id);if(e.type==='checkbox')e.checked=value;else e.value=value;e.dispatchEvent(new Event('change'));};
-  document.querySelector('[data-profile="opal"]').click();select.value='opal';select.dispatchEvent(new Event('change'));for(let i=0;i<300&&stage.dataset.modelReady!=='true';i++)await wait(100);assert(stage.dataset.modelReady==='true','Actual skinned Opal avatar loads: '+document.querySelector('#interaction-feedback').textContent);await wait(300);assert(stage.dataset.clothEngine==='jolt','Opal uses actual Jolt soft-body garment physics');
+  document.querySelector('[data-profile="opal"]').click();select.value='opal';select.dispatchEvent(new Event('change'));for(let i=0;i<300&&stage.dataset.modelReady!=='true';i++)await wait(100);assert(stage.dataset.modelReady==='true','Actual skinned Opal avatar loads: '+document.querySelector('#interaction-feedback').textContent);await wait(300);assert(stage.dataset.clothEngine==='jolt-worker','Opal uses isolated Jolt worker garment physics');
   const wardrobeRoot=JSON.parse(localStorage.getItem('project-ruby.ddna.seed.v1')).active.opal;
   for(const offset of [0,1,2]){document.querySelector('[data-interaction="wave"]').click();await wait(1100+offset*170);await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'opal_wave_'+offset});await wait(250);}
   for(const outfit of ['classic','rose','evening','work','victorian','bluebell','pinstripe']){wardrobeChange('#opal-outfit',outfit);await wait(350);assert(stage.dataset.outfit===outfit,'Opal wardrobe selects '+outfit);await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'opal_'+outfit});await wait(300);}
@@ -295,6 +295,21 @@ document.querySelector('#voice-light-preset').click();await wait(150);
   await window.__TAURI__.core.invoke('desktop_smoke_checkpoint',{phase:'dizzy'});await wait(2500);
   for(let i=0;i<50&&stage.dataset.dizzy==='true';i++)await wait(100);
   assert(stage.dataset.dizzy==='false','Dizzy reaction recovers automatically');
+  // Exercise the Windows state-lock path with Opal and expanded chat while
+  // global cursor tracking and repeated worker cloth previews are active.
+  document.querySelector('[data-profile="opal"]').click();select.value='opal';select.dispatchEvent(new Event('change'));await wait(700);document.querySelector('#chat-launcher').click();await wait(500);
+  assert((await window.__TAURI__.core.invoke('desktop_status')).chatOpen,'Opal movement stress runs with floating chat open');
+  let shakeBeats=0,maxShakePause=0,lastBeat=performance.now(),lastRender=Number(stage.dataset.renderedAt),advanced=0;
+  const shakePulse=setInterval(()=>{const now=performance.now();maxShakePause=Math.max(maxShakePause,now-lastBeat);lastBeat=now;shakeBeats++;},20);
+  try{for(let i=0;i<320;i++){
+   if(i%45===0)document.querySelector('#opal-cloth-preview').click();
+   await Promise.race([window.__TAURI__.core.invoke('desktop_move',{dx:i%2?65:-65,dy:i%4<2?3:-3}),wait(2500).then(()=>{throw Error('Native Opal movement stopped responding');})]);
+   await wait(35);const next=Number(stage.dataset.renderedAt);if(next>lastRender)advanced++;lastRender=next;
+  }}finally{clearInterval(shakePulse);}
+  assert(shakeBeats>200&&maxShakePause<1500,'Opal sustained native shake keeps UI timers responsive: '+maxShakePause.toFixed(0)+'ms maximum pause');
+  assert(advanced>20&&stage.dataset.graphics==='ready','Opal sustained native shake keeps rendering');
+  assert(stage.dataset.clothEngine==='jolt-worker','Sustained shaking keeps the dedicated cloth worker healthy');
+  document.querySelector('#chat-close').click();document.querySelector('[data-profile="ruby"]').click();select.value='gamer';select.dispatchEvent(new Event('change'));await wait(400);
   const status=()=>window.__TAURI__.core.invoke('desktop_status');
   const action=action=>window.__TAURI__.core.invoke('desktop_action',{action});
   await action('toggle_pin');assert(!(await status()).pinned,'Unpin disables always-on-top');

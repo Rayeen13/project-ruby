@@ -205,3 +205,7 @@ The Windows Studio uses a custom title bar with drag, minimize, maximize/restore
 Robot bodies are interchangeable shells for the active gem identity. Ruby stays Ruby across Gamer, Office and other robot bodies, including her saved personality and voice. Selecting Opal's humanoid body selects Opal herself: her maid character, own DDNA, voice defaults, colour and saved customizations. Gem selection returns to the last robot shell; Opal is not a robot-shell skin. Existing settings migrate without deleting memory or DDNA.
 
 See [product architecture and hosting](docs/PRODUCT_ARCHITECTURE.md).
+
+### v0.5.5 shake-freeze recovery
+
+Opal’s Jolt cloth solver runs in a dedicated worker with bounded requests and a stall watchdog. A failed solver falls back to lightweight animated clothing while chat remains available. Windows pointer tracking no longer holds desktop state while requesting a UI window property. See [recovery details](docs/VOICE_RENDER_RECOVERY.md).
