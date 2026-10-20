@@ -72,7 +72,11 @@ try {
     $rubyHandle = [RubyBounds]::FindCompanion([uint32]$rubyProcess.Id)
     if ($rubyHandle -eq [IntPtr]::Zero) { Start-Sleep -Milliseconds 100; continue }
     if (Test-Path ruby-native-phase.txt) {
-      $phase = (Get-Content ruby-native-phase.txt -Raw).Trim()
+      # The app rewrites this checkpoint concurrently. A zero-byte or locked
+      # snapshot is transient, not an application failure.
+      $phaseText = Get-Content ruby-native-phase.txt -Raw -ErrorAction SilentlyContinue
+      if ([string]::IsNullOrWhiteSpace($phaseText)) { Start-Sleep -Milliseconds 20; continue }
+      $phase = $phaseText.Trim()
       if (-not $seen.ContainsKey($phase)) {
         $seen[$phase] = $true
         if ($phase -eq 'recovery') {
